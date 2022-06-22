@@ -1,0 +1,842 @@
+body {
+  max-height: 100vh;
+}
+
+#body-row {
+  margin-left:0;
+  margin-right:0;
+}
+
+#main-menu .list-group-item { 
+  border: 1px solid gray !important;
+}
+
+/* loading dots */
+
+.loading:after {
+  content: ' .';
+  animation: dots 1s steps(5, end) infinite;}
+
+@keyframes dots {
+  0%, 20% {
+    color: rgba(0,0,0,0);
+    text-shadow:
+      .25em 0 0 rgba(0,0,0,0),
+      .5em 0 0 rgba(0,0,0,0);}
+  40% {
+    color: rgb(0, 0, 0);
+    text-shadow:
+      .25em 0 0 rgba(0,0,0,0),
+      .5em 0 0 rgba(0,0,0,0);}
+  60% {
+    text-shadow:
+      .25em 0 0 rgb(0, 0, 0),
+      .5em 0 0 rgba(0,0,0,0);}
+  80%, 100% {
+    text-shadow:
+      .25em 0 0 white,
+      .5em 0 0 white;}}
+
+.btn {
+	color: #FFFFFF !important;
+}
+/* ---------------------------------------------------
+  Sidebar and general navbar styling
+----------------------------------------------------- */
+.sidebar-container {
+  height: 90vh;   
+  background-color: #333;
+  padding: 0;
+  overflow: auto;
+}
+
+.sidebar-title{
+  padding: 15px;
+}
+
+/* Sidebar sizes when expanded and expanded */
+.sidebar-expanded {
+  width: 230px;
+}
+.sidebar-collapsed {
+  width: 60px;
+}
+
+/* Menu item*/
+.sidebar-container .list-group a {
+  height: 50px;
+  color: white;
+}
+
+#layers-menu .list-group a {
+  height: 70px !important;
+  color: white;
+}
+
+.sidebar-menu-header {
+  font-size: .9rem;
+}
+
+/* Submenu item*/
+.sidebar-container .list-group .sidebar-submenu a {
+  height: 45px;
+  padding-left: 5px;
+}
+.sidebar-submenu {
+  font-size: 0.9rem;
+}
+
+/* Separators */
+.sidebar-separator-title {
+  background-color: #333;
+  height: 35px;
+}
+.sidebar-separator {
+  background-color: #333;
+  height: 25px;
+}
+.logo-separator {
+  background-color: #333;  
+  height: 60px;
+}
+
+/* Closed submenu icon */
+.sidebar-container 
+.list-group 
+.list-group-item[aria-expanded="false"] 
+.submenu-icon::after {
+  content: " \f0d7";
+  font-family: FontAwesome;
+  display: inline;
+  text-align: right;
+  padding-left: 10px;
+}
+
+/* Opened submenu icon */
+.sidebar-container 
+.list-group 
+.list-group-item[aria-expanded="true"] 
+.submenu-icon::after {
+  content: " \f0da";
+  font-family: FontAwesome;
+  display: inline;
+  text-align: right;
+  padding-left: 10px;
+}
+
+/*layers submenu*/
+.layers-items label {
+  font-size: .8rem !important;
+}
+
+.inner-layer-header h7 {
+  line-height: 1;
+}
+
+.layers-items {
+  padding-bottom: 1rem;
+} 
+
+.inner-layer-op {
+  border-bottom: 1px solid gray;
+  margin-bottom: .5rem;
+}
+
+/* ---------------------------------------------------
+  MAP
+----------------------------------------------------- */
+#map { 
+  position: absolute; 
+  top:0; 
+  bottom:0; 
+  width:100%; 
+}
+
+/**
+ * * Set rules for how the map overlays
+ * * (info box and legend) will be displayed
+ * * on the page. */
+#map-container {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.map-overlay {
+  top: 0;   
+  height: 50vh;   
+  margin-top: 1vh;   
+  width: 18vw;
+  position: absolute;   
+  bottom: 0;   
+  right: 2vw;   
+  margin-right: 20px;   
+  font-family: Arial, sans-serif;   
+  border-radius: 3px; 
+  max-height: 80vh;
+  background-color: rgba(255, 255, 255, 0.75);
+}
+
+.map-overlay > h4 {
+  color: #1e7e34;
+  font-weight: bold;
+}
+
+/* ---------------------------------------------------
+  Filter selection and fields
+----------------------------------------------------- */
+
+.filter-selection {
+  width: 97%;
+  margin-bottom: .5em;	
+}
+
+.option {
+  margin: 5px;
+}
+
+.select2-container { 
+  width: 100% !important;
+}
+
+.hidden {
+  display: none !important;
+}
+
+
+/* ---------------------------------------------------
+  Override CSS and default theme
+----------------------------------------------------- */
+@media (min-width: 34em){ 
+  .navbar {
+  border-radius: 0 !important;
+  }
+}
+
+.navbar-brand>img {
+  display: inline-block !important;
+}
+
+.modal.fade
+.modal-dialog {
+  transform: none !important;
+}
+
+.modal-backdrop.fade {
+  opacity: .5 !important;
+}
+
+.navbar-brand img{
+  width: 35vh;
+}
+
+#cartogratreeTitle img{
+  width: 40vh;
+}
+
+/* ---------------------------------------------------
+  LEGEND STYLING
+----------------------------------------------------- */
+#legend{
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  line-height: 18px;
+  bottom: 0;
+  margin-bottom: 5vh;
+  position: absolute;
+  left: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  margin-right: 20px;
+  font-family: Arial, sans-serif;
+  overflow: auto;
+  border-radius: 3px;
+  z-index: 2;
+}
+
+.non-img-legend{
+  height: 35vh;
+  width: 20vw;
+}
+
+.neon-legend-key{
+  display: inline-block;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.soil-legend-key{
+  display: inline-block;
+  //border-radius: 20%;
+  width: 25px;
+  height: 10px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.soil-legend-key:hover{
+  width: 27px;
+}
+
+.soil-legend-key.active{
+  border: 1px solid black;
+}
+
+.legend-label.active{
+  font-weight:bold;
+}
+
+#legend-content{
+  margin-top: 20px;
+  padding: 15px;
+}
+
+#legend-title-container{
+  position: fixed;
+  background-color: white;
+  width: inherit;
+  padding: 7px;
+}
+
+.sidebar-submenu .layers-items-header{
+  background-color: #FFFFFF !important;
+  padding: .3em !important;
+  border-bottom: 1px solid #000000 !important;
+}
+
+.sidebar-submenu .layers-items-header a{
+  color: #000000 !important;
+}
+
+/* ---------------------------------------------------
+	POPUP
+----------------------------------------------------- */
+/* Marker popup tweaks */
+//custom marker maybe
+.marker{
+	border: none;
+	cursor: pointer;
+	height: 56px;
+	width: 56px;
+	background-image: url(marker.png);
+	background-color: rgba(0, 0, 0, 0);
+}
+.mapboxgl-popup{
+	z-index: 3;
+	padding-bottom: 50px;
+  max-width: none !important;
+  width: 45% !important;
+}
+.mapboxgl-popup-close-button{
+	z-index: 2;
+	color: red;
+	background-color: white;
+}
+.mapboxgl-popup-content{
+	font:400 15px/22px 'Source Sans Pro', 'Helvetica Neue', Sans-serif;
+	padding:10px;
+  width: 95% !important;
+}
+.mapboxgl-popup-content-wrapper{
+	padding:1%;
+}
+.mapboxgl-popup-content h3{
+	background-color:#ff8300;
+	color:#ffffff;
+	margin:0;
+	display:block;
+	padding:4px;
+	border-radius:3px 3px 0 0;
+	font-weight:700;
+	margin-top:-15px;
+	font-size: 14px;
+}
+.mapboxgl-popup-content h4{
+	margin:0;
+	display:block;
+	font-weight:400;
+  font-size: 0.75rem !important;
+}
+
+.mapboxgl-popup-content div:first-child{
+	width: 100%;
+}
+
+.mapboxgl-popup-content .card {
+  max-height: 260px;
+}
+
+.mapboxgl-popup-content .card-header {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding: 10px;
+  height: 80px;
+}
+
+
+.mapboxgl-container .leaflet-marker-icon{
+	cursor:pointer;
+}
+.mapboxgl-ctrl-geocoder{
+	border: 2px solid #ff8300;
+	border-radius: 0;
+	position: relative;
+	top: 0;
+	width: 800px;
+	margin-top: 0;
+	border: 0;
+}
+.mapboxgl-ctrl-geocoder > div{
+	min-width:100%;
+	margin-left:0;
+}
+
+.environmental-values table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.environmental-values table tr:nth-child(even) td:nth-child(odd) {
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.environmental-values table tr:nth-child(even) td:nth-child(even) {
+  text-transform: uppercase;
+  font-size: 12px;
+  text-align: right;
+  padding-right: 10px;
+}
+
+.environmental-values table tr:nth-child(odd) {
+  background-color: #dce4e2;
+}
+
+.environmental-values table tr:nth-child(odd) td:nth-child(odd) {
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.environmental-values table tr:nth-child(odd) td:nth-child(even) {
+  text-transform: uppercase;
+  font-size: 12px;
+  text-align: right;
+  padding-right: 10px;
+}
+
+.rule-value-container {
+  display: block !important;
+  padding: 0px !important;
+}
+
+.selectize-control {
+  display:block !important;
+  padding: 0px !important;
+  border: 0px !important;  
+}
+
+.selectize-input {
+  padding: 0.375rem 0.75rem !important;
+  font-size: 1rem !important;
+}
+
+/* slides tweaks */
+.carousel-item .card{
+	margin: 0 auto;
+}
+.carousel-item{
+	width: 80%;
+	margin: 0 auto;
+}
+.carousel-control-prev-icon, .carousel-control-next-icon{
+	background-color: black;
+}
+.carousel-control-next{
+	float: right;
+}
+.carousel-control-prev{
+	float: left;
+}
+.card-header p{
+	color: white;
+	padding: unset;
+}
+.card-body{
+	padding: unset;
+}
+.card-body > .row{
+	margin: 0;
+}
+.add-tree-btn{
+	float: left;
+}
+.card{
+	margin-bottom: 0px !important;
+}
+
+#tree-details {
+  z-index: 2;
+}
+
+.carousel-indicators {
+  display: none;
+}
+
+#tree-details-env-values{
+	max-height: 6em;
+	overflow-y: scroll;
+}
+.environmental-values{
+	max-height: 250px;
+	overflow-y: scroll;
+}
+.environmental-values > .list-group-item{
+	padding: 1.5rem 1.25rem !important;
+}
+.treesnap-logo, .dryad-logo{
+	width: 2rem;
+}
+.treegenes-logo{
+	width: 7rem;
+}
+.popup-attr{
+	width: 10em;
+	padding: .8em;
+}
+.pheno-prop-container{
+	max-height: 3em;
+	overflow-y: scroll;
+}
+
+/* ---------------------------------------------------
+  ANALYSIS FORM STYLING
+----------------------------------------------------- */
+.right-btn{
+	float: right;
+}
+.left-btn{
+	float: left;
+}
+
+/* ---------------------------------------------------
+  OVERRIDE STYLING
+----------------------------------------------------- */
+h6, .h6 {
+  font-size: .9rem !important;
+}
+
+#organism-container > .row {
+  width: 100%;
+  margin: 0;
+}
+
+.list-group-item {
+  border: none !important;
+}
+
+.navbar{
+  background-color: #112d32 !important;
+}
+
+#publications-filters-container {
+  padding-right: 0;
+}
+
+/* ---------------------------------------------------
+  SELECT OVERRIDE STYLING
+----------------------------------------------------- */
+/*
+.select2-selection__rendered li {
+  width: 100%;
+  //background-color: #FFFFFF !important;
+}
+
+.select2-search {
+  background-color: #FFFFFF !important;
+}
+
+.select2-selection__rendered {
+  background-color: #343A40;
+  padding: 0 !important;
+}
+
+.select2-selection__rendered > .select2-selection__choice {
+  padding: 5px !important;
+  font-size: .9rem !important;
+  text-align: left !important;
+}
+*/
+.select2-search__field {
+  width: 100% !important;
+}
+
+
+/* ---------------------------------------------------
+  MISC STYLING
+----------------------------------------------------- */
+.opacity {
+  max-width: 100%;
+} 
+
+.inner-list-header {
+  color: #FFFFFF;
+}
+
+.white-break-line {
+  background-color: #FFFFFF;
+}
+
+#tree-filter-type-select {
+  padding-left: 5px;
+  font-size: .8rem;
+}
+
+.divider {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.selected-filters-container {
+  padding: 1rem;
+  background-color: #FFFFFF;
+}
+
+.selected-filters-container h5 {
+  font-weight: 650;
+}
+
+.selected-filters-container-item {
+  padding: .7rem;
+  font-size: .8rem;
+  font-weight: 500;
+  min-width: 90%;
+}
+
+.selected-filters-container-item > .badge-light{
+  float: right;
+}
+
+.highlight {
+  border-color: rgba(126, 239, 104, 0.8);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(126, 239, 104, 0.6);
+  outline: 0 none;
+}
+
+.remove-filter-item {
+  float: left;
+  cursor: pointer;
+}
+
+.selected-filter-item {
+  padding: .2rem !important;
+}
+
+.selected-filter-item span {
+  display: block;
+  white-space: normal;
+}
+
+#family-filter-container, #genus-filter-container, #species-filter-container{
+  overflow-y: scroll;
+  max-height: 25vh;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+#user-dropdown-profile {
+  width: 100%;
+}
+
+.reload-tree-data {
+  //float: right;
+}
+
+.clear-all-selection {
+  float: left;
+}
+
+.organism-section-header {
+  float: right;
+}
+
+#saved-session-list > div {
+  margin-left: 1rem;
+}
+
+.delete-saved-session {
+  max-height: 2rem !important;
+  width: 33%;
+}
+
+#fieldsite-data {
+  overflow-y: scroll;
+  max-height: 30vh;
+}
+
+a.list-group-item:focus, a.list-group-item-action:hover{
+  color: #FFFFFF !important;
+}
+
+.row-100 {
+  width: 100%;
+}
+
+#clear-filters {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+#clear-filters:hover {
+  color: #ffffff;
+}
+
+/*
+.layers-container {
+  overflow-y: scroll;
+  max-height: 40vh;
+}
+*/
+.query-builder .rules-group-container {
+  background-color: #ffffff !important;
+}
+
+.rules-group-header > div > button {
+  font-size: 10px !important;
+  padding: 4px 6px;
+  margin-right: 3px;
+}
+
+.rules-group-header > div > button:focus {
+  padding: 5px 6.5px;
+}
+
+.rule-header > div > button {
+  font-size: 10px !important;
+}
+
+.rule-value-container > select {
+  min-width: 270px;
+  max-width: 270px;
+  text-overflow: ellipsis;
+}
+
+.group-conditions > .btn-primary {
+  background-color: #6c757d;
+}
+
+.group-conditions > .btn-primary:hover { 
+  background-color: #6c757d;
+}
+
+#tree-details-wrapper > .card {
+  background-color: rgba(255, 255, 255, 0.85);
+}
+
+#tree-details-wrapper > ul > li {
+  background-color: rgba(255, 255, 255, 0.85);
+}
+
+#tree-ids-list {
+  overflow-y: scroll;
+  overflow-x: hidden;
+  max-height: 15vh;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+#tree-ids-list > div > .btn {
+  width: 35% !important;
+}
+
+#tree-ids-list > div {
+  margin-bottom: 0.5rem;
+}
+
+#tree-ids-list > div > .badge {
+  font-size: 100%;
+  line-height: 1.5 !important;
+}
+
+.tree-card {
+  width: 100%;
+}
+
+.tree-card > div > h5 > button {
+  font-size: 16px;
+}
+
+.tree-img > img{
+  width: 50% !important;
+  margin: 0 auto;
+}
+
+#save-session-list > a > h4, h5, p {
+  color: #000000 !important;
+}
+
+#save-session-list > a > div {
+  color: #000000 !important;
+}
+
+.session-title {
+  color: #000000 !important;
+}
+
+.img-full > img {
+  width: 100%;
+  //margin: 10px;
+}
+
+#tree-details-extra {
+  max-height: 10vh;
+  overflow-y: scroll;
+}
+
+#tree-details-extra > li {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+@media (min-width:48em){
+	.modal-lg {
+		max-width: 80% !important;
+		width: 100% !important;
+	}
+}
+
+#more_info_phenotype_table th,  #more_info_genotype_table th{
+    background-color: #589a60;
+    color: #FFFFFF;
+    padding: 5px;
+	border: 1px solid #41824c;
+}
+
+#more_info_phenotype_table td,  #more_info_genotype_table td{
+    background-color: #FFFFFF;
+    color: #000000;
+    padding: 5px;
+	border: 1px solid #e0e0e0;	
+}
+
+/* Legend Scrollbar */
+/* width */
+#legend::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Track */
+#legend::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+#legend::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+/* Handle on hover */
+#legend::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

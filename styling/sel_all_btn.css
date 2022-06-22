@@ -1,0 +1,13 @@
+/* */
+
+.btn-sel-all {
+	padding: 3px !important;
+    font-size: 9px !important;
+    margin-top: -5px !important;
+    color: #949494 !important;
+}
+
+.btn-sel-all.active {
+	background-color: #5cb85c !important;
+	color: #FFFFFF !important;
+}

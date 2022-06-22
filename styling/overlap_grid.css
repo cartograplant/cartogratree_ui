@@ -1,0 +1,22 @@
+.overlap_all[is_selected="false"] {
+    fill: #80d8a7;
+}
+.overlap_all[is_selected="true"] {
+    fill: #00b418;
+}
+
+
+.overlap_some[is_selected="false"] {
+    fill: #ffdf7f;
+}
+
+.overlap_some[is_selected="true"] {
+    fill: rgb(255, 230, 0);
+}
+
+.overlap_none[is_selected="false"] {
+    fill: #ff7f7f;
+}
+.overlap_none[is_selected="true"] {
+    fill: #e60808;
+}

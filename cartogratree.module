@@ -1,0 +1,1396 @@
+<?php
+
+include_once(drupal_get_path('module', 'cartogratree') . '/includes/cartogratree.analysis.api.inc');
+include_once(drupal_get_path('module', 'cartogratree') . '/includes/cartogratree.cron.api.inc');
+
+/**
+ * @file
+ * Custom functionality for the CartograTree application.
+ */
+//define("CARTOGRATREE_COMPATIBLE_MAJOR_VERSION", '4');
+
+/**
+ * Implements hook_menu().
+ * Register paths in order to define how URL requests are handled.
+ */
+function cartogratree_menu() {
+    $items = array();
+    // User interface
+    $items['cartogratree'] = array(
+        'title' => 'CartograTree',
+        'description' => 'CartograTree Landing Page',
+		'access arguments' => array(
+			'use cartogratree',
+    	),
+    );
+	
+
+    $items['cartogratree_test/create_grid'] = array(
+        'description' => 'Cartogratree TEST: CREATE GRID',
+        'title' => 'Cartogratree TEST: CREATE GRID',
+        'page callback' => 'cartogratree_test_create_grid',
+		'access arguments' => array(
+			'use cartogratree',
+    	), 
+        'file' => 'includes/cartogratree.test.inc',       
+    ); 
+
+    $items['cartogratree%'] = array(
+        'title' => 'CartograTree',
+        'description' => 'CartograTree Landing Page',
+        'access arguments' => array('access content'),
+    );
+
+
+    $items['cartogratree_data_collection'] = array(
+        'description' => 'CartograTree: prepare data collection.',
+        'title' => 'CartograTree data collection',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_data_collection_form'),
+        'access arguments' => array('cartogratree analysis'),
+        'file' => 'includes/cartogratree.user.inc',
+    );
+
+    $items['cartogratree_galaxy_workflow/%/history/%'] = array(
+        'description' => 'CartograTree: execute Galaxy workflow.',
+        'title' => 'CartograTree Galaxy workflow',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_galaxy_workflow_form', 1, 3),
+        'access arguments' => array('cartogratree analysis'),
+        'file' => 'includes/cartogratree.user.inc',
+    );
+
+
+    //UIJOBS / UI JOBS
+
+    // % is the page number (default is 1)
+    $items['cartogratree_uijobs/get_user_jobs/%'] = array(
+        'description' => 'Cartogratree JOBS API: Get User Jobs',
+        'title' => 'Cartogratree JOBS API: download historycontents file',
+        'page callback' => 'cartogratree_jobsapi_get_user_jobs',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.jobs.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );    
+
+    //UIANALYSIS / UI ANALYSIS
+    //args: galaxy_id, history_id, history_file_id
+    $items['cartogratree_uianalysis/download_historycontents_file/%/%/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: Download HistoryContents File',
+        'title' => 'Cartogratree ANALYSIS API: download historycontents file',
+        'page callback' => 'cartogratree_analysisapi_download_historycontents_file',
+        'page arguments' => array(
+            2,
+            3,
+            4,
+        ),          
+        'file' => 'includes/cartogratree.analysis.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );
+
+
+    $items['cartogratree_uianalysis/get_invocation_outputs/%/%/%/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: Get invocation outputs',
+        'title' => 'Cartogratree ANALYSIS API: get invocation outputs',
+        'page callback' => 'cartogratree_analysisapi_get_invocation_outputs',
+        'page arguments' => array(
+            2,
+            3,
+            4,
+            5,
+        ),          
+        'file' => 'includes/cartogratree.analysis.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );  
+ 
+    $items['cartogratree_uianalysis/get_invocation_details/%/%/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: Get invocation details',
+        'title' => 'Cartogratree ANALYSIS API: get invocation details',
+        'page callback' => 'cartogratree_analysisapi_get_invocation_details',
+        'page arguments' => array(
+            2,
+            3,
+            4
+        ),          
+        'file' => 'includes/cartogratree.analysis.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );    
+
+    $items['cartogratree_uianalysis/get_job_details/%/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: Get job details',
+        'title' => 'Cartogratree ANALYSIS API: get job details',
+        'page callback' => 'cartogratree_analysisapi_get_job_details',
+        'page arguments' => array(
+            2,
+            3,
+        ),          
+        'file' => 'includes/cartogratree.analysis.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );
+
+    $items['cartogratree_uianalysis/get_latest_job_details/%/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: Get job details',
+        'title' => 'Cartogratree ANALYSIS API: get job details',
+        'page callback' => 'cartogratree_analysisapi_get_latest_job_details',
+        'page arguments' => array(
+            2,
+            3,
+        ),          
+        'file' => 'includes/cartogratree.analysis.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );
+
+    $items['cartogratree_uianalysis/get_history_details/%/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: Get history details',
+        'title' => 'Cartogratree ANALYSIS API: get history details',
+        'page callback' => 'cartogratree_analysisapi_get_history_details',
+        'page arguments' => array(
+            2,
+            3,
+        ),          
+        'file' => 'includes/cartogratree.analysis.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );    
+
+    $items['cartogratree_uianalysis/delete_history_content_id/%/%/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: Delete history content id',
+        'title' => 'Cartogratree ANALYSIS API: delete history content id',
+        'page callback' => 'cartogratree_analysisapi_delete_history_content_id',
+        'page arguments' => array(
+            2,
+            3,
+            4,
+        ),          
+        'file' => 'includes/cartogratree.analysis.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );      
+
+    $items['cartogratree_uianalysis/create_new_history_for_user'] = array(
+        'description' => 'Cartogratree ANALYSIS API: Create new history for user',
+        'title' => 'Cartogratree ANALYSIS API: Create new history',
+        'page callback' => 'cartogratree_analysisapi_create_new_history_for_user',
+        'page arguments' => array(
+            2,
+            3
+        ),          
+        'file' => 'includes/cartogratree.analysis.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    ); 
+
+    $items['cartogratree_uianalysis/get_all_galaxy_accounts'] = array(
+        'description' => 'Cartogratree ANALYSIS API: get all galaxy accounts',
+        'title' => 'Cartogratree ANALYSIS API: get all galaxy accounts',
+        'page callback' => 'cartogratree_analysisapi_get_all_galaxy_accounts',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.analysis.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    ); 
+    
+    
+    $items['cartogratree_uianalysis/get_all_history_from_galaxy_account/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: get all history from galaxy account',
+        'title' => 'Cartogratree ANALYSIS API: get all history from galaxy account',
+        'page callback' => 'cartogratree_analysisapi_get_all_history_from_galaxy_account',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.analysis.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );  
+
+    $items['cartogratree_uianalysis/get_all_workflows_from_galaxy_account/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: get all workflows from galaxy account',
+        'title' => 'Cartogratree ANALYSIS API: get all workflows from galaxy account',
+        'page callback' => 'cartogratree_analysisapi_get_all_workflows_from_galaxy_account',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.analysis.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );      
+
+    // first argument is galaxy_id, second argument is workflow_id, third arugment is the history_id
+    $items['cartogratree_uianalysis/get_workflow_input_types/%/%/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: get workflow input types',
+        'title' => 'Cartogratree ANALYSIS API: get workflow input types',
+        'page callback' => 'cartogratree_analysisapi_get_workflow_input_types',
+        'page arguments' => array(
+            2,
+            3,
+            4
+        ),          
+        'file' => 'includes/cartogratree.analysis.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );  
+
+    $items['cartogratree_uianalysis/upload_file_to_history'] = array(
+        'description' => 'Cartogratree ANALYSIS API: upload_file_to_history',
+        'title' => 'Cartogratree ANALYSIS API: upload file to history',
+        'page callback' => 'cartogratree_analysisapi_upload_file_to_history',
+        'page arguments' => array(),          
+        'file' => 'includes/cartogratree.analysis.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );
+
+
+    $items['cartogratree_uianalysis/initiate_job'] = array(
+        'description' => 'Cartogratree ANALYSIS API: initiate job',
+        'title' => 'Cartogratree ANALYSIS API: initiate job.',
+        'page callback' => 'cartogratree_analysisapi_initiate_job',
+        'page arguments' => array(),          
+        'file' => 'includes/cartogratree.analysis.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );    
+
+    //UIAPI / UI API
+
+
+    $items['cartogratree_uiapi/study_files/%'] = array(
+        'description' => 'Cartogratree UI API: Study Files',
+        'title' => 'Cartogratree UI API: Study Files',
+        'page callback' => 'cartogratree_uiapi_get_study_files',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    ); 
+
+    $items['cartogratree_uiapi/layer_click_tracking_click/%'] = array(
+        'description' => 'Cartogratree UI API: layer click tracking click.',
+        'title' => 'Cartogratree UI API: layer click tracking click.',
+        'page callback' => 'cartogratree_uiapi_layer_click_tracking_click',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );      
+
+    // cartogratree_uiapi_get_biome_by_treeid
+    $items['cartogratree_uiapi/get_biome_by_treeid/%'] = array(
+        'description' => 'Cartogratree UI API: get biome by tree id.',
+        'title' => 'Cartogratree UI API: get biome by tree id.',
+        'page callback' => 'cartogratree_uiapi_get_biome_by_treeid',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );    
+
+    $items['cartogratree_uiapi/get_groups_list'] = array(
+        'description' => 'Cartogratree UI API: get groups list.',
+        'title' => 'Cartogratree UI API: get groups list.',
+        'page callback' => 'cartogratree_uiapi_get_groups_list',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );
+
+    // cartogratree_uiapi_get_groups_by_analysis_category_id
+    $items['cartogratree_uiapi/get_groups_by_analysis_category_id/%'] = array(
+        'description' => 'Cartogratree UI API: get groups by analysis category id.',
+        'title' => 'Cartogratree UI API: get groups by analysis category id.',
+        'page callback' => 'cartogratree_uiapi_get_groups_by_analysis_category_id',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );  
+    
+    // get_layers_by_analysis_category_id_and_group_id
+    $items['cartogratree_uiapi/get_layers_by_analysis_category_id_and_group_id/%/%'] = array(
+        'description' => 'Cartogratree UI API: get_layers_by_analysis_category_id_and_group_id',
+        'title' => 'Cartogratree UI API: get_layers_by_analysis_category_id_and_group_id ',
+        'page callback' => 'cartogratree_uiapi_get_layers_by_analysis_category_id_and_group_id',
+        'page arguments' => array(
+            2,
+            3,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );     
+
+    $items['cartogratree_uiapi/get_analysis_categories_list'] = array(
+        'description' => 'Cartogratree UI API: get analysis categories list.',
+        'title' => 'Cartogratree UI API: get analysis categories list.',
+        'page callback' => 'cartogratree_uiapi_get_analysis_categories_list',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );
+
+    $items['cartogratree_uiapi/get_layers_list'] = array(
+        'description' => 'Cartogratree UI API: get layers list.',
+        'title' => 'Cartogratree UI API: get layers list.',
+        'page callback' => 'cartogratree_uiapi_get_layers_list',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );
+
+    $items['cartogratree_uiapi/get_layer_info/%'] = array(
+        'description' => 'Cartogratree UI API: get layer information.',
+        'title' => 'Cartogratree UI API: get layer information.',
+        'page callback' => 'cartogratree_uiapi_get_layer_information',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );
+
+    $items['cartogratree_uiapi/get_layer_embedded_fields_hide/%'] = array(
+        'description' => 'Cartogratree UI API: get layer embedded fields to hide.',
+        'title' => 'Cartogratree UI API: get layer embedded fields to hide.',
+        'page callback' => 'cartogratree_uiapi_get_layer_embedded_fields_hide',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );    
+
+    $items['cartogratree_uiapi/get_layer_embedded_fields_rename/%'] = array(
+        'description' => 'Cartogratree UI API: get layer embedded fields to rename.',
+        'title' => 'Cartogratree UI API: get layer embedded fields to rename.',
+        'page callback' => 'cartogratree_uiapi_get_layer_embedded_fields_rename',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );        
+
+    $items['cartogratree_uiapi/get_layer_embedded_data_eval/%'] = array(
+        'description' => 'Cartogratree UI API: get layer embedded data eval.',
+        'title' => 'Cartogratree UI API: get layer embedded data evel.',
+        'page callback' => 'cartogratree_uiapi_get_layer_embedded_data_eval',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    ); 
+
+    // ADMINISTRATION.
+    // List servers and layers.
+    $items['admin/cartogratree/settings'] = array(
+        'title' => 'CartograTree Admin',
+        'description' => 'Provides a form so users can manage GIS server settings, and layers.',
+        'page callback' => 'cartogratree_admin_list',
+        'page arguments' => array(),
+        //'access arguments' => array('administer cartogratree'),
+        'access arguments' => array('use cartogratree'),
+        //'access callback' => TRUE,
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // ==============================================================================================================
+    // -- Add servers.
+    $items['admin/cartogratree/settings/servers/add'] = array(
+        'title' => 'Add CartograTree Servers',
+        'description' => 'Provide servers used by the CartograTree application.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_servers_form', 'add'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+        'type' => MENU_CALLBACK,
+    );
+
+    // -- Edit servers.
+    $items['admin/cartogratree/settings/servers/edit'] = array(
+        'title' => 'Update CartograTree Servers',
+        'description' => 'Update servers used by the CartograTree application.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_servers_form', 'edit'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Add Geoserver dataset.
+    $items['admin/cartogratree/settings/geoserver_dataset/add'] = array(
+        'title' => 'Add Geoserver Dataset',
+        'description' => 'Make a geoserver dataset available in CartograTree application.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_geoserver_dataset_form', 'add'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Edit dataset.
+    $items['admin/cartogratree/settings/geoserver_dataset/edit'] = array(
+        'title' => 'Edit Geoserver Dataset',
+        'description' => 'Edit a Geoserver dataset available in CartograTree application.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_geoserver_dataset_form', 'edit'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );    
+
+
+    // -- Delete dataset.
+    $items['admin/cartogratree/settings/geoserver_dataset/delete'] = array(
+        'title' => 'Delete Geoserver Dataset',
+        'description' => 'Delete a Geoserver dataset available in CartograTree application.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_geoserver_dataset_form', 'delete'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    ); 
+        
+    // ==============================================================================================================
+    // -- Add group.
+    $items['admin/cartogratree/settings/group/add'] = array(
+        'title' => 'Add CartograTree groups for layers',
+        'description' => 'Make a group available to the CartograTree application.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_group_form', 'add'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Edit group.
+    $items['admin/cartogratree/settings/group/edit'] = array(
+        'title' => 'Edit CartograTree group',
+        'description' => 'Edit an existing CartograTree group.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_group_form', 'edit'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Delete group.
+    $items['admin/cartogratree/settings/group/delete'] = array(
+        'title' => 'Delete CartograTree group',
+        'description' => 'Delete an existing CartograTree group.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_group_form', 'delete'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Add subgroups
+    $items['admin/cartogratree/settings/group/%/subgroups'] = array(
+        'title' => 'Group management',
+        'description' => 'Add or remove sublayers to a group.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_group_management_form', 4),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Remove subgroup (no confirm)
+    $items['admin/cartogratree/settings/group/%/remove-subgroup/%'] = array(
+        'title' => 'Remove subgroup from group',
+        'description' => 'Handle subgroup membership for a group.',
+        'page callback' => 'cartogratree_admin_group_remove_subgroup',
+        'page arguments' => array(4, 6),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // ==============================================================================================================
+    // -- Add subgroup.
+    $items['admin/cartogratree/settings/subgroup/add'] = array(
+        'title' => 'Add CartograTree subgroup for layers',
+        'description' => 'Make a subgroup available to the CartograTree application.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_subgroup_form', 'add'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Edit subgroup.
+    $items['admin/cartogratree/settings/subgroup/edit'] = array(
+        'title' => 'Edit CartograTree subgroup',
+        'description' => 'Edit an existing CartograTree subgroup.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_subgroup_form', 'edit'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Delete subgroup.
+    $items['admin/cartogratree/settings/subgroup/delete'] = array(
+        'title' => 'Delete CartograTree subgroup',
+        'description' => 'Delete an existing CartograTree subgroup.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_subgroup_form', 'delete'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // ==============================================================================================================
+    // -- Add layer.
+    $items['admin/cartogratree/settings/layer/add'] = array(
+        'title' => 'Add CartograTree layer',
+        'description' => 'Make a layer available to the CartograTree application.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_layer_form', 'add'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Edit layer.
+    $items['admin/cartogratree/settings/layer/edit'] = array(
+        'title' => 'Edit CartograTree layer',
+        'description' => 'Edit an existing CartograTree layer.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_layer_form', 'edit'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Delete layer.
+    $items['admin/cartogratree/settings/layer/delete'] = array(
+        'title' => 'Delete CartograTree layer',
+        'description' => 'Delete an existing CartograTree layer.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_layer_form', 'delete'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // ==============================================================================================================
+    // Management of layers' access.
+    // -- Add permissions
+    $items['admin/cartogratree/settings/layer/access'] = array(
+        'title' => 'Layer Permissions',
+        'description' => 'Handle permissions for a layer.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_layer_permissions_form', 5),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Remove (no confirm)
+    $items['admin/cartogratree/settings/layer/access/%/%/%'] = array(
+        'title' => 'Remove Layer Permissions',
+        'description' => 'Handle permissions for a layer.',
+        'page callback' => 'cartogratree_admin_layer_permission_remove_callback',
+        'page arguments' => array(5, 6, 7),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // ==============================================================================================================
+    // -- Add field.
+    $items['admin/cartogratree/settings/layer/%/field/add'] = array(
+        'title' => 'Add CartograTree field',
+        'description' => 'Make a field available to the CartograTree application.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_field_form', 4, 'add'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Edit field.
+    $items['admin/cartogratree/settings/layer/%/field/edit'] = array(
+        'title' => 'Edit CartograTree field',
+        'description' => 'Edit an existing CartograTree field.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_field_form', 4, 'edit'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Delete field.
+    $items['admin/cartogratree/settings/layer/%/field/delete'] = array(
+        'title' => 'Delete CartograTree field',
+        'description' => 'Delete an existing CartograTree field.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_field_form', 4, 'delete'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Get environmental values.
+    $items['admin/cartogratree/settings/get_environmental_values'] = array(
+        'title' => 'Get environmental values for CartograTree',
+        'description' => 'Uses GeoServer WMS to get environmental values from one layer for all geo-referenced trees.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_get_environmental_values', 4),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+    return $items;
+}
+
+/**
+ * Implements hook_theme().
+ * Specify how to render the arrays for both permissions tables on
+ * ?q=admin/cartogratree/settings/layer/access/<layer id> as HTML;
+ * and sub/group management tables on
+ * ?q=admin/cartogratree/settings/group/subgroups/<group id>, and
+ * ?q=admin/cartogratree/settings/subgroups/group/<subgroup id>
+ * as well as the CartograTree app page ?q=cartogratree.
+ */
+function cartogratree_theme($existing, $type, $theme, $path) {
+    $items = array();
+    $items['cartogratree_admin_form_permission_table'] = array(
+        'function' => 'cartogratree_admin_form_permission_table',
+        'render element' => 'element',
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+    $items['cartogratree_admin_form_group_mgmt_table'] = array(
+        'function' => 'cartogratree_admin_form_group_mgmt_table',
+        'render element' => 'element',
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+    
+    $items['page__cartogratree'] = array(
+        'path' => $path . "/theme",
+        'template' => 'templates/page--cartogratree',
+        'render element' => 'page',
+        //'file' => 'cartogratree_theme.inc',   // this works only ONCE after clearing the cache
+    );
+
+    return $items;
+}
+
+/*
+ * Implements template_preprocess_page().
+ */
+
+function cartogratree_preprocess_page(&$variables) {
+    if (current_path() == 'cartogratree') {
+        //don't cache cartogratree page to make testing easier, and to update the session variables after each refresh
+        $GLOBALS['conf']['cache'] = FALSE;
+        global $user;
+
+		drupal_set_title('CartograTree');
+
+        // Grab the roles and user id of the current user.
+        $uid = $user->uid;
+
+        // get or set session_id
+        $session = array();
+		
+		$rids = is_array($user->roles) ? array_keys($user->roles) : array();
+      
+		$api_key = 'ct-72933e3b31f0070af6478edc3becf96e-e01154ac1b1e3d0c1564b25828cf00cf'; 	
+	
+        parse_str($_SERVER['QUERY_STRING'], $query_string);
+        if (isset($query_string['session_id'])) {
+            $session_id = $query_string['session_id'];
+			$session_provided = cartogratree_get_session($session_id, $api_key);
+			
+			if ($session_provided != null) {
+				$session = $session_provided;
+				//$session["user_provided"] = true;
+			}
+            else {// session_id does not exist in database
+                $path = explode('/', $_SERVER['REQUEST_URI']);
+                $path[count($path) - 1] = 'cartogratree_invalid_session_id';
+                $location = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . implode('/', $path);
+                header('Location: ' . $location);
+                exit(0);
+                // add redirect in Drupal back to cartogratree
+            }
+        }
+        else { 
+            $current_date = date('Y-m-d H:i:s');
+            $generated_session = md5($uid . $_SERVER['REMOTE_ADDR'] . $current_date);
+			$session['session_id'] = $generated_session;
+			$session['layers'] = null;
+			$session['filters'] = null;
+			$session['zoom'] = null;
+			$session['pitch'] = null;
+			$session['bearing'] = null;
+			$session['center'] = null;
+			$session['excluded_trees'] = null;          
+        }
+
+        // Look for a job_id in the URL's query string (if one exists, we'll use it to show the UI info
+        // for the job assuming the correct user is logged in.
+        if(isset($query_string['job_id'])) {
+            
+            $session['job_id'] = filter_xss(check_plain($query_string['job_id']));
+            $job_rows = db_query("SELECT * FROM cartogratree_analysis WHERE invocation_id = :job_id LIMIT 1;", array(
+                ':job_id' => $session['job_id']
+            ));
+            
+            // This is basically one row
+            
+            foreach($job_rows as $job_row) {
+                $submit_args = unserialize($job_row->submit_args);
+                $job_details = array(
+                    'job_id' => $session['job_id'],
+                    'galaxy_id' => $job_row->galaxy_id, 
+                    'history_id' => $submit_args['history_id'], 
+                    'workflow_id' => $submit_args['workflow_id'], 
+                    'invocation_id' => $job_row->invocation_id
+                );
+            }
+
+
+            
+        }
+
+               
+
+		$url_filters = cartogratree_add_url_query($session['filters'] != null, $query_string);
+		if (count($url_filters) > 0) {
+			$session['filters'] = $url_filters;
+		}
+	
+        list($groups, $layers, $layer_ids) = cartogratree_get_groups_layers($rids, $uid);
+        $variables['cartogratree_layers'] = $groups;
+        $variables['logged_in'] = user_is_logged_in();
+
+        $fields_data = cartogratree_get_tree_options($api_key);
+        //store queried and processed values to Drupal.settings to be accessed by the front-end
+		$tgdr = cartogratree_get_publications_info();
+        //$variables['total_publications'] = count($tgdr);	
+
+
+        //aggregate data for trees/publications/genotype/phenotype
+        //Genotypes
+		$fields_data['marker_type'] = cartogratree_get_marker_options($api_key);
+        if (($key = array_search('indel', $fields_data['marker_type'])) !== false) {
+            unset($fields_data['marker_type'][$key]);
+        }
+        if (($key = array_search('genetic marker', $fields_data['marker_type'])) !== false) {
+            unset($fields_data['marker_type'][$key]);
+        }
+        if (($key = array_search('microsatellite', $fields_data['marker_type'])) !== false) {
+            unset($fields_data['marker_type'][$key]);
+        }
+        $fields_data['marker_type'] = array_values($fields_data['marker_type']);    
+
+		$fields_data = cartogratree_get_phenotype_options($fields_data);
+        try {
+            // dpm($fields_data);
+            unset($fields_data['organism_data']['family'][0]);
+            
+            
+        }
+        catch(Exception $ex) {
+
+        }
+
+        $user_info = array('logged_in' => user_is_logged_in());
+        if(user_is_logged_in()){
+            $user_info['email'] = $user->mail;
+			$user_info['user_id'] = $user->uid;
+            $variables['username'] = $user->name;
+            $variables['email'] = $user->mail;     
+			$variables['token'] = cartogratree_get_user_key($user->uid);
+        }
+
+        $settings = array(
+            'cartogratree' => array(
+                'url_path' => drupal_get_path('module', 'cartogratree'),
+                'gis' => variable_get('cartogratree_gis'),
+                'api' => variable_get('cartogratree_api'),
+            ),
+            //'mapbox_token' => 'pk.eyJ1IjoicmlzaGFyZGUiLCJhIjoiY2p2aWg0Y3BvMDV5cTN6cXI3MW1obncxdCJ9.qOwGmq7Vts0JY4yU1wG87w',
+            'mapbox_token' => 'pk.eyJ1IjoicmlzaGFyZGUiLCJhIjoiY2p2aWg0Y3BvMDV5cTN6cXI3MW1obncxdCJ9.qOwGmq7Vts0JY4yU1wG87w',
+            'options_data' => $fields_data,
+			'base_url' => $GLOBALS['base_url'],
+            'layers' => $layers,
+            'layers_select_color_styles' => array(
+                array(
+                    "title" => "grey",
+                    "color" => "#707B7C",
+                    "style" => "polygon",
+                ),
+                array(
+                    "title" => "red",
+                    "color" => "#C0392B",
+                    "style" => "poly-red",
+                ),
+                array(
+                    "title" => "yellow",
+                    "color" => "#F4D03F",
+                    "style" => "poly-yel",
+                ),
+                array(
+                    "title" => "green",
+                    "color" => "#27AE60",
+                    "style" => "poly-grn",
+                ),
+                array(
+                    "title" => "blue",
+                    "color" => "#3498DB",
+                    "style" => "poly-blu",
+                ), 
+                array(
+                    "title" => "purple",
+                    "color" => "#8E44AD",
+                    "style" => "poly-pur",
+                ),
+                array(
+                    "title" => "orange",
+                    "color" => "#DC7633",
+                    "style" => "poly-ora",
+                ),                                                                        
+            ),
+			'ct_api' => $api_key,
+			//'layers_groups' => $groups,
+            'fields' => cartogratree_get_fields($layer_ids),
+            'options_tgdr' => $tgdr,
+            'session' => $session,
+            'user' => $user_info,
+			
+            'logo' => array(  // hardcoded values - should be replaced with Drupal settings
+                'treegenes' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/resources_imgs/logo_treegenes.png',
+                'dryad' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/resources_imgs/logo_dryad.png',
+                'treesnap' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/resources_imgs/logo_treesnap.png',
+            ),
+            'tree_img' => array(
+                'exact' => array(
+                    'angiosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/angio_exact.png',
+                    'gymnosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/gymno_exact.png',
+                    'plant' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/plant.png',
+                    'publication' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/ui_icons_imgs/publication3.png',
+                ),
+                'approximate' => array(
+                    'angiosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/angio_approx.png',
+                    'gymnosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/gymno_approx.png',
+                ),
+                'treesnap' => array( 
+					'angiosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/treesnap_angio.png',
+					'gymnosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/treesnap_gymno.png',
+				),
+                'wfid' => array( 
+					'angiosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/wfid_exact.png',
+					'gymnosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/wfid_exact.png',
+				),                
+				'selected' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/selected_tree.png',
+            ),
+        );
+
+        if(isset($job_details)) {
+            $settings['job_boot'] = $job_details;
+        }
+
+
+        $geoserver_datasets = unserialize(variable_get('ct_geoserver_datasets', serialize(array())));
+        $settings['geoserver_datasets'] = $geoserver_datasets;
+        $settings['ct_nodejs_api'] = variable_get('ct_nodejs_api');
+
+        cartogratree_add_external_files();
+        drupal_add_js($settings, 'setting');
+        //custom files 
+        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/main.js');
+	 
+        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map.js');
+        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_controls.js');
+        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_onload_event.js');
+        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_click_events.js');
+        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_analysis.js');
+        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_jobs.js');
+        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/select2c.min.js'); 
+        drupal_add_css(drupal_get_path('module', 'cartogratree') . '/styling/select2.min.css'); 
+        drupal_add_css(drupal_get_path('module', 'cartogratree') . '/styling/main.css');
+        drupal_add_css(drupal_get_path('module', 'cartogratree') . '/styling/toggle_btn.css');
+		drupal_add_css(drupal_get_path('module', 'cartogratree') . '/styling/sel_all_btn.css');
+        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/overlap_grid.js');
+        drupal_add_css(drupal_get_path('module', 'cartogratree') . '/styling/overlap_grid.css');
+        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/venn/venn.js');
+    }
+}
+
+function cartogratree_add_external_files($bootstrap_latest = TRUE, $jquery_latest = TRUE, $mapbox = TRUE, $d3s = TRUE){
+    //toastr notifications
+    drupal_add_js('//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js', 'external');
+    drupal_add_css('//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css', 'external');   
+    drupal_add_css('https://use.fontawesome.com/releases/v5.5.0/css/all.css', 'external');
+    if($jquery_latest){
+ 		drupal_add_js('https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js', 'external');       
+        drupal_add_js('https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js', 'external');
+        drupal_add_css('https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css', 'external');
+    }
+    if($bootstrap_latest){
+		drupal_add_js('https://code.jquery.com/jquery-2.2.4.min.js', 'external');
+        drupal_add_js('https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js', 'external');
+        drupal_add_css('https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css', 'external');
+        
+        drupal_add_js('https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js', 'external');
+        drupal_add_css('https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css', 'external');
+    }
+    if($mapbox){
+        // Version 1
+        // drupal_add_js('https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.js', 'external');
+        // drupal_add_css('https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.css', 'external'); 
+
+        // Version 2
+        // drupal_add_js('https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js', 'external');
+        // drupal_add_css('https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css', 'external'); 
+        drupal_add_js('https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.js', 'external');
+        drupal_add_css('https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.css', 'external'); 
+        drupal_add_js('https://unpkg.com/@turf/turf@6/turf.min.js', 'external');
+        drupal_add_js('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.2.2/mapbox-gl-draw.js', 'external');
+        drupal_add_css('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.2.2/mapbox-gl-draw.css', 'external');                    
+    }
+    if($d3s) {
+        drupal_add_js('https://d3js.org/d3.v5.min.js', 'external');
+    }
+
+	//drupal_add_js('//cdn.jsdelivr.net/npm/lzutf8/build/production/lzutf8.js', 'external');
+
+	//drupal_add_css('https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/css/select2.min.css', 'external');
+	//drupal_add_js('https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/js/select2.min.js', 'external');
+
+	// drupal_add_css('https://cdn.jsdelivr.net/jquery.query-builder/2.3.3/css/query-builder.default.min.css', 'external');
+	// drupal_add_js('https://cdn.jsdelivr.net/jquery.query-builder/2.3.3/js/query-builder.standalone.min.js', 'external');
+    drupal_add_js('https://cdnjs.cloudflare.com/ajax/libs/jQuery-QueryBuilder/2.6.2/js/query-builder.standalone.min.js', 'external');
+	drupal_add_css('https://cdnjs.cloudflare.com/ajax/libs/jQuery-QueryBuilder/2.6.2/css/query-builder.default.min.css', 'external');
+    drupal_add_js('https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.5/js/standalone/selectize.js', 'external');
+    drupal_add_css('https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.5/css/selectize.css', 'external');
+
+    drupal_add_js('https://cdnjs.cloudflare.com/ajax/libs/jquery-zoom/1.7.21/jquery.zoom.min.js', 'external');
+
+    drupal_add_js('https://d3js.org/d3.v5.min.js', 'external');
+    drupal_add_js('https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js', 'external');
+	drupal_add_js('https://greggman.github.io/webgl-helpers/webgl-force-preservedrawingbuffer.js', 'external');
+    drupal_add_js('https://cdn.jsdelivr.net/npm/zlibjs@0.3.1/bin/zlib.min.js','external');
+    drupal_add_js('https://cdn.jsdelivr.net/npm/text-encoding@0.6.4/lib/encoding.min.js', 'external');
+}
+
+// -- CARTOGRATREE FIELD VALUES AND GROUPINGS
+function cartogratree_get_groups_layers($rids, $uid) {
+    $query = db_select('cartogratree_layers', 'l');
+    $query->join('cartogratree_groups', 'g', 'g.group_id = l.group_id');
+    $query->join('cartogratree_subgroups', 's', 's.subgroup_id = l.subgroup_id');
+    $query->join('cartogratree_groups_subgroups', 'gs', 'gs.group_id = g.group_id AND gs.subgroup_id = s.subgroup_id');
+	/*
+    $or_cond = db_or()	
+        ->condition('p.uid', $uid, '=')
+        ->condition('p.rid', $rids, 'IN');*/
+    $records = $query//->condition($or_cond)
+        ->fields('l', array('layer_id', 'title', 'name', 'url', 'layer_rank', 'trees_layer', 'layer_type', 'layer_host', 'layer_styles','layer_embedded_data_decimal_precision','layer_allow_user_select_colors','layer_year_range_filter_option','layer_year_range_filter_geoserver_parameter','layer_year_range_filter_year_start','layer_year_range_filter_year_end','layer_legend_orientation', 'layer_legend_hide_default','layer_multilayer_rangeslider_year_option','layer_multilayer_rangeslider_start_year','layer_multilayer_rangeslider_end_year'))
+        ->fields('g', array('group_name', 'group_rank'))
+        ->fields('s', array('subgroup_name'))
+        ->fields('gs', array('subgroup_rank'))
+        ->orderBy('g.group_rank')
+        ->orderBy('gs.subgroup_rank')
+        ->orderBy('l.layer_rank')
+        ->execute();
+    $groups = array(); $layers = array(); $layer_ids = array();
+    foreach ($records as $record) {
+        $curr_group = &$groups[$record->group_rank];
+        //$curr_group['id'] = $record->layer_id;
+        $curr_group['group_name'] = $record->group_name;
+        $curr_group['group_rank'] = $record->group_rank;
+        /*
+        if ($record->subgroup_name != '[No subgroup]') {
+        	$curr_group['has_subgroups'] = TRUE;
+        }
+        else {
+        	$curr_group['has_subgroups'] = FALSE;
+        }
+         */
+        $curr_subgroup = &$curr_group['subgroups'][$record->subgroup_rank];
+        if($record->subgroup_name != '[No subgroup]') {
+            $curr_subgroup['subgroup_name'] = $record->subgroup_name;
+        }
+        else{
+            $curr_subgroup['subgroup_name'] = $record->title;
+        }
+
+        $curr_layer = &$curr_subgroup['layers'][$record->layer_id];
+        $curr_layer['layer_id'] = $record->layer_id;
+    	$curr_layer['layer_host'] = $record->layer_host;
+	    $curr_layer['layer_title'] = $record->title;
+        $curr_layer['layer_name'] = $record->name;
+        $curr_layer['layer_url'] = $record->url;
+        //$groups[$record->group_rank]['subgroups'][$record->subgroup_rank]['layers'][$record->layer_id]['layer_rank'] = $record->layer_rank;
+        $curr_layer['trees_layer'] = $record->trees_layer;
+        $curr_layer['layer_type'] = $record->layer_type;
+        $curr_layer['layer_styles'] = $record->layer_styles;
+        //$curr_layer['layer_legend_html'] = $record->layer_legend_html;
+        $curr_layer['layer_embedded_data_decimal_precision'] = $record->layer_embedded_data_decimal_precision;
+        $curr_layer['layer_allow_user_select_colors'] = $record->layer_allow_user_select_colors;
+        $curr_layer['layer_year_range_filter_option'] = $record->layer_year_range_filter_option;
+        $curr_layer['layer_year_range_filter_geoserver_parameter'] = $record->layer_year_range_filter_geoserver_parameter;
+        $curr_layer['layer_year_range_filter_year_start'] = $record->layer_year_range_filter_year_start;
+        $curr_layer['layer_year_range_filter_year_end'] = $record->layer_year_range_filter_year_end;
+        $curr_layer['layer_multilayer_rangeslider_year_option'] = $record->layer_multilayer_rangeslider_year_option;
+        $curr_layer['layer_multilayer_rangeslider_start_year'] = $record->layer_multilayer_rangeslider_start_year;
+        $curr_layer['layer_multilayer_rangeslider_end_year'] = $record->layer_multilayer_rangeslider_end_year;
+        // layer_legend_hide_default
+        $curr_layer['layer_legend_hide_default'] = $record->layer_legend_hide_default;
+        
+        // layer_legend_orientation
+        $curr_layer['layer_legend_orientation'] = $record->layer_legend_orientation;
+
+        $cartogratree_layer = &$layers["cartogratree_layer_" . $record->layer_id]; 
+        $cartogratree_layer['layer_id'] = $record->layer_id;
+        $cartogratree_layer['name'] = $record->name;
+        $cartogratree_layer['legend'] = cartogratree_get_layer_legend($record->name);
+        $cartogratree_layer['title'] = $record->title;
+        $cartogratree_layer['url'] = $record->url;
+        $cartogratree_layer['trees_layer'] = $record->trees_layer;
+        $cartogratree_layer['layer_type'] = $record->layer_type;
+        $cartogratree_layer['layer_styles'] = $record->layer_styles;
+        //$cartogratree_layer['layer_legend_html'] = $record->layer_legend_html;
+        $cartogratree_layer['layer_embedded_data_decimal_precision'] = $record->layer_embedded_data_decimal_precision;
+        $cartogratree_layer['layer_allow_user_select_colors'] = $record->layer_allow_user_select_colors;
+        $cartogratree_layer['layer_year_range_filter_option'] = $record->layer_year_range_filter_option;
+        $cartogratree_layer['layer_year_range_filter_geoserver_parameter'] = $record->layer_year_range_filter_geoserver_parameter;
+        $cartogratree_layer['layer_year_range_filter_year_start'] = $record->layer_year_range_filter_year_start;
+        $cartogratree_layer['layer_year_range_filter_year_end'] = $record->layer_year_range_filter_year_end;
+        $cartogratree_layer['layer_multilayer_rangeslider_year_option'] = $record->layer_multilayer_rangeslider_year_option;
+        $cartogratree_layer['layer_multilayer_rangeslider_start_year'] = $record->layer_multilayer_rangeslider_start_year;
+        $cartogratree_layer['layer_multilayer_rangeslider_end_year'] = $record->layer_multilayer_rangeslider_end_year;        
+        $cartogratree_layer['layer_legend_orientation'] = $record->layer_legend_orientation;
+        $cartogratree_layer['layer_legend_hide_default'] = $record->layer_legend_hide_default;
+        $cartogratree_layer['host'] = $record->layer_host;
+        $cartogratree_layer['filters'] = 0;
+        $layer_ids[] = $record->layer_id; //push to layer_ids array
+    }
+    return array($groups, $layers, $layer_ids);
+}
+
+function cartogratree_get_fields($layer_ids){
+    $fields = array(); 
+    $records = db_query('
+            SELECT v.value_id, v.value, f.*, l.title, l.name
+            FROM {cartogratree_fields} f
+            JOIN {cartogratree_layers} l using(layer_id)
+            LEFT JOIN {cartogratree_field_values} v using (field_id)
+            WHERE f.layer_id in (:ids)', array(':ids' => $layer_ids));
+
+    foreach ($records as $record) { 
+        $fields[$record->name]['Human-readable name for the layer'] = $record->title;
+        $fields[$record->name]['Layer ID'] = $record->layer_id;
+
+        $fields[$record->name][$record->field_name]['Field ID'] = $record->field_id; 
+        $fields[$record->name][$record->field_name]['Field name shown to user'] = $record->display_name;
+        $fields[$record->name][$record->field_name]['Filter data by this field'] = $record->filter;
+        $fields[$record->name][$record->field_name]['Type of filter'] = $record->filter_type;
+        $fields[$record->name][$record->field_name]['Precision used with range values'] = $record->precision;
+        $fields[$record->name][$record->field_name]['Value returned by layer that should be masked'] = $record->mask_value;
+        $fields[$record->name][$record->field_name]['Text shown to user for masked values'] = $record->mask_display;
+        $fields[$record->name][$record->field_name]['Show this field in maps pop-up'] = $record->pop_up;
+        $fields[$record->name][$record->field_name]['Show this field in data table'] = $record->data_table;
+        if (isset($record->value_id)) { 
+            $fields[$record->name][$record->field_name]['Value'][$record->value_id] = $record->value; }
+    }
+    return $fields;
+}
+
+function cartogratree_get_layer_legend($layer_name){
+    if(strpos($layer_name, 'tmin') !== false || strpos($layer_name, 'tmax') !== false || strpos($layer_name, 'tavg') !== false){
+        return 'ct:worldclim_v2_temp';
+    }
+    else if(strpos($layer_name, 'canopy')){
+        return 'ct:canopy height';
+    }
+    else if(strpos($layer_name, 'tree_cover')){
+        return 'ct:tree_cover';
+    }
+    else if(strpos($layer_name, 'wind')){
+        return 'ct:worldclim_v2_wind';
+    }
+    else if(strpos($layer_name, 'vapr')){
+        return 'ct:worldclim_v2_vapr';
+    }
+    else if(strpos($layer_name, 'srad')){
+        return 'ct:worldclim_v2_srad';
+    }
+    else if(strpos($layer_name, 'prec')){
+        return 'ct:worldclim_v2_prec_new';
+    }
+    else if(strpos($layer_name, 'pet')){
+        return 'ct:pet_monthly';
+    }
+    else if(strpos($layer_name, 'aridity')){
+        return 'ct:annual_global_aridity';
+    }
+    return 0;
+}
+
+// -- Collect all the trees from all the datasets and sort them by family/genus/species
+function cartogratree_get_tree_options($api_key){ 
+    $api_url = variable_get('ct_nodejs_api');
+	$result['organism_data'] = cartogratree_make_api_call($api_url . '/v2/fields/trees?api_key=' . $api_key);
+	return $result;
+}
+
+function cartogratree_get_marker_options($api_key) {
+    $api_url = variable_get('ct_nodejs_api');
+	return cartogratree_make_api_call($api_url . '/v2/fields/markers?api_key=' . $api_key);
+}
+
+function cartogratree_get_user_key($user_id) {
+    $api_url = variable_get('ct_nodejs_api');
+	return cartogratree_make_api_call($api_url . '/v2?user_id=' . $user_id);
+}
+/*
+ *	CARTOGRATREE SESSIONS 
+ */
+// -- get an existing session and update it along with the layers and filters associated 
+function cartogratree_get_session($session_id, $api_key){
+    $api_url = variable_get('ct_nodejs_api');
+	return cartogratree_make_api_call($api_url . '/v2/user/session?api_key=' . $api_key . '&session_id=' . $session_id);
+}
+
+// -- When a user enters cartogratree, if a valid session is not directly provided in url, then they are redirected to cartogratree with a new session
+function cartogratree_session_redirect($session_id){
+    $qry_separator = $_SERVER['QUERY_STRING'] == '' ? '?' : '&';
+    $location = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . $qry_separator. 'session_id=' . $session_id;
+    header('Location: ' . $location);
+}
+
+function cartogratree_get_publications_info() {
+	//TGDR Publications
+	// $sql = 'SELECT DISTINCT ON(accession) * FROM chado.plusgeno_view';
+    $sql = 'select * from chado.tpps_study_summary WHERE has_coordinates = TRUE order by accession ASC';
+	$results = chado_query($sql, array());
+	$tgdr = array();
+	foreach($results as $row) {
+		// if($row->accession != 'TGDR055' && $row->accession != 'TGDR057'){
+		// 	$tgdr['pub_title'][] = $row->title;
+		// 	$tgdr['pub_author'][] = $row->author;
+		// 	$tgdr['pub_tgdr'][] = $row->accession;
+		// }
+        $tgdr['pub_title'][] = $row->title;
+        $tgdr['pub_author'][] = $row->author;
+        $tgdr['pub_tgdr'][] = $row->accession;        
+	}
+	return $tgdr;
+}
+
+function cartogratree_get_phenotype_options($fields_data) {	
+	//pato_name
+	//$results = chado_query('SELECT cvterm_name FROM chado.new_pheno_view pv JOIN chado.coordinates_view cv ON cv.uniquename = pv.tree_acc GROUP BY cvterm_name ORDER BY cvterm_name;');
+	$results = chado_query('SELECT cvterm_name FROM chado.new_pheno_view pv GROUP BY cvterm_name ORDER BY cvterm_name;');
+	foreach($results as $row) {
+		$fields_data['cvterm'][] = $row->cvterm_name;
+	}
+
+	//po_name
+	//$results = chado_query('SELECT po_name FROM chado.new_pheno_view pv JOIN chado.coordinates_view cv ON cv.uniquename = pv.tree_acc GROUP BY po_name ORDER BY po_name;');
+	//$results = chado_query('SELECT po_name FROM chado.new_pheno_view pv JOIN chado.ct_view cv ON cv.uniquename = pv.tree_acc GROUP BY po_name ORDER BY po_name;');
+	$results = chado_query('SELECT distinct(structure_name) FROM chado.new_pheno_view pv ORDER BY structure_name ASC;');
+	foreach($results as $row) {
+		$fields_data['plant_ontology'][] = $row->structure_name;
+	}
+
+	return $fields_data;
+}
+
+function cartogratree_add_url_query($filters_exist, $query_string) {
+	if ($filters_exist || (!isset($query_string['accession']) && !isset($query_string['species']) && !isset($query_string['genus']) && !isset($query_string['family']))) {
+		return array();
+	}
+
+	$filter_q = array(
+		'active_sources' => array('0', '1', '2'),
+		'query' => array(
+			'condition' => 'AND',
+			'rules' => array(),	
+		),
+	);
+	if (isset($query_string['accession'])) {
+		array_push(
+			$filter_q['query']['rules'],
+			array(
+				'id' => 'accession',
+				'field' => 'accession',
+				'type' => 'string',
+				'input' => 'select',
+				'operator' => 'equal',
+				'value' => $query_string['accession'],
+			)
+		);
+	}
+
+	if (isset($query_string['species'])) {
+		array_push(
+			$filter_q['query']['rules'],
+			array(
+				'id' => 'species',
+				'field' => 'species',
+				'type' => 'string',
+				'input' => 'select',
+				'operator' => 'equal',
+				'value' => $query_string['species'],
+			)
+		);
+	}
+	if (isset($query_string['genus'])) {
+		array_push(
+			$filter_q['query']['rules'],
+			array(
+				'id' => 'genus',
+				'field' => 'genus',
+				'type' => 'string',
+				'input' => 'select',
+				'operator' => 'equal',
+				'value' => $query_string['genus'],
+			)
+		);
+	}
+	if (isset($query_string['family'])) {
+		array_push(
+			$filter_q['query']['rules'],
+			array(
+				'id' => 'family',
+				'field' => 'family',
+				'type' => 'string',
+				'input' => 'select',
+				'operator' => 'equal',
+				'value' => $query_string['family'],
+			)
+		);
+	}
+	return $filter_q;
+}
+
+function cartogratree_make_api_call($url) {
+	$ch = curl_init();
+	
+	//set the url, number of POST vars, POST data
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+	//execute the request
+	$result = curl_exec($ch);
+	curl_close($ch);
+
+	$result = json_decode($result, true);
+	return $result;
+}
+
+/*
+ * Implements hook_permission().
+ */
+function cartogratree_permission() {
+    // Go to admin/people/permissions to manage permissions
+    return array(
+        'administer cartogratree' => array(
+            'title' => t('Administer CartograTree'),
+            'description' => t('Perform administration tasks for CartograTree.'),
+        ),
+        'use cartogratree' => array(
+            'title' => t('Use CartograTree'),
+            'description' => t('Use the CartograTree application.'),
+        ),
+        'cartogratree analysis' => array(
+            'title' => t('CartograTree Analysis'),
+            'description' => t('Analyze data with CartograTree.'),
+        ),
+        'access cartogratree wfid' => array(
+            'title' => t('CartograTree - Access WFID Layer'),
+            'description' => t('Access WFID trees'),
+        ),        
+    );
+}
+
+function cartogratree_mail($key, &$message, $params) {
+    if (isset($params['headers']) && is_array($params['headers'])) {
+        $message['headers'] += $params['headers'];
+    }    
+    if (isset($params['subject'])) {
+        $message['subject'] = $params['subject'];
+    }
+    if (isset($params['body'])) {
+        $message['body'][] = $params['body'];
+    }
+    
+    switch ($key) {
+        case 'analysis_running':
+            // we don't need to do anything per say here right now 
+            // since we specified everything before the hook
+            break;
+        case 'analysis_finished':
+            // we don't need to do anything per say here right now 
+            // since we specified everything before the hook
+            break;          
+    }
+}
+
+/**
+ * OLD FUNCTION FROM PREVIOUS VERSION IN ATTEMPT TO GET ANALYSIS WORKING
+ */
+function create_new_cartogratrees_session($rids, $uid) {
+    // create session_id, record in database, and redirect user to URL with session_id
+    $date = date('Y-m-d H:i:s');
+    $session_id = md5($date . rand(0,99));
+    // write session to database
+    $record = array(
+      'session_id' => $session_id,
+      'operation_type' => 0,  // insert
+      'operation_timestamp' => $date,
+      'remote_addr' => $_SERVER['REMOTE_ADDR'],
+      'http_user_agent' => $_SERVER['HTTP_USER_AGENT'],
+      'uid' => $uid,
+      'rid' => "'" . implode(',', $rids) . "'",
+    );
+    drupal_write_record('cartogratree_sessions', $record);
+    // redirect client to updated URL
+    // $qry_separator = $_SERVER['QUERY_STRING'] == '' ? '?' : '&';
+    // $location = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . $qry_separator. 'session_id=' . $session_id;
+    // header('Location: ' . $location);
+}

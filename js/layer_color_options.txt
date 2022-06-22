@@ -1,0 +1,7 @@
+grey=#707B7C
+red=#C0392B
+yellow=#F4D03F
+green=#27AE60
+blue=#3498DB
+purple=#8E44AD
+orange=#DC7633 
