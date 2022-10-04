@@ -14,9 +14,18 @@ var ct_ready_map_analysis = function() {
 	var genotype_filtering = {};
 	var loading_icon_src = Drupal.settings.base_url + '/' + Drupal.settings.cartogratree.url_path + '/theme/templates/resources_imgs/loader-ring.gif';
 	cartograplant.loading_icon_src = loading_icon_src;
+
+	// Eventually turn all the above variables into public cartograplant[var_name] variables
+	cartograplant['analysis_workflow_step_indexes'] = analysis_workflow_step_indexes;
+	cartograplant['analysis_job_check_timers'] = analysis_job_check_timers;
+	cartograplant['workflow_name'] = workflow_name;
+	cartograplant['detected_studies'] = detected_studies;
+	cartograplant['current_analysis_id'] = current_analysis_id;
+	cartograplant['galaxy_id'] = galaxy_id;
+	cartograplant['history_id'] = history_id;
 	// When the Analsis link is clicked at the top menu of CartograPlant
 	$('#analysis-btn').click(function() {
-
+		interactive_histograms_selected_data = {};
 
 		// We need to create a new analysis automatically
 		var user_email = Drupal.settings.user.email;
@@ -31,9 +40,14 @@ var ct_ready_map_analysis = function() {
 					alert('Fatal error: Could not create a new analysis id, please contact administrator');
 				}
 				else {
-					current_analysis_id = results.analysis_id;
+					cartograplant.current_analysis_id = results.analysis_id;
 					$('#analysis_id').html('Your unique analysis ID: <b>' + results.analysis_id + '</b>');
 					$('#analysis_id').attr('value', results.analysis_id);
+
+					// Update analysis type
+					analysis_update_type();
+					// Update analysis summary
+					analysis_summary_update();
 				}
 			}
 		});
@@ -42,9 +56,138 @@ var ct_ready_map_analysis = function() {
 
 	});
 
+	$('#analysis_type').change(function() {
+		analysis_update_type();
+		var val = $('#analysis_type').val();
+		if(val == 'GxPxE') {
+			$('#analysis-initial-configuration-tab').show().parent().show();
+			$('#analysis-overlapping-traits-tab').show().parent().show();
+			$('#analysis-overlapping-genotypes-tab').show().parent().show();
+			$('.analysis-filter-snp-section').show().parent().show();
+			$('.analysis-filter-indv-section').show().parent().show();
+			$('#analysis-retrieve-envdata-section-tab').show().parent().show();
+		}
+		else if(val == "GxP") {
+			$('#analysis-initial-configuration-tab').show().parent().show();
+			$('#analysis-overlapping-traits-tab').show().parent().show();
+			$('#analysis-overlapping-genotypes-tab').show().parent().show();
+			$('.analysis-filter-snp-section').show().parent().show();
+			$('.analysis-filter-indv-section').show().parent().show();
+			$('#analysis-retrieve-envdata-section-tab').hide().parent().hide();			
+		}
+		else if(val == "GxE") {
+			$('#analysis-initial-configuration-tab').show().parent().show();
+			$('#analysis-overlapping-traits-tab').hide().parent().hide();
+			$('#analysis-overlapping-genotypes-tab').show().parent().show();
+			$('.analysis-filter-snp-section').show().parent().show();
+			$('.analysis-filter-indv-section').show().parent().show();
+			$('#analysis-retrieve-envdata-section-tab').show().parent().show();			
+		}	
+	});
+
+	function analysis_summary_update() {
+		var html = "";
+		html += '<div>Analysis ID: ' + cartograplant.current_analysis_id + '</div>';
+		var phenotypes_selected_count = 0;
+		// Calculate phenotypes_selects_count
+		if ($('.trait_select_checkbox').length != undefined) {
+			var elements = $('.trait_select_checkbox');
+			// console.log('elements', elements);
+			for(var i=0; i<elements.length; i++) {
+				if(elements.eq(i).is(':checked')) {
+					phenotypes_selected_count += 1;
+				}
+			}
+		}
+		html += '<div>Phenotypes: ' + phenotypes_selected_count + '</div>';
+		var genotypes_selected_count = 0;
+
+
+		// snp_overlap_checkbox
+		if ($('.snp_all_checkbox').length != undefined) {
+			var elements = $('.snp_all_checkbox');
+			// console.log('elements', elements);
+			for(var i=0; i<elements.length; i++) {
+				if(elements.eq(i).is(':checked')) {
+					// sum the counts attribute
+					var count = elements.eq(i).attr('count');
+					if(count != undefined) {
+						genotypes_selected_count += parseInt(count);
+					}
+				}
+			}
+		}
+
+		// snp_overlap_checkbox
+		if ($('.snp_overlap_checkbox').length != undefined) {
+			var elements = $('.snp_overlap_checkbox');
+			// console.log('elements', elements);
+			for(var i=0; i<elements.length; i++) {
+				if(elements.eq(i).is(':checked')) {
+					// sum the counts attribute
+					var count = elements.eq(i).attr('count');
+					if(count != undefined) {
+						genotypes_selected_count += parseInt(count);
+					}
+				}
+			}
+		}
+
+
+
+		// snp_none_overlap_checkbox
+		if ($('.snp_none_overlap_checkbox').length != undefined) {
+			var elements = $('.snp_none_overlap_checkbox');
+			// console.log('elements', elements);
+			for(var i=0; i<elements.length; i++) {
+				if(elements.eq(i).is(':checked')) {
+					// sum the counts attribute
+					var count = elements.eq(i).attr('count');
+					if(count != undefined) {
+						genotypes_selected_count += parseInt(count);
+					}
+				}
+			}
+		}
+
+		html += '<div>Genotypes: ' + genotypes_selected_count + '</div>';
+		var environmentals_selected_count = 0;
+		html += '<div>Environmental layers: ' + environmentals_selected_count + '</div>';		
+		$('#analysis_summary_html').html(html);
+	}
+
+	function analysis_update_type() {
+		// Delete the value
+		$.ajax({
+			method: 'POST',
+			url: Drupal.settings.base_url + '/cartogratree/api/v2/analysis/delete_data',
+			data: {
+				analysis_id: cartograplant.current_analysis_id,
+				variable_name: 'analysis_type',
+			},
+			success: function (data) {
+				console.log(data);
+			}
+		});			
+		// Now also set the analysis type
+		$.ajax({
+			method: 'POST',
+			url: Drupal.settings.base_url + '/cartogratree/api/v2/analysis/insert_data',
+			data: {
+				analysis_id: cartograplant.current_analysis_id,
+				variable_name: 'analysis_type',
+				variable_data: $('#analysis_type').val(),
+			},
+			success: function (data) {
+				console.log(data);
+			}
+		});	
+		analysis_summary_update();	
+	}
+
 	$('#btn_update_analysis_name').click(function() {
 		var url = Drupal.settings.base_url + '/cartogratree/api/v2/analysis/update_analysis_name';
-		url += "?analysis_id=" + current_analysis_id + '&analysis_name=' + $('#analysis_name').val();
+		url += "?analysis_id=" + cartograplant.current_analysis_id + '&analysis_name=' + $('#analysis_name').val();
 		$.ajax({
 			method: 'GET',
 			url: url,
@@ -52,7 +195,9 @@ var ct_ready_map_analysis = function() {
 				var result = JSON.parse(data);
 				console.log(result);
 				if(result['updated'] == true) {
+					analysis_update_type();
 					alert('Analysis name has been updated');
+
 				}
 				else {
 					alert('Analysis name could not be updated. Please contact administrator.');
@@ -68,7 +213,7 @@ var ct_ready_map_analysis = function() {
 	 * since theoretically speaking - this shouldn't change in the user 'workflow' steps
 	 */
 	function get_detected_studies_from_selected_trees() {
-		detected_studies = {};
+		cartograplant.detected_studies = {};
 		// console.log(mapState.includedTrees);
 		for(var i=0; i < mapState.includedTrees.length; i++) {
 			if(mapState.includedTrees[i].includes('TGDR')) {
@@ -77,10 +222,10 @@ var ct_ready_map_analysis = function() {
 				// console.log(study);
 				if(study != "") {
 					// console.log(detected_studies[study]);
-					if(detected_studies[study] == undefined) {
-						detected_studies[study] = [];
+					if(cartograplant.detected_studies[study] == undefined) {
+						cartograplant.detected_studies[study] = [];
 					}
-					detected_studies[study].push(mapState.includedTrees[i]);
+					cartograplant.detected_studies[study].push(mapState.includedTrees[i]);
 				}
 			}
 		}
@@ -90,9 +235,9 @@ var ct_ready_map_analysis = function() {
 	$('a[href="#analysis-overlapping-genotypes"]').on('click', function() {
 		// load_analysis_overlapping_genotypes_snp_grid_filter();
 		get_detected_studies_from_selected_trees();
-		console.log(detected_studies);
+		console.log('detected_studies', cartograplant.detected_studies);
 
-		var studies = Object.keys(detected_studies);
+		var studies = Object.keys(cartograplant.detected_studies);
 		
 		console.log('Genotype tab click');
 		// Overlapping Genotype tab
@@ -104,6 +249,88 @@ var ct_ready_map_analysis = function() {
 			study_info_html += '<div style="display: inline-block; padding: 3px; border-radius: 2px; background-color: #036e63; color: #FFFFFF; margin-right: 3px;">' + studies[i] + '</div>';
 		}
 		$('#analysis-overlapping-genotypes-detected-studies').html(study_info_html);
+
+
+
+		// If there is only one study, we have to generate a checkbox for the study
+		// since the code below to create a venn diagram will fail gracefully
+		if(studies.length == 1) {
+			for(var i=0; i<studies.length; i++) {
+				var study_name = studies[i];
+				console.log('study_name', study_name);
+				$.ajax({
+					method: 'POST',
+					url: Drupal.settings.base_url + '/cartogratree/api/v2/genotypes/snps_count_by_study',
+					data: {
+						study: study_name
+					},
+					success: function(data) {
+						var data = JSON.parse(data);
+						var count = data['cardinality'];
+						var set_html = "<div>";
+						set_html += "<h4>Insights</h4>";
+						set_html += '<input style="display: inline-block;" class="snp_all_singlestudy_checkbox" count="' + count + '" type="checkbox" value="' + study_name + '" /> ';
+						set_html += study_name + ' has ' + count + " ";
+						set_html += " SNPs";
+						set_html += "</div><br />";
+		
+						$('#analysis-overlapping-genotypes-summary-insights').html(set_html);
+						
+						
+					}
+				})					
+			}
+		}
+
+		$('body').on('click', '.snp_all_singlestudy_checkbox', function() {
+								
+			analysis_summary_update();
+			var is_checked = false;
+			if ($(this).is(':checked')) {
+				is_checked = true;
+			}
+
+			if(is_checked) {
+				// Checked so we need to insert this analysis_data
+				console.log('insert_all_snp_overlap');
+				// Get the studies
+				var study_id = $(this).attr('value');
+				var url = Drupal.settings.base_url + '/cartogratree/api/v2/analysis/insert_markers_study_all';
+				$.ajax({
+					method: 'POST',
+					url: url,
+					data: {
+						analysis_id: cartograplant.current_analysis_id,
+						study_id: study_id
+					},
+					success: function(data) {
+						var results = JSON.parse(data);
+						console.log(results);
+					}
+				});										
+				
+			}
+			else {
+				// Checked so we need to insert this analysis_data
+				console.log('delete_all_snp_overlap');
+				// Get the studies
+				var study_id = $(this).attr('value');
+				var url = Drupal.settings.base_url + '/cartogratree/api/v2/analysis/delete_markers_study_all';
+				$.ajax({
+					method: 'POST',
+					url: url,
+					data: {
+						analysis_id: cartograplant.current_analysis_id,
+						study_id: study_id
+					},
+					success: function(data) {
+						var results = JSON.parse(data);
+						console.log(results);
+					}
+				});
+			}
+								
+		});			
 
 		// Overlapping Genotype tab
 		$.ajax({
@@ -187,6 +414,7 @@ var ct_ready_map_analysis = function() {
 					var data = JSON.parse(data);
 					var fake_venn_array = data["venn_array"];
 					var overlap_none = data["overlap_none"];
+					
 					var sets = JSON.parse(JSON.stringify(data["venn_array"])); // this clones the venn_array result
 					// sets.map(function(set) {
 					// 	set.size = Math.sqrt(set.size);
@@ -198,7 +426,8 @@ var ct_ready_map_analysis = function() {
 					for(var i=0; i<fake_venn_array.length; i++) {
 						var object = fake_venn_array[i];
 						var object_real = sets[i];
-						if(object['sets'].length == 1) {
+						if(object['sets'] != undefined) {
+							if(object['sets'].length == 1) {
 							var study_name = object['sets'][0];
 							// Get the value of overlap none for this study
 							var overlap_none_value = overlap_none[study_name];
@@ -206,14 +435,19 @@ var ct_ready_map_analysis = function() {
 							object['size'] = 10;
 							object['label'] = object['sets'][0] + ' ' + overlap_none_value;
 							
+							}
+							else if(object['sets'].length > 1) {
+								object['size'] = 2;
+								object['label'] = object_real['size'];
+							}
 						}
-						else if(object['sets'].length > 1) {
-							object['size'] = 2;
-							object['label'] = object_real['size'];
+						else {
+							console.log("NOTE: object['sets'] is null for some reason");
 						}
 					}
 					console.log('fake_venn_array', fake_venn_array);
 					try {
+						// d3multi_load('v5');	
 						var chart = venn.VennDiagram().width(350).height(250);
 
 						d3.select("#analysis-overlapping-genotypes-snp-venn-diagram").datum(fake_venn_array).call(chart);
@@ -228,7 +462,7 @@ var ct_ready_map_analysis = function() {
 						},
 						url: Drupal.settings.base_url + '/cartogratree/api/v2/genotypes/snps_overlaps_by_studies_views',
 						success: function(data) {
-							console.log(data);
+							console.log('snps_overlaps_by_studies_views data results', data);
 							data = JSON.parse(data);
 							var insights_html = "";
 							if(data.snps_grid_overlap_array != undefined) {
@@ -248,7 +482,9 @@ var ct_ready_map_analysis = function() {
 									}
 								}
 								if(highest_overlap_total_value > -1 && highest_overlap_total_value > 0) {
-									insights_html += "Study " + highest_overlap_total_study + " contains the highest SNP overlaps (" + highest_overlap_total_value + ") between all studies<br />";
+									if(studies.length > 2) {
+										insights_html += "Study " + highest_overlap_total_study + " contains the highest SNP overlaps (" + highest_overlap_total_value + ") between all studies<br />";
+									}
 								}					
 								
 								// Check for highest overlap some
@@ -266,6 +502,7 @@ var ct_ready_map_analysis = function() {
 								}
 								
 								// Process the venn_array
+								var track_data_venn_sets = {};
 								var set_html = "";
 								for(var i=0; i<sets.length; i++) {
 									var set_object = sets[i];
@@ -280,23 +517,44 @@ var ct_ready_map_analysis = function() {
 											}
 											data_venn_sets += set[j];
 										}
-
-										set_html += "<div style='text-decoration: underline; display: inline-block;' class='selection_set_overlap' data-venn-sets='" + data_venn_sets + "'>";
-										set_html += '<input class="snp_overlap_checkbox" type="checkbox" value="' + data_venn_sets + '" /> ';
-										set_html += "SNP overlaps ";
-										set_html += "between ";
-										for(var j=0; j<set.length; j++) {
-											if (j>0) {
-												set_html += ', ';
+										
+										// check to data_venn_set overlap checkbox not already in the set_html code
+										if(track_data_venn_sets[data_venn_sets] == undefined) {
+											track_data_venn_sets[data_venn_sets] = true;
+											set_html += "<div style='text-decoration: underline; display: inline-block;' class='selection_set_overlap' data-venn-sets='" + data_venn_sets + "'>";
+											set_html += '<input class="snp_overlap_checkbox" type="checkbox" count="' + parseInt(set_object['size']) + '" value="' + data_venn_sets + '" /> ';
+											set_html += "SNP overlaps ";
+											set_html += "between ";
+											for(var j=0; j<set.length; j++) {
+												if (j>0) {
+													set_html += ', ';
+												}
+												set_html += set[j];
 											}
-											set_html += set[j];
+											set_html += ': ' +  parseInt(set_object['size']) + '</div><br />';
 										}
-										set_html += ': ' +  parseInt(set_object['size']) + '</div><br />';
 									}
 								}
 
+								// Do code for entire study
+								for(var i=0; i<sets.length; i++) {
+									var set_object = sets[i];
+									console.log('set_object', set_object);
+									var set = set_object['sets'];
+									var size = set_object['size'];
+									// if the set size is more than 1, it's overlap between
+									if(set.length == 1) {
+										var study_name = set[0];
+										set_html += "<div style='text-decoration: underline; display: inline-block;' class='selection_set_all' data-venn-sets='" + study_name + "'>";
+										
+										set_html += '<input style="" class="snp_all_checkbox" count="' + size + '" type="checkbox" value="' + study_name + '" /> ';
+										set_html += study_name + ' has ' + size + " ";
+										set_html += " SNPs";
+										set_html += "</div><br />";
+									}
+								}								
+
 								// Do code for non overlaps
-								
 								for(var i=0; i<sets.length; i++) {
 									var set_object = sets[i];
 									console.log('set_object', set_object);
@@ -307,17 +565,75 @@ var ct_ready_map_analysis = function() {
 										var overlap_none_value = overlap_none[study_name];
 										set_html += "<div style='text-decoration: underline; display: inline-block;' class='selection_set_none_overlap' data-venn-sets='" + study_name + "'>";
 										
-										set_html += '<input class="snp_none_overlap_checkbox" type="checkbox" value="' + study_name + '" /> ';
+										set_html += '<input style="display: none;" class="snp_none_overlap_checkbox" count="' + overlap_none_value + '" type="checkbox" value="' + study_name + '" /> ';
 										set_html += study_name + ' has ' + overlap_none_value + " ";
-										set_html += "SNPs that do not overlap";
+										set_html += " non-overlaps";
 										set_html += "</div><br />";
 									}
 								}
 							}
 							$('#analysis-overlapping-genotypes-summary-insights').html(insights_html + "<br />" + set_html);
 							
+
+
+							// On click checkbox with individual study (when there is only a single study)
+							// On click checkbox (insert into the database entire study SNPS) using CT API
+												
+
+							// On click checkbox (insert into the database entire study SNPS) using CT API
+							$('.snp_all_checkbox').click(function() {
+								
+								analysis_summary_update();
+								var is_checked = false;
+								if ($(this).is(':checked')) {
+									is_checked = true;
+								}
+
+								if(is_checked) {
+									// Checked so we need to insert this analysis_data
+									console.log('insert_all_snp_overlap');
+									// Get the studies
+									var study_id = $(this).parent().attr('data-venn-sets');
+									var url = Drupal.settings.base_url + '/cartogratree/api/v2/analysis/insert_markers_study_all';
+									$.ajax({
+										method: 'POST',
+										url: url,
+										data: {
+											analysis_id: cartograplant.current_analysis_id,
+											study_id: study_id
+										},
+										success: function(data) {
+											var results = JSON.parse(data);
+											console.log(results);
+										}
+									});										
+									
+								}
+								else {
+									// Checked so we need to insert this analysis_data
+									console.log('delete_all_snp_overlap');
+									// Get the studies
+									var study_id = $(this).parent().attr('data-venn-sets');
+									var url = Drupal.settings.base_url + '/cartogratree/api/v2/analysis/delete_markers_study_all';
+									$.ajax({
+										method: 'POST',
+										url: url,
+										data: {
+											analysis_id: cartograplant.current_analysis_id,
+											study_id: study_id
+										},
+										success: function(data) {
+											var results = JSON.parse(data);
+											console.log(results);
+										}
+									});		
+								}	
+													
+							});
+
 							// On click checkbox (insert into the database overlaps) using CT API
 							$('.snp_overlap_checkbox').click(function() {
+								analysis_summary_update();
 								var is_checked = false;
 								if ($(this).is(':checked')) {
 									is_checked = true;
@@ -335,7 +651,7 @@ var ct_ready_map_analysis = function() {
 										method: 'POST',
 										url: url,
 										data: {
-											analysis_id: current_analysis_id,
+											analysis_id: cartograplant.current_analysis_id,
 											study_ids_arr: JSON.stringify(study_ids_arr)
 										},
 										success: function(data) {
@@ -356,7 +672,7 @@ var ct_ready_map_analysis = function() {
 										method: 'POST',
 										url: url,
 										data: {
-											analysis_id: current_analysis_id,
+											analysis_id: cartograplant.current_analysis_id,
 											study_ids_arr: JSON.stringify(study_ids_arr)
 										},
 										success: function(data) {
@@ -369,6 +685,7 @@ var ct_ready_map_analysis = function() {
 
 							// On click checkbox (insert into the database overlaps) using CT API
 							$('.snp_none_overlap_checkbox').click(function() {
+								analysis_summary_update();
 								var is_checked = false;
 								if ($(this).is(':checked')) {
 									is_checked = true;
@@ -386,7 +703,7 @@ var ct_ready_map_analysis = function() {
 										method: 'POST',
 										url: url,
 										data: {
-											analysis_id: current_analysis_id,
+											analysis_id: cartograplant.current_analysis_id,
 											study_ids_arr: JSON.stringify(study_ids_arr)
 										},
 										success: function(data) {
@@ -407,7 +724,7 @@ var ct_ready_map_analysis = function() {
 										method: 'POST',
 										url: url,
 										data: {
-											analysis_id: current_analysis_id,
+											analysis_id: cartograplant.current_analysis_id,
 											study_ids_arr: JSON.stringify(study_ids_arr)
 										},
 										success: function(data) {
@@ -529,6 +846,108 @@ var ct_ready_map_analysis = function() {
 
 	// This happens when someone clicks on the phenotype / traits analysis tab
 	$('a[href="#analysis-overlapping-traits"]').on('click', function() {
+
+		// TEST PCA / SCATTERPLOT
+		try {
+			// $('#analysis-overlapping-traits-scatterplot').html('');
+			// scatterplot_basic_set_container('#analysis-overlapping-traits-scatterplot');
+			// scatterplot_basic_create();
+		}
+		catch (err) {
+			console.log('pca_error', err);
+		}
+
+		// // TEST TRIPALD3 interactive histogram
+		// // #analysis-overlapping-traits-histogram
+		// try {
+		// 	$('#analysis-overlapping-traits-histogram').html('');
+		// 	var histoData = [
+		// 		4.1     	,
+		// 		5.3     	,
+		// 		4.4     	,
+		// 		3.9     	,
+		// 		5.5     	,
+		// 		5.3     	,
+		// 		5.4     	,
+		// 		4.3     	,
+		// 		4.2     	,
+		// 		4.0     	,
+		// 		6.3     	,
+		// 		7.9     	,
+		// 		4.5     	,
+		// 		5.2     	,
+		// 		4.6     	,
+		// 		5.4     	,
+		// 		5.6     	,
+		// 		4.6     	,
+		// 		5.1     	,
+		// 		4.6     	,
+		// 		3.7     	,
+		// 		4.8     	,
+		// 		7.7     	,
+		// 		4.3     	,
+		// 		3.8     	,
+		// 		5.0     	,
+		// 		4.5     	,
+		// 		4.6     	,
+		// 		4.1     	,
+		// 		4.6     	,
+		// 		7.1     	,
+		// 		5.5     	,
+		// 		5.2     	,
+		// 		4.5     	,
+		// 		4.8     	,
+		// 		4.1     	,
+		// 		4.4     	,
+		// 		4.8     	,
+		// 		4.8     	,
+		// 		3.9     	,
+		// 		3.9     	,
+		// 		8.2     	,
+		// 		6.2     	,
+		// 		3.7     	,
+		// 		5.4     	,
+		// 		5.1     	,
+		// 		3.7     	,
+		// 		5.2     	,
+		// 		7.1     	,
+		// 		4.4     	,
+		// 		3.8     	,
+		// 		6.8     	,
+		// 		4.9     	,
+		// 		4.7     	,
+		// 		4.2     	,
+		// 		4.2     	,
+		// 	];
+		
+		// 	// Change to version D3 version 3
+		// 	d3m_execute('v3', function() {
+		// 		// Draw your chart.
+		// 		tripalD3.drawFigure(
+		// 			histoData,
+		// 			{
+		// 				"chartType" : "histogram",
+		// 				"elementId": "analysis-overlapping-traits-histogram",
+		// 				"height": 500,
+		// 				"width": 1000,
+		// 				"keyPosition": "right",
+		// 				"title": "SNPs available for the selection of <em>Tripalus databasica</em>",
+		// 				"legend": "The above histogram depicts the number of SNPs available per selected tree for <em>Tripalus databasica</em>.",
+		// 				"chartOptions": {
+		// 				"xAxisTitle": "",
+		// 				"yAxisTitle": "",
+		// 				}
+		// 			}
+		// 		);
+		// 		d3m_execute('v5');	
+		// 	});
+
+		// }
+		// catch (err) {
+		// 	console.log('tripald3 interactive histogram',err);
+		// }
+
+
 		console.log('Analysis overlap tab click detected');
 		$('#analysis-overlapping-traits-studies').html('<i class="fas fa-clock"></i> Detecting studies...');
 		$('#analysis-overlapping-traits-traits-list-summary').html('<i class="fas fa-clock"></i> Querying ' + mapState.includedTrees.length + ' trees ' + '<span class="loading"></span> <img style="height: 16px;" src="' + loading_icon_src + '" />');
@@ -537,99 +956,607 @@ var ct_ready_map_analysis = function() {
 		$('#analysis-overlapping-traits-download-by-selected-phenotypes').fadeOut(500);
 
 		get_detected_studies_from_selected_trees();
-		console.log(detected_studies);
+		console.log(cartograplant.detected_studies);
 
-		var studies = Object.keys(detected_studies);
+		var studies = Object.keys(cartograplant.detected_studies);
+		if(studies.length <= 1) {
+			$('#analysis-overlapping-traits-traits-list').html('You must select at least 2 studies to begin trait overlap detection. Please return to the map filter section to include additional studies.')
+		}
+
+		var study_info_html = studies.length + ' studies detected based on the trees you selected on the map<br />';
+		for(var i=0; i<studies.length; i++) {
+			if(i > 0) {
+				// study_info_html += ', ';
+			}
+			study_info_html += '<div style="display: inline-block; padding: 3px; border-radius: 2px; background-color: #036e63; color: #FFFFFF; margin-right: 3px;">' + studies[i] + '</div>';
+		}
+		$('#analysis-overlapping-traits-studies').html(study_info_html);
+
+		// Make main container visible
+		$('#analysis-overlapping-traits-traits-operation-container').fadeIn(500);
+
+		// Make the traits list container visible
+		$('#analysis-overlapping-traits-traits-list').fadeIn(500);
 
 
-		$('#analysis-overlapping-traits-studies').html('<i class="fas fa-book"></i> Detected studies: ' + Object.keys(detected_studies).length);
+		var phenotypes_all = {};
+		var url = Drupal.settings.base_url + "/cartogratree/api/v2/phenotypes/phenotypes_all_by_studies_views";
+		$.ajax({
+			method: 'POST',
+			url: url,
+			data: {
+				studies: JSON.stringify(studies)
+			},
+			success: function(data) {
+				console.log('all-phenotypes-data', data);
+				if(data.length > 0) {
+					for(var i=0; i<data.length; i++) {
+						var row = data[i];
+						var phenotypes = row.phenotypes;
+						var accession = row.accession;
+						for(var j=0; j<phenotypes.length; j++) {
+							var phenotype = phenotypes[j];
+							if(phenotypes_all[phenotype] == undefined) {
+								//add it to phenotypes_all
+								phenotypes_all[phenotype] = {
+									studies: {},
+									units: "NA"
+								};
+							}
+							// Now add this study to the key: studies
+							phenotypes_all[phenotype]['studies'][accession] = true;
+							
+						}
+					}
+
+					// Now output the list of phenotypes to the UI
+					var phenotypes_arr = Object.keys(phenotypes_all);
+					
+					// Clear the traits grid container before generating any detected histograms
+					$('#analysis-overlapping-traits-traits-histogram-grid').html('');
+
+					// Clear the traits list container before adding the phenotypes and checkboxes
+					$('#analysis-overlapping-traits-traits-list').html('');
+					var phenotypes_items_html = '<table id="analysis-overlapping-traits-traits-table" style="width: 100%; border-collapse:separate; border-spacing:5px;">';
+					
+					for(var i=0; i<phenotypes_arr.length; i++) {
+
+						var studies_csv = "";
+						if(phenotypes_all[phenotypes_arr[i]]['studies'] != undefined) {
+							studies_csv = Object.keys(phenotypes_all[phenotypes_arr[i]]['studies']).join(',');
+						}
+
+						// check if overlap with all studies
+						var overlap_html = '<div>No overlaps</div>';
+						console.log(Object.keys(phenotypes_all[phenotypes_arr[i]]['studies']).length);
+						if(Object.keys(phenotypes_all[phenotypes_arr[i]]['studies']).length == studies.length) {
+							overlap_html = '<div style="display: inline-block; padding: 3px; color: #FFFFFF; background-color: #036e63; border-radius: 2px;">Overlaps with all studies</div>';
+
+							// If these are the overlaps detected, we can generate a grid of histograms for these below.
+							var traits_grid_html = '<div class="grid_element" style="display: inline-block;" studies="' + studies_csv + '" phenotype_name="' + phenotypes_arr[i] + '"></div>';
+							$('#analysis-overlapping-traits-traits-histogram-grid').append(traits_grid_html);
+
+							// Load the histogram into the grid elememt
+							analysis_overlapping_traits_grid_histogram_element_add('#analysis-overlapping-traits-traits-histogram-grid .grid_element[phenotype_name="' + phenotypes_arr[i] + '"]', phenotypes_arr[i], studies_csv)
+
+
+						}
+
+						phenotypes_items_html += '<tr>';
+						phenotypes_items_html += '<td style="min-width: 30%;"><input class="trait_select_checkbox" type="checkbox" studies="' + studies_csv + '" phenotype_name="' + phenotypes_arr[i] + '"><span style="margin-left: 5px; text-decoration: none; cursor: pointer; text-decoration: none;" class="trait_description" studies="' + studies_csv + '" phenotype_name="' + phenotypes_arr[i] + '">' + phenotypes_arr[i] + '</span></td>';
+						phenotypes_items_html += '<td phenotype_name="' + phenotypes_arr[i] + '" class="counts" ' + 'style="min-width: 30%;">Querying phenotype counts</td>';
+						phenotypes_items_html += '<td phenotype_name="' + phenotypes_arr[i] + '" class="phenotype_units" ' + 'style="min-width: 30%;"></td>';
+						phenotypes_items_html += '<td style="min-width: 30%;">' + overlap_html + '</td>';
+						phenotypes_items_html += '</tr>';
+						// phenotypes_items_html += '<div style="margin-bottom: 5px;"><div style="width: 25%; display: inline-block;"><input type="checkbox" studies="' + studies_csv + '" value="' + phenotypes_arr[i] + '"> ' + phenotypes_arr[i] + '</div>' + overlap_html + '<div>';
+					}
+					phenotypes_items_html += "</table>";
+					$('#analysis-overlapping-traits-traits-list').append(phenotypes_items_html);
+
+					// Now perform the counts dynamically as well
+					for(var i=0; i<phenotypes_arr.length; i++) {
+						var phenotype_name = phenotypes_arr[i];
+						var url = Drupal.settings.base_url + "/cartogratree/api/v2/phenotypes/phenotypes_count_by_overlapping_studies";
+						$.ajax({
+							method: 'POST',
+							url: url,
+							data: {
+								studies: JSON.stringify(studies),
+								phenotype_name: phenotype_name
+							},
+							success: function(data) {
+								console.log('phenotypes_values_by_overlapping_studies', data);
+								// var values = [];
+								var rows = [];
+								if(data['rows'] != undefined) {
+									rows = data['rows'];
+								}
+
+								var phenotype_name = data.phenotype_name;
+								for(var i=0; i<rows.length; i++) {
+									var row = rows[i];
+									// console.log('value', row.value);
+									var count = parseInt(row.c1).toLocaleString();
+									
+									// update the row in the table
+									$('#analysis-overlapping-traits-traits-table td[phenotype_name="' + phenotype_name + '"].counts').html(count + ' phenotypes');
+									$('#analysis-overlapping-traits-traits-table td[phenotype_name="' + phenotype_name + '"].phenotype_units').html(row.units);
+								}				
+							}
+						});						
+					}
+
+
+				}
+				// data = JSON.parse(data);
+				// console.log('overlapping-phenotypes-data', data);
+			}
+		});
+
+
+		function analysis_overlapping_traits_grid_histogram_element_add(container, phenotype_name, studies) {
+			// var phenotype_name = phenotypes_arr[i];
+			// var studies = studies_csv;
+			if(studies != undefined) {
+				studies = studies.split(',');// since this is a csv, we split by commas
+			}
+			var url = Drupal.settings.base_url + "/cartogratree/api/v2/phenotypes/phenotypes_values_by_overlapping_studies";
+			$.ajax({
+				method: 'POST',
+				url: url,
+				data: {
+					studies: JSON.stringify(studies),
+					phenotype_name: phenotype_name,
+					compression: true
+				},
+				success: function(data) {
+					console.log('phenotypes_values_by_overlapping_studies', data);
+
+					if(data['zlib_deflated_base64'] != undefined) {
+						// This is JSON stringified, zlib deflated and base 64 encoded so we need to undo that
+						var base64Data = data.zlib_deflated_base64;
+						// console.log('base64Data', base64Data);
+						var compressData = atob(base64Data);
+						var compressData = compressData.split('').map(function(e) {
+							return e.charCodeAt(0);
+						});				
+						var inflate = new Zlib.Inflate(compressData);
+						var output = inflate.decompress(); // UINT8Arra
+						output = new TextDecoder().decode(output);
+						// console.log('output', output);
+						var data = JSON.parse(output);				
+					}
+
+
+					var values = [];
+					for(var i=0; i<data.length; i++) {
+						var row = data[i];
+						// console.log('value', row.value);
+						var obj = {};
+						// values.push(parseFloat(row.value));
+						obj['value'] = row.value;
+						obj['phenotype_id'] = row.phenotype_id;
+						obj['plant_accession'] = row.plant_accession;
+						obj['study_accession'] = row.study_accession;
+						values.push(obj);
+					}
+					try {
+						// $(element).html('');
+						console.log('Adding to container:' + container);
+						interactive_histogram_create_v5(
+							container, 
+							phenotype_name,//unique_id
+							phenotype_name, 
+							300, 300, 
+							values,['phenotype_id','plant_accession','value'], 
+							false
+						);
+						// Add a filter button which opens the interactive histogram with line thresholds
+						var button_html = '<div><center><button style="border-radius: 3px;" phenotype_name="' + phenotype_name + '" studies="' + studies + '" class="filter_trait_interactive_histogram">Adjust thresholds</button></center></div>';
+						$(container).append(button_html);
+					}
+					catch (err) {
+						console.log('traits interactive histogram error', err);
+					}				
+				}
+			});				
+		}
+
+		$(document).on('click', '.trait_description', function() {
+			// alert('Click detected');
+			analysis_overlapping_traits_histogram_dataselect_element(this);
+		});
+
+		$(document).on('click', '.filter_trait_interactive_histogram', function() {
+			analysis_overlapping_traits_histogram_dataselect_element(this);
+		});
+
+		$(document).on('click', '.trait_select_checkbox', function() {
+			// alert('click detected');
+			analysis_overlapping_trait_select_checkbox(this);
+
+
+		});	
+
+		function analysis_overlapping_trait_select_checkbox(el) {
+			var element = $(el);
+			var unique_id = element.attr('phenotype_name');
+
+			// check if the checkbox is already selected or not
+			console.log(interactive_histograms_selected_data[unique_id]);
+
+			analysis_summary_update();
+			if(element.is(":checked")) {
+				// perform an insert (since the checkbox is no selected)
+				// Check to see whether an interactive histogram with container name exists
+				//console.log(Object.keys(interactive_histograms_selected_data));
+				// Count the items
+				var phenotypes_count = 0;
+				if(interactive_histograms_selected_data[unique_id] != undefined) {
+					// there is already a threshold object created
+
+					console.log('interactive_histograms_selected_data[unique_id]',interactive_histograms_selected_data[unique_id]);
+					if(interactive_histograms_selected_data[unique_id].length > 0) {
+						var keys = Object.keys(interactive_histograms_selected_data[unique_id]);
+						for(var i=0; i<interactive_histograms_selected_data[unique_id].length; i++) {
+							var phenotype_id_csv = interactive_histograms_selected_data[unique_id][i]['phenotype_id'].split(',');
+							phenotypes_count += phenotype_id_csv.length;
+						}
+						console.log('phenotypes_count', phenotypes_count);
+						$('#analysis-overlapping-traits-traits-table td[phenotype_name="' + unique_id + '"].counts').html(phenotypes_count.toLocaleString() + ' phenotypes');
+					}
+
+					console.log('Found unique_id: ' + unique_id + ' with data:' + interactive_histograms_selected_data[unique_id])
+					var data = JSON.stringify(interactive_histograms_selected_data[unique_id]);
+					// push to analysis_data
+					$.ajax({
+						method: 'POST',
+						url: Drupal.settings.base_url + '/cartogratree/api/v2/analysis/insert_data',
+						data: {
+							analysis_id: cartograplant.current_analysis_id,
+							variable_name: 'phenotype_threshold_' + unique_id,
+							variable_data: data
+						},
+						success: function (data) {
+							console.log(data);
+						}
+					});
+
+				}
+				else {
+					// Perform a full pull and push (we could do this mostly with API only
+					// but this seems easier to manage)
+					var phenotype_name = $(element).attr('phenotype_name');
+					var studies = $(element).attr('studies');
+					if(studies != undefined) {
+						studies = studies.split(',');// since this is a csv, we split by commas
+					}
+					var url = Drupal.settings.base_url + "/cartogratree/api/v2/phenotypes/phenotypes_values_by_overlapping_studies";
+					$.ajax({
+						method: 'POST',
+						url: url,
+						data: {
+							studies: JSON.stringify(studies),
+							phenotype_name: phenotype_name,
+							compression: true
+						},
+						success: function(data) {
+							console.log('phenotypes_values_by_overlapping_studies', data);
 		
-		if(studies.length > 0) {
-			var timer_name = 'studies_intersecting_traits_timer';
-			if(analysis_timers[timer_name] != undefined) {
-				clearInterval(analysis_timers[timer_name]);
+							if(data['zlib_deflated_base64'] != undefined) {
+								// This is JSON stringified, zlib deflated and base 64 encoded so we need to undo that
+								var base64Data = data.zlib_deflated_base64;
+								// console.log('base64Data', base64Data);
+								var compressData = atob(base64Data);
+								var compressData = compressData.split('').map(function(e) {
+									return e.charCodeAt(0);
+								});				
+								var inflate = new Zlib.Inflate(compressData);
+								var output = inflate.decompress(); // UINT8Arra
+								output = new TextDecoder().decode(output);
+								// console.log('ungzipped output', output);
+								var data = JSON.parse(output);
+								phenotypes_count = data.length;
+								$('#analysis-overlapping-traits-traits-table td[phenotype_name="' + phenotype_name + '"].counts').html(phenotypes_count.toLocaleString() + ' phenotypes');			
+							}
+		
+							var values = [];
+							for(var i=0; i<data.length; i++) {
+								var row = data[i];
+								// console.log('value', row.value);
+								var obj = {};
+								// values.push(parseFloat(row.value));
+								obj['value'] = row.value;
+								obj['phenotype_id'] = row.phenotype_id;
+								obj['plant_accession'] = row.plant_accession;
+								obj['study_accession'] = row.study_accession;
+								values.push(obj);						
+							}
+							try {
+								$.ajax({
+									method: 'POST',
+									url: Drupal.settings.base_url + '/cartogratree/api/v2/analysis/insert_data',
+									data: {
+										analysis_id: cartograplant.current_analysis_id,
+										variable_name: 'phenotype_threshold_' + unique_id,
+										variable_data: JSON.stringify(values)
+									},
+									success: function (data) {
+										console.log(data);
+									}
+								});
+							}
+							catch (err) {
+								console.log('traits interactive histogram error', err);
+							}					
+						}
+					});
+				}
 			}
 			else {
-				analysis_timers[timer_name] = {};
-				analysis_timers[timer_name]['current_value'] = 0;
-				analysis_timers[timer_name]['timer'] = setInterval(function (element_id) {
-					analysis_timers[timer_name]['current_value'] = analysis_timers[timer_name]['current_value'] + 1;
-					$(element_id).html(analysis_timers[timer_name]['current_value'] + 's (please wait...)');
-				}, 1000, '#studies_intersecting_traits_timer_div');
+				// perform a delete
+				// If not, perform a full pull and push to the db
+				$.ajax({
+					method: 'POST',
+					url: Drupal.settings.base_url + '/cartogratree/api/v2/analysis/delete_data',
+					data: {
+						analysis_id: cartograplant.current_analysis_id,
+						variable_name: 'phenotype_threshold_' + unique_id,
+					},
+					success: function (data) {
+						console.log(data);
+					}
+				});	
 			}
-			var send_data = JSON.stringify(detected_studies);
-			var url = Drupal.settings.base_url + "/cartogratree/api/v2/traits/union/by_batch";
-			$('#analysis-overlapping-traits-status').html('Status: Finding all traits across all studies ... ');
+
+			// Also generate the PCA 
+			var checkboxes = $('.trait_select_checkbox');
+			var phenotypes = [];
+			var studies = [];
+			for (var i = 0; i < checkboxes.length; i++) {
+				// Using $() to re-wrap the element.
+				// Check whether the checkbox is checked or not
+				if($(checkboxes[i]).is(':checked')) {
+					var e_phenotype = $(checkboxes[i]).attr('phenotype_name');
+					if(phenotypes.includes(e_phenotype) == false) {
+						phenotypes.push(e_phenotype);
+					}
+					var e_studies = $(checkboxes[i]).attr('studies').split(','); // comma separated
+					for(var j=0; j<e_studies.length; j++) {
+						if(studies.includes(e_studies[j]) == false) {
+							studies.push(e_studies[j]);
+						}
+					}
+				}
+			}
+
+			// send phenotypes and studies to the CP API endpoint
+			// there must be at least 2 phenotypes to generate a PCA
+			if(phenotypes.length > 1) {
+				// alert('Generating a PCA');
+				$('#analysis-overlapping-traits-pca').html('<div style="text-align: center"><img src="' + loading_icon_src + '" /><br />Generating a PCA for ' + phenotypes.length + ' phenotypes.</div>');
+				$.ajax({
+					method: 'POST',
+					url: Drupal.settings.base_url + '/cartogratree/api/v2/phenotypes/phenotypes_pca',
+					data: {
+						analysis_id: cartograplant.current_analysis_id,
+						phenotypes: JSON.stringify(phenotypes),
+						studies: JSON.stringify(studies)
+					},
+					success: function (data) {
+						console.log(data);
+						data = JSON.parse(data);
+						if(data['error'] == undefined) { 
+							$('#analysis-overlapping-traits-pca').html('');
+							const blob = b64toBlob(data['data_base64'], 'image/jpeg');
+							var html = "";
+							html += '<center><div style="background-color: #036e63;color: #FFFFFF;font-size: 14px;display: inline-block;padding: 5px;border-radius: 2px;">PCA (' + phenotypes.length + ' phenotypes)</div></center><br />';
+							html += '<img style="width: 100%;" src="' + URL.createObjectURL(blob) + '" />';
+							$('#analysis-overlapping-traits-pca').html(html);
+
+							$('#analysis-overlapping-traits-pca img').wrap('<span style="display:inline-block"></span>')
+							.css('display', 'block')
+							.parent().zoom({magnify:1.5});
+						}
+					}
+				});	
+			}
+			else {
+				$('#analysis-overlapping-traits-pca').html('');
+			}
+						
+		}
+			
+
+		function analysis_overlapping_traits_histogram_dataselect_element(element) {
+			var phenotype_name = $(element).attr('phenotype_name');
+			var studies = $(element).attr('studies');
+			if(studies != undefined) {
+				studies = studies.split(',');// since this is a csv, we split by commas
+			}
+			var url = Drupal.settings.base_url + "/cartogratree/api/v2/phenotypes/phenotypes_values_by_overlapping_studies";
 			$.ajax({
-				method: "POST",
-				data: {
-					'data': send_data
-				},
+				method: 'POST',
 				url: url,
-				dataType: "json",
-				success: function (data) {
-					console.log(data);
-					if(data.length > 0) {
-						var html = "";
-						var all_traits = []; // collect all_traits for later on
-						for(var i=0; i<data.length; i++) {
-							all_traits.push(data[i].name);
-						}
-
-
-						$('#analysis-overlapping-traits-status').html('Status: Finding tree counts for each trait <span class="loading"></span> <span id="status_finding_tree_counts_remaining"></span>');
-						for(var i=0; i<data.length; i++) {
-							var removeRegEx = /[^\w]+/g;
-							var id_name_potential_filtered_trees_nospaces = "analysis-overlapping-traits-filtered-trees-checkbox-" +  data[i].name.replaceAll("%", "_").replaceAll(removeRegEx, "_");
-							var id_name_has_overlap_trees_nospaces = "analysis-overlapping-has-overlap-trees-checkbox-" +  data[i].name.replaceAll(removeRegEx, "_");
-							html += '<div style="margin-top: 5px; margin-bottom: 5px; display: flex;">';
-							html += '<div style="width: 25%;">';
-							html += '<input type="checkbox" value="' + data[i].name +  '" class="analysis-overlapping-traits-overlap-phenotype-checkbox"> <span style="background-color: #007eff; color: #FFFFFF; padding: 5px; border-radius: 5px;">Trait</span> ' + data[i].name;
-							html += '</div>';
-							html += '<div style="width: 35%;" id="' + id_name_potential_filtered_trees_nospaces + '">';
-							html += '<i class="fas fa-hourglass"></i> Counting trees <span class="loading"></span> <img style="height: 16px;" src="' + loading_icon_src + '" />';
-							html += '</div>';
-							html += '<div style="width: 35%;" id="' + id_name_has_overlap_trees_nospaces + '">';
-							html += '<i class="fas fa-hourglass"></i> Checking for overlaps <span class="loading"></span> <img style="height: 16px;" src="' + loading_icon_src + '" />';
-							html += '</div>';							
-							html += '</div>';
-
-							var trees = mapState.includedTrees;
-							var operand = 'union'; // I don't think this matters per say for this check since it's a single trait but still needed to fulfill the API requirement
-							var traits = [data[i].name];
-							analysis_overlapping_traits_tree_count_by_specific_trait(trees, 'union', traits, id_name_potential_filtered_trees_nospaces, i, data.length);
-							// analysis_overlapping_traits_tree_count_overlap_by_specific_trait(detected_studies, trait, id_name_potential_overlap_trees_nospaces);
-						}
-
-						// Update UI
-						$('#analysis-overlapping-traits-traits-operation-container').fadeIn(500);
-						$('#analysis-overlapping-traits-traits-list-summary').html('<i class="fas fa-smile"></i> ' + data.length +  ' traits detected!');
-						$('#analysis-overlapping-traits-traits-list').html(html);
-						$('#analysis-overlapping-traits-traits-list').fadeIn(500);
-
-						// Check which traits have overlap between all studies selected and update the UI
-						analysis_has_overlapping_traits(detected_studies, all_traits);
-
-					}
-					else {
-						$('#analysis-overlapping-traits-traits-list-summary').html('<i class="fas fa-not-equal"></i> Sorry, no phenotypes overlap.');
-						$('#analysis-overlapping-traits-traits-list').fadeOut(500);
-						$('#analysis-overlapping-traits-traits-operation-container').fadeOut(500);
-					}
-					clearInterval(analysis_timers[timer_name]['timer']);
-					analysis_timers[timer_name] = undefined;
-					$('#studies_intersecting_traits_timer_div').html('');
+				data: {
+					studies: JSON.stringify(studies),
+					phenotype_name: phenotype_name,
+					compression: true
 				},
-				error: function() {
-					clearInterval(analysis_timers[timer_name]['timer']);
-					analysis_timers[timer_name] = undefined;
-					$('#studies_intersecting_traits_timer_div').html('');
+				success: function(data) {
+					console.log('phenotypes_values_by_overlapping_studies', data);
+
+					if(data['zlib_deflated_base64'] != undefined) {
+						// This is JSON stringified, zlib deflated and base 64 encoded so we need to undo that
+						var base64Data = data.zlib_deflated_base64;
+						// console.log('base64Data', base64Data);
+						var compressData = atob(base64Data);
+						var compressData = compressData.split('').map(function(e) {
+							return e.charCodeAt(0);
+						});				
+						var inflate = new Zlib.Inflate(compressData);
+						var output = inflate.decompress(); // UINT8Arra
+						output = new TextDecoder().decode(output);
+						// console.log('output', output);
+						var data = JSON.parse(output);				
+					}
+
+					var values = [];
+					for(var i=0; i<data.length; i++) {
+						var row = data[i];
+						// console.log('value', row.value);
+						var obj = {};
+						// values.push(parseFloat(row.value));
+						obj['value'] = row.value;
+						obj['phenotype_id'] = row.phenotype_id;
+						obj['plant_accession'] = row.plant_accession;
+						obj['study_accession'] = row.study_accession;
+						values.push(obj);						
+					}
+					try {
+						$('#analysis-overlapping-traits-histogram').html(
+							'<div class="histogram_container"></div>' + 
+							'<center><button class="histogram_button_save">Save adjustment</button></center>' +
+							'<div style="">&nbsp;</div>'
+						);
+
+						interactive_histogram_create_v5(
+							'#analysis-overlapping-traits-histogram .histogram_container',
+							phenotype_name,// unique_id
+							phenotype_name,400,400,
+							values,['phenotype_id','plant_accession', 'value']
+						);
+						
+					}
+					catch (err) {
+						console.log('traits interactive histogram error', err);
+					}					
 				}
 			});
 		}
-		else {
 
-		}		
+		$('body').on('click', '#analysis-overlapping-traits-histogram .histogram_button_save', function() {
+			console.log('histogram button save clicked');
+			var element = $(this);
+			var phenotype_name = element.parent().parents().find('.histogram_container').attr('unique_id');
+			console.log('phenotype_name', phenotype_name);
+			if($('.trait_select_checkbox[phenotype_name="' + phenotype_name + '"]').is(':checked')) {
+				// uncheck it
+				$('.trait_select_checkbox[phenotype_name="' + phenotype_name + '"]').click();
+				setTimeout(function() {
+					$('.trait_select_checkbox[phenotype_name="' + phenotype_name + '"]').click();
+				}, 3000);
+			}
+			else {
+				$('.trait_select_checkbox[phenotype_name="' + phenotype_name + '"]').click();
+			}
+
+		});
+
+		// We need to query the API for the studies detected (phenotypes_phenotypes_overlaps_by_studies_views)
+		// var url = Drupal.settings.base_url + "/cartogratree/api/v2/phenotypes/phenotypes_overlaps_by_studies_views";
+		// $.ajax({
+		// 	method: 'POST',
+		// 	url: url,
+		// 	data: {
+		// 		studies: JSON.stringify(studies)
+		// 	},
+		// 	success: function(data) {
+		// 		console.log('overlapping-phenotypes-data', data);
+		// 		// data = JSON.parse(data);
+		// 		// console.log('overlapping-phenotypes-data', data);
+		// 	}
+		// });
+
+
+		//$('#analysis-overlapping-traits-studies').html('<i class="fas fa-book"></i> Detected studies: ' + Object.keys(detected_studies).length);
+		
+		// if(studies.length > 0) {
+		// 	var timer_name = 'studies_intersecting_traits_timer';
+		// 	if(analysis_timers[timer_name] != undefined) {
+		// 		clearInterval(analysis_timers[timer_name]);
+		// 	}
+		// 	else {
+		// 		analysis_timers[timer_name] = {};
+		// 		analysis_timers[timer_name]['current_value'] = 0;
+		// 		analysis_timers[timer_name]['timer'] = setInterval(function (element_id) {
+		// 			analysis_timers[timer_name]['current_value'] = analysis_timers[timer_name]['current_value'] + 1;
+		// 			$(element_id).html(analysis_timers[timer_name]['current_value'] + 's (please wait...)');
+		// 		}, 1000, '#studies_intersecting_traits_timer_div');
+		// 	}
+		// 	var send_data = JSON.stringify(detected_studies);
+		// 	var url = Drupal.settings.base_url + "/cartogratree/api/v2/traits/union/by_batch";
+		// 	$('#analysis-overlapping-traits-status').html('Status: Finding all traits across all studies ... ');
+		// 	$.ajax({
+		// 		method: "POST",
+		// 		data: {
+		// 			'data': send_data
+		// 		},
+		// 		url: url,
+		// 		dataType: "json",
+		// 		success: function (data) {
+		// 			console.log(data);
+		// 			if(data.length > 0) {
+		// 				var html = "";
+		// 				var all_traits = []; // collect all_traits for later on
+		// 				for(var i=0; i<data.length; i++) {
+		// 					all_traits.push(data[i].name);
+		// 				}
+
+
+		// 				$('#analysis-overlapping-traits-status').html('Status: Finding tree counts for each trait <span class="loading"></span> <span id="status_finding_tree_counts_remaining"></span>');
+		// 				for(var i=0; i<data.length; i++) {
+		// 					var removeRegEx = /[^\w]+/g;
+		// 					var id_name_potential_filtered_trees_nospaces = "analysis-overlapping-traits-filtered-trees-checkbox-" +  data[i].name.replaceAll("%", "_").replaceAll(removeRegEx, "_");
+		// 					var id_name_has_overlap_trees_nospaces = "analysis-overlapping-has-overlap-trees-checkbox-" +  data[i].name.replaceAll(removeRegEx, "_");
+		// 					html += '<div style="margin-top: 5px; margin-bottom: 5px; display: flex;">';
+		// 					html += '<div style="width: 25%;">';
+		// 					html += '<input type="checkbox" value="' + data[i].name +  '" class="analysis-overlapping-traits-overlap-phenotype-checkbox"> <span style="background-color: #007eff; color: #FFFFFF; padding: 5px; border-radius: 5px;">Trait</span> ' + data[i].name;
+		// 					html += '</div>';
+		// 					html += '<div style="width: 35%;" id="' + id_name_potential_filtered_trees_nospaces + '">';
+		// 					html += '<i class="fas fa-hourglass"></i> Counting trees <span class="loading"></span> <img style="height: 16px;" src="' + loading_icon_src + '" />';
+		// 					html += '</div>';
+		// 					html += '<div style="width: 35%;" id="' + id_name_has_overlap_trees_nospaces + '">';
+		// 					html += '<i class="fas fa-hourglass"></i> Checking for overlaps <span class="loading"></span> <img style="height: 16px;" src="' + loading_icon_src + '" />';
+		// 					html += '</div>';							
+		// 					html += '</div>';
+
+		// 					var trees = mapState.includedTrees;
+		// 					var operand = 'union'; // I don't think this matters per say for this check since it's a single trait but still needed to fulfill the API requirement
+		// 					var traits = [data[i].name];
+		// 					analysis_overlapping_traits_tree_count_by_specific_trait(trees, 'union', traits, id_name_potential_filtered_trees_nospaces, i, data.length);
+		// 					// analysis_overlapping_traits_tree_count_overlap_by_specific_trait(detected_studies, trait, id_name_potential_overlap_trees_nospaces);
+		// 				}
+
+		// 				// Update UI
+		// 				$('#analysis-overlapping-traits-traits-operation-container').fadeIn(500);
+		// 				$('#analysis-overlapping-traits-traits-list-summary').html('<i class="fas fa-smile"></i> ' + data.length +  ' traits detected!');
+		// 				$('#analysis-overlapping-traits-traits-list').html(html);
+		// 				$('#analysis-overlapping-traits-traits-list').fadeIn(500);
+
+		// 				// Check which traits have overlap between all studies selected and update the UI
+		// 				analysis_has_overlapping_traits(detected_studies, all_traits);
+
+		// 			}
+		// 			else {
+		// 				$('#analysis-overlapping-traits-traits-list-summary').html('<i class="fas fa-not-equal"></i> Sorry, no phenotypes overlap.');
+		// 				$('#analysis-overlapping-traits-traits-list').fadeOut(500);
+		// 				$('#analysis-overlapping-traits-traits-operation-container').fadeOut(500);
+		// 			}
+		// 			clearInterval(analysis_timers[timer_name]['timer']);
+		// 			analysis_timers[timer_name] = undefined;
+		// 			$('#studies_intersecting_traits_timer_div').html('');
+		// 		},
+		// 		error: function() {
+		// 			clearInterval(analysis_timers[timer_name]['timer']);
+		// 			analysis_timers[timer_name] = undefined;
+		// 			$('#studies_intersecting_traits_timer_div').html('');
+		// 		}
+		// 	});
+		// }
+		// else {
+
+		// }
 	});
 
 
@@ -781,6 +1708,7 @@ var ct_ready_map_analysis = function() {
 	}
 
 	$('#analysis-initial-configuration-tab').click(function() {
+		get_detected_studies_from_selected_trees();
 		console.log($('#create-analysis-select-galaxy-account').html());
 		if($('#create-analysis-select-galaxy-account').html() == "") {
 			var url = Drupal.settings.base_url + "/cartogratree_uianalysis/get_all_galaxy_accounts";
@@ -835,7 +1763,7 @@ var ct_ready_map_analysis = function() {
 
 	$('#create-analysis-select-galaxy-account').click(function() {
 		// window.alert("Nice");
-		galaxy_id = $('#create-analysis-select-galaxy-account').val();
+		cartograplant.galaxy_id = $('#create-analysis-select-galaxy-account').val();
 
 
 		cartograplant_analysis_populate_histories_select_list();
@@ -844,7 +1772,7 @@ var ct_ready_map_analysis = function() {
 	});	
 
 	function cartograplant_analysis_populate_histories_select_list() {
-		var url = Drupal.settings.base_url + "/cartogratree_uianalysis/get_all_history_from_galaxy_account/" + galaxy_id;
+		var url = Drupal.settings.base_url + "/cartogratree_uianalysis/get_all_history_from_galaxy_account/" + cartograplant.galaxy_id;
 		$.ajax({
 			method: "GET",
 			url: url,
@@ -856,9 +1784,22 @@ var ct_ready_map_analysis = function() {
 				var workflow_ids = Object.keys(data[key]);
 				for(var i=0; i<workflow_ids.length; i++) {
 					console.log(data[key][workflow_ids[0]]);
-					html = html +  '<option value="' + workflow_ids[i] + '">' + data[key][workflow_ids[i]] +  '</option>';
+					var workspace_raw_label = data[key][workflow_ids[i]];
+					// Filter by start substring workspace-
+					if(workspace_raw_label.startsWith('workspace-')) {
+						var workspace_processed_label = workspace_raw_label;
+						workspace_processed_label = workspace_processed_label.replace('workspace-', '');
+						var workspace_processed_label_2underscore_parts = workspace_processed_label.split('__');
+						workspace_processed_label = workspace_processed_label_2underscore_parts[1].split('_')[1];
+
+						// If the workspace is owned/created by the current user id
+						if(workspace_processed_label_2underscore_parts[0].split('_')[1] == Drupal.settings.user.user_id) {
+							html = html +  '<option value="' + workflow_ids[i] + '">' + workspace_processed_label +  '</option>';
+						}
+					}
 				}
 				$('#create-analysis-select-history').html(html);
+				$('#create-analysis-select-history').click();
 			}
 		});
 	}
@@ -867,11 +1808,15 @@ var ct_ready_map_analysis = function() {
 		cartograplant_analysis_populate_history_contents_list();
 	});
 
+	$('#create-analysis-select-history').click(function() {
+		cartograplant_analysis_populate_history_contents_list();
+	});	
+
 	function cartograplant_analysis_populate_history_contents_list() {
 		try {
 			// Populate a list of history contents which can be managed (which really allows a user to delete essentially)
-			history_id = $('#create-analysis-select-history').val();
-			var url_history_contents = Drupal.settings.base_url + '/cartogratree_uianalysis/get_history_details/' + galaxy_id + '/' + history_id;
+			cartograplant.history_id = $('#create-analysis-select-history').val();
+			var url_history_contents = Drupal.settings.base_url + '/cartogratree_uianalysis/get_history_details/' + cartograplant.galaxy_id + '/' + cartograplant.history_id;
 			console.log(url_history_contents);
 			$.ajax({
 				method: 'GET',
@@ -889,7 +1834,8 @@ var ct_ready_map_analysis = function() {
 								div += '<div style="">';
 								// id, history_id, dataset_id
 								div += '<button id="manage-history-contents-delete-' + history_item['dataset_id'] + '" style="">Delete</button>';
-								div += ' <div style="display: inline-block;">' + history_item['dataset_name'] + '</div>';
+								var file_name_caption = cartograplant.get_file_name_caption(history_item['dataset_name']);
+								div += ' <div style="display: inline-block;">' + file_name_caption + '</div>';
 								div += '</div>';
 								
 							//}
@@ -911,7 +1857,7 @@ var ct_ready_map_analysis = function() {
 		var id = $(this).attr('id');
 		var id_parts = id.split("-");
 		var content_id = id_parts[4];
-		var url_delete_history_content_id = Drupal.settings.base_url + '/cartogratree_uianalysis/delete_history_content_id/' + galaxy_id + '/' + history_id + '/' + content_id;
+		var url_delete_history_content_id = Drupal.settings.base_url + '/cartogratree_uianalysis/delete_history_content_id/' + cartograplant.galaxy_id + '/' + cartograplant.history_id + '/' + content_id;
 		console.log(url_delete_history_content_id);
 		$.ajax({
 			method: 'GET',
@@ -924,7 +1870,7 @@ var ct_ready_map_analysis = function() {
 	});
 
 	function cartograplant_analysis_populate_workflow_select_list() {
-		var url = Drupal.settings.base_url + "/cartogratree_uianalysis/get_all_workflows_from_galaxy_account/" + galaxy_id;
+		var url = Drupal.settings.base_url + "/cartogratree_uianalysis/get_all_workflows_from_galaxy_account/" + cartograplant.galaxy_id;
 		$.ajax({
 			method: "GET",
 			url: url,
@@ -953,11 +1899,11 @@ var ct_ready_map_analysis = function() {
 	function cartograplant_analysis_populate_workflow_submit_form() {
 		$('.button-refresh-workflow-status').html('<img style="height: 16px;" src="' + loading_icon_src + '" />');
 		workflow_id = $('#create-analysis-select-workflow').val();
-		history_id = $('#create-analysis-select-history').val();
-		workflow_name = $('#create-analysis-select-workflow option:selected').text();
+		cartograplant.history_id = $('#create-analysis-select-history').val();
+		cartograplant.workflow_name = $('#create-analysis-select-workflow option:selected').text();
 		console.log('workflow_id', workflow_id);
 		
-		var url = Drupal.settings.base_url + "/cartogratree_uianalysis/get_workflow_input_types/" + galaxy_id + '/' + workflow_id + '/' + history_id + '?nocache=' + Math.floor(Date.now() / 1000);
+		var url = Drupal.settings.base_url + "/cartogratree_uianalysis/get_workflow_input_types/" + cartograplant.galaxy_id + '/' + workflow_id + '/' + cartograplant.history_id + '?nocache=' + Math.floor(Date.now() / 1000);
 		console.log(url);
 		$.ajax({
 			method: "GET",
@@ -967,7 +1913,7 @@ var ct_ready_map_analysis = function() {
 				console.log(data);
 				var ui_controls = data.ui_controls;
 				var step_indexes = data.step_indexes;
-				analysis_workflow_step_indexes[workflow_id] = step_indexes;
+				cartograplant.analysis_workflow_step_indexes[workflow_id] = step_indexes;
 				
 				$('#create-analysis-workflow-submit-form').html('');
 				//$('#create-analysis-workflow-submit-form').append('<div id="workflow_form">');
@@ -1019,7 +1965,8 @@ var ct_ready_map_analysis = function() {
 										var galaxy_history_file_id = key_object['id'];
 										var galaxy_history_file_src = key_object['src'];
 										var galaxy_history_file_name = ui_control_info['options'][options_keys[options_html_counter]];
-										options_html += "<option value='" + options_keys[options_html_counter] + "'>" + galaxy_history_file_name +  '</option>';
+										var file_name_caption = cartograplant.get_file_name_caption(galaxy_history_file_name);
+										options_html += "<option value='" + options_keys[options_html_counter] + "'>" + file_name_caption +  '</option>';
 									}
 								}
 
@@ -1110,9 +2057,9 @@ var ct_ready_map_analysis = function() {
 		// To do that, we'll need to get workflow from this button clicked
 		var workflow_id = ($(this).attr('id')).split('_')[0];
 		
-		var step_indexes = analysis_workflow_step_indexes[workflow_id]; // we need to send this to initiate_analysis_job endpoint
+		var step_indexes = cartograplant.analysis_workflow_step_indexes[workflow_id]; // we need to send this to initiate_analysis_job endpoint
 
-		console.log('galaxy_id', galaxy_id);
+		console.log('galaxy_id', cartograplant.galaxy_id);
 
 		var inputs = {}; // new array
 
@@ -1172,10 +2119,10 @@ var ct_ready_map_analysis = function() {
 		console.log('inputs', inputs);
 		console.log('step_indexes', step_indexes);
 		var formData = new FormData();
-		formData.append('history_id', history_id);
+		formData.append('history_id', cartograplant.history_id);
 		formData.append('workflow_id', workflow_id);
-		formData.append('workflow_name', workflow_name);
-		formData.append('galaxy_id', galaxy_id);
+		formData.append('workflow_name', cartograplant.workflow_name);
+		formData.append('galaxy_id', cartograplant.galaxy_id);
 		formData.append('inputs', JSON.stringify(inputs));
 		formData.append('step_indexes', JSON.stringify(step_indexes));
  
@@ -1195,10 +2142,10 @@ var ct_ready_map_analysis = function() {
 					$('#analysis_job_results_status').append('<div>Invocation ID: ' + data.invocation.id + '</div>');
 					$('#analysis_job_results_status').append('<div id="analysis_job_status">Status: Submitted <div style="display: inline-block" class="loading"></div> <img style="height: 16px;" src="' + loading_icon_src + '" /></div>');
 					$('#analysis_job_results_status').append('<div id="analysis_job_outputs"></div>');
-					if(analysis_job_check_timers[data.invocation.id] == undefined) {
+					if(cartograplant.analysis_job_check_timers[data.invocation.id] == undefined) {
 						// create a new interval timer
 						var invocation_id = data.invocation.id;
-						analysis_job_check_timers[data.invocation.id] = setInterval(function(galaxy_id, history_id, workflow_id, invocation_id) {
+						cartograplant.analysis_job_check_timers[data.invocation.id] = setInterval(function(galaxy_id, history_id, workflow_id, invocation_id) {
 							var url_invocation_outputs_details = Drupal.settings.base_url + "/cartogratree_uianalysis/get_invocation_outputs/" + galaxy_id + '/' + history_id + '/' + workflow_id + '/' + invocation_id;
 							console.log(url_invocation_outputs_details);
 							
@@ -1249,7 +2196,7 @@ var ct_ready_map_analysis = function() {
 									}
 
 									if(job_finished) {
-										clearInterval(analysis_job_check_timers[data.invocation.id]);
+										clearInterval(cartograplant.analysis_job_check_timers[data.invocation.id]);
 										
 										if(job_error) {
 											$('#analysis_job_status').html("Status: Error, incompleted, stopped.");
@@ -1269,7 +2216,7 @@ var ct_ready_map_analysis = function() {
 
 
 											
-						}, 10000, galaxy_id, history_id, workflow_id, invocation_id);
+						}, 10000, cartograplant.galaxy_id, cartograplant.history_id, workflow_id, invocation_id);
 					}
 
 				}
@@ -1289,11 +2236,16 @@ var ct_ready_map_analysis = function() {
 		console.log('file_id', file_id);
 
 		var formData = new FormData();
-		formData.append('galaxy_id', galaxy_id);
+		formData.append('galaxy_id', cartograplant.galaxy_id);
 		formData.append('workflow_id', workflow_id);
-		formData.append('history_id', history_id);
+		formData.append('history_id', cartograplant.history_id);
 		var file_upload_element = document.getElementById(file_id);
 		formData.append('file1', file_upload_element.files[0]);
+		
+		if(cartograplant.history_id == null) {
+			alert('Cannot upload a file without selecting a workspace to store the file, please visit the Begin tab to select or create a workspace');
+			return;
+		}
 
 		
 		var url = Drupal.settings.base_url + "/cartogratree_uianalysis/upload_file_to_history";
@@ -1390,7 +2342,7 @@ var ct_ready_map_analysis = function() {
 			alert("The history name cannot be empty!");
 		}
 		else {
-			var url = Drupal.settings.base_url + "/cartogratree_uianalysis/create_new_history_for_user/" + galaxy_id + '/' + history_name;
+			var url = Drupal.settings.base_url + "/cartogratree_uianalysis/create_new_history_for_user/" + cartograplant.galaxy_id + '/workspace-uid_' + Drupal.settings.user.user_id + '__name_' + history_name;
 			$.ajax({
 				method: "GET",
 				url: url,
@@ -1405,6 +2357,8 @@ var ct_ready_map_analysis = function() {
 
 				}
 			});
+
+		
 		}
 
 		// alert('Success');
@@ -1673,6 +2627,201 @@ var ct_ready_map_analysis = function() {
 		);
 		console.log('End of sending data to CTAPIWSS CONN');
 	});
+
+	// This is to retrieve envdata from the dynamic database tables instead
+	$('#analysis-generateoutput-envdata-section-from-db-button').click(function() {
+		console.log('Checking database for trees with locations');
+		
+		// We first need to get all the tree ids
+		// console.log(mapState.includedTrees);
+
+		// STEP 1 - Check if SNPs were selected using the analysis_id
+		$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(500).html('Looking up plant ids from filters snps... ' + '<img style="height: 16px;" src="' + loading_icon_src + '" />').fadeIn(500);
+		$.ajax({
+			method: 'POST',
+			url: Drupal.settings.base_url + '/cartogratree/api/v2/genotypes/snps_get_tree_ids_by_analysis_id',
+			data: {
+				analysis_id: cartograplant.current_analysis_id
+			},
+			success: function(data) {
+				console.log('treeids_by_analysis_id', data);
+				var rows = JSON.parse(data);
+				$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(500).html('Found ' + rows.length + ' plant ids from selected SNPs subsets...' + '<img style="height: 16px;" src="' + loading_icon_src + '" />').fadeIn(500);
+
+				var tree_ids = [];
+				for(var i=0; i<rows.length; i++) {
+					tree_ids.push(rows[i]['unnest']);
+				}
+				console.log('tree_ids', tree_ids);
+						// We need to send these tree ids to the CT API to get the distinct locations (lat lon vals);
+				$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(500).html('Looking up locations for ' + mapState.includedTrees.length + ' plant ids...' + '<img style="height: 16px;" src="' + loading_icon_src + '" />').fadeIn(500);
+				$.ajax({
+					url: Drupal.settings.base_url + '/cartogratree/api/v2/environmental/get_locations_from_treeids',
+					method: 'POST',
+					data: {
+						tree_ids: JSON.stringify(tree_ids)
+					},
+					success: function(data) {
+						console.log('get_loctions_from_treeids', data); // this is the distinct rows of lat lon values
+
+						// Translate the rows to location objects
+						var locations = [];
+						for(var i=0; i<data.length; i++) {
+							var row_string = data[i]['row'];
+							row_string = row_string.replaceAll('(','');
+							row_string = row_string.replaceAll(')','');
+							var row_string_parts = row_string.split(',');
+							var location_object = {
+								latitude: row_string_parts[0],
+								longitude: row_string_parts[1]
+							}
+							locations.push(location_object);
+						}
+
+
+						$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(2000).html('Found ' + data.length + ' locations from the database!').fadeIn(2000);
+						// We need to check which layers were selected from the checkboxes
+						// This reuses code from the original generate button which sends to websocket
+						// We need to get the selected layer and corresponding data property names
+						// var analysis_envdata_array_items = [];
+
+
+						// analysis_timers['analysis_environmental_data_generate_csv_output']
+						// This timer would listen and wait until all data has been pulled
+						var analysis_environmental_data_count_per_data_batch = 0;
+						var analysis_environmental_data_results = [];
+						analysis_timers['analysis_environmental_data_generate_csv_output'] = setInterval(function() {
+							if(analysis_environmental_data_count_per_data_batch == analysis_environmental_data_selected_properties.length) {
+								// stop the interval check
+								clearInterval(analysis_timers['analysis_environmental_data_generate_csv_output']);
+								// generate CSV
+								var csv_data = '';
+								var csv_data_header = '';
+								var dataset_rows_length = -1;
+								// Generate the header first
+								for(var i=0; i<analysis_environmental_data_results.length; i++) {
+									var dataset = analysis_environmental_data_results[i];
+									if(i > 0) {
+										csv_data_header += ',' + dataset['property_name'];
+									}
+									else {
+										csv_data_header += dataset['property_name'];
+										dataset_rows_length = dataset['rows'].length;
+									}
+								}
+								csv_data_header += "\n";
+
+								// Go through each dataset rows length
+								for(var i=0; i<dataset_rows_length;i++) {
+									// go through each datasets
+									for(var j=0; j<analysis_environmental_data_results.length; j++) {
+										dataset = analysis_environmental_data_results[j];
+										console.log('row val:', analysis_environmental_data_results[j]['rows'][i]);
+										if(j > 0) {
+											csv_data += ',' + analysis_environmental_data_results[j]['rows'][i]['property_value'];
+										}
+										else {
+											csv_data += analysis_environmental_data_results[j]['rows'][i]['property_value'];
+										}
+									}
+									csv_data += "\n";
+								}
+
+								csv_data = csv_data_header + csv_data;
+								console.log('csv_data', csv_data);
+
+
+								// Push this data to the environmental scatter plot API endpoint
+								$.ajax({
+									url: Drupal.settings.base_url + '/cartogratree/api/v2/environmental/environmental_scatter_plot',
+									method: 'POST',
+									data: {
+										analysis_id: cartograplant.current_analysis_id,
+										csv_data: csv_data
+									},
+									success: function(data) {
+										// show picture
+										console.log('environmental_scatter_plot', data)
+										data = JSON.parse(data);
+										if(data['error'] == undefined) { 
+											$('#envdata_scatter_plot').html('');
+											const blob = b64toBlob(data['data_base64'], 'image/jpeg');
+
+											// const byteCharacters = atob(data['data_base64']);
+											// const byteNumbers = new Array(byteCharacters.length);
+											// for (let i = 0; i < byteCharacters.length; i++) {
+											// 	byteNumbers[i] = byteCharacters.charCodeAt(i);
+											// }
+											// const byteArray = new Uint8Array(byteNumbers);
+											// const blob = new Blob([byteArray], {type: 'image/jpeg'});
+
+											var html = "";
+											html += '<img style="width: 100%;" src="' + URL.createObjectURL(blob) + '" />';
+											$('#envdata_scatter_plot').html(html);
+				
+											$('#envdata_scatter_plot img').wrap('<span style="display:inline-block"></span>')
+											.css('display', 'block')
+											.parent().zoom({magnify:1.5});
+										}										
+									}
+								})
+							}
+						},1000);
+
+						for(i = 0; i < analysis_environmental_data_selected_properties.length; i++) {
+							var property_object = analysis_environmental_data_selected_properties[i];
+							console.log(property_object);
+							$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(500).html('Looking up ' + property_object['property_value'] + ' values from database...' + '<img style="height: 16px;" src="' + loading_icon_src + '" />').fadeIn(500);
+							$.ajax({
+								method: 'POST',
+								url: Drupal.settings.base_url + '/cartogratree/api/v2/environmental/get_envdata_from_db_table',
+								data: {
+									layer_id: property_object['layer_id'],
+									property_id: property_object['property_id'],
+									property_name: property_object['property_value'],
+									locations: JSON.stringify(locations),
+								},
+								success: function(data) {
+									analysis_environmental_data_count_per_data_batch = analysis_environmental_data_count_per_data_batch + 1;
+									console.log('get_envdata_from_db_table', data);
+									if(data['rows'] != undefined) {
+										if(data['rows'].length > 0) {
+											analysis_environmental_data_results.push(data);
+										}
+									}
+									
+									$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(500).html('Found ' + data['rows'].length + ' ' + data['property_name'] + ' values.').fadeIn(500);
+								},
+								error: function(data) {
+									analysis_environmental_data_count_per_data_batch = analysis_environmental_data_count_per_data_batch + 1;
+								}
+							});
+							//analysis_envdata_array_items.push(property_object);//0 is assumed to be headers
+						}
+
+
+						// console.log(analysis_envdata_array_items);
+
+
+
+					},
+					error: function(data) {
+						console.log('Error received while trying to get locations. Please contact administrator.')
+					}
+				})
+			},
+			error: function(data) {
+				console.log(data);
+				console.log('treeids_by_analysis_id error occurred');
+			}
+		});
+
+		
+
+
+	});
+
+
 
 	$(document).on('click', 'i[id*="layer_info_icon_"]', function() {
 		// Get layer id
@@ -2276,7 +3425,7 @@ var ct_ready_map_analysis = function() {
 		
 
 		var snps_grid_array = [];
-		var studies_detected = Object.keys(detected_studies);
+		var studies_detected = Object.keys(cartograplant.detected_studies);
 		for(var i=0; i < studies_detected.length; i++) {
 			var study_snps_row = {
 				'study_name': studies_detected[i],
@@ -2468,7 +3617,26 @@ var ct_ready_map_analysis = function() {
 
 	// });
 
-	
+	// From: https://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript
+	const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
+		const byteCharacters = atob(b64Data);
+		const byteArrays = [];
+		
+		for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+			const slice = byteCharacters.slice(offset, offset + sliceSize);
+		
+			const byteNumbers = new Array(slice.length);
+			for (let i = 0; i < slice.length; i++) {
+			byteNumbers[i] = slice.charCodeAt(i);
+			}
+		
+			const byteArray = new Uint8Array(byteNumbers);
+			byteArrays.push(byteArray);
+		}
+		
+		const blob = new Blob(byteArrays, {type: contentType});
+		return blob;
+	}		
 
 }
 $(ct_ready_map_analysis);

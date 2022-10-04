@@ -46,6 +46,8 @@ var ct_ready_mapjs = function() {
 	var trees_count_cache = {};
 	cartograplant.trees_count_cache = trees_count_cache;
 
+	cartograplant.tree_count_last_filter = 0;
+
 	// This variable has the dataset names and corresponding source_ids
 	var datasetKey = {"treegenes": 0, "treesnap": 1, "datadryad": 2, 'wfid': 4, 'bien': 3};
 	
@@ -355,6 +357,7 @@ var ct_ready_mapjs = function() {
 
 		updateFeatureCount() {
 			//this.feature_count = 0;
+			console.log('updateFeatureCount function called');
 			var layerObj = this;
 			if(this.source_type == 'geoserver_tileset') {
 				if(layerObj.feature_count != undefined) {
@@ -1281,194 +1284,200 @@ var ct_ready_mapjs = function() {
 					console.log('Layer legend hide default:' + Drupal.settings.layers['cartogratree_layer_' + layer_id_number]['layer_legend_hide_default']);
 					if(Drupal.settings.layers['cartogratree_layer_' + layer_id_number]['layer_legend_hide_default'] == "0") {
 
-						//Recreate a new container
-						var legend_container = '<div style="margin-left: 5px;width: 100%; /* padding-left: 20px;padding-right: 10px; */" id="legend_container_' + layer_id_number + '"></div>';
-						//$("#legend").append(legend_container);
-						$("#ct-layer-title-" + layer_id_number).parent().parent().append(legend_container);
-						
-						
-						var legend_container_title = '<div style="font-size: 18px; padding-left: 10px; margin-top: 5px;" id="legend_container_title_' + layer_id_number + '"></div>';
-						//if(this.html != undefined && this.html != '') {
-						legend_container_title = '<div style="font-size: 18px; padding-left: 10px; margin-top: 5px;" id="legend_container_title_' + layer_id_number + '"><i title="Legend details" id="legend_legend_icon_' + layer_id_number + '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 10px;" class="fas fa-chart-bar"></i></div>';
-						//}
-						$("#legend_container_" + layer_id_number).append(legend_container_title);
-
-						// Geoserver Legend
-						var legend_container_geoserver_legend = '<div style="text-align: center;" id="legend_container_geoserver_legend_' + layer_id_number + '"><img class="geoserver_legend_img" style="margin-left: 10px;width: 100%;"src="' + Drupal.settings.cartogratree.gis +  '?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=10&HEIGHT=10&LEGEND_OPTIONS=layout:' + legend_orientation + ';fontSize:10;&LAYER=' + Drupal.settings.layers[this.parentLayer.id]['name'] + '" /></div>';
-						// Add the geoserver legend to legend_container_html
-						$("#legend_container_" + layer_id_number).append(legend_container_geoserver_legend);
-						
-						if(legend_orientation == 'horizontal') {
-							$('#legend_container_geoserver_legend_' + layer_id_number + ' img')
-							.wrap('<span style="display:inline-block; width: 80%;"></span>')
-							.css('display', 'block')
-							.parent()
-							.zoom();
-						}
-						else {
-							$('#legend_container_geoserver_legend_' + layer_id_number + ' img')
-							.wrap('<span style="display:inline-block;"></span>')
-							.css('display', 'block')
-							.parent()
-							.zoom();					
-						}
-						
-						$('#legend_container_geoserver_legend_' + layer_id_number).toggle(); // hide the legend image
-
-						/*	
-						var legend_container_html = '<div style="font-size: 10px; margin-left: 10px;" id="legend_container_html_' + layer_id_number + '"></div>';
-						$("#legend_container_" + layer_id_number).append(legend_container_html);
-						*/
-
-						$("#legend_container_html_" + layer_id_number).toggle();//default hide
-
-						/*
-						$("#legend_info_icon_" + layer_id_number).click(function() {
-							$("#legend_container_html_" + layer_id_number).toggle();
-						});
-						*/
-
-						$("#legend_legend_icon_" + layer_id_number).click(function() {
-							$('#legend_container_geoserver_legend_' + layer_id_number).toggle();
-						});
-
-
-						//if (this.colors != null) {
-						if (false) {
-							var colors = this.colors[0];
-							var valRange = this.colors[1];
-				
-
-
-							var legend_container_svg = '<div id="legend_container_svg_' + layer_id_number + '"></div>';
-							$("#legend_container_" + layer_id_number).append(legend_container_svg);
-							
-							var svg_height = this.height / 4;
-
-							var svg = d3.select("#legend_container_svg_" + layer_id_number)
-							.append("svg")
-							.attr("width", this.width)
-							.attr("height", svg_height + 20);
-
-							var grad = svg.append("defs")
-							.append("linearGradient")
-							.attr("id", "grad")
-							.attr("x1", "0%")
-							.attr("x2", "100%")
-							.attr("y1", "0%")
-							.attr("y2", "0%");
-
-							grad.selectAll("stop")
-							.data(colors)
-							.enter()
-							.append("stop")
-							.style("stop-color", function(d){ return d; })
-							.attr("offset", function(d,i){
-								return 100 * (i / (colors.length - 1)) + "%";
-							});
-
-							svg.append("rect")
-							.attr("x", 10)
-							.attr("y", 0)
-							.attr("width", this.width - 20)
-							.attr("height", svg_height)
-							.style("fill", "url(#grad)");
-
-							var y = d3.scaleLinear()
-							.range([this.width - 20, 0])
-							.domain(valRange);
-							
-							var yAxis = d3.axisBottom()
-							.scale(y)
-							.tickValues(valRange);
-							
-							svg.append("text")
-								.attr("x", (this.width / 2))             
-								.attr("y", 15)
-								.attr("text-anchor", "middle")  
-								.style("font-size", "10px") 
-								.style("text-decoration", "underline")  
-								.text(this.title);
-							
-							svg.append("g")
-							.attr("class", "y axis")
-							.attr("transform", "translate(10," + (svg_height) + ")")
-							.call(yAxis)
-							.append("text")
-							.attr("transform", "rotate(-90)")
-							.attr("y", -30)
-							.attr("x", 50)
-							.attr("dy", "0")
-							.attr("dx", "0")
-							.attr("fill", "#000")
-
-							//This was the original code where the legend was larger
-							/*
-							var svg = d3.select("#legend_container_svg_" + this.parentLayer.id)
-							.append("svg")
-							.attr("width", this.width)
-							.attr("height", this.height);
-
-							var grad = svg.append("defs")
-							.append("linearGradient")
-							.attr("id", "grad")
-							.attr("x1", "0%")
-							.attr("x2", "100%")
-							.attr("y1", "0%")
-							.attr("y2", "0%");
-
-							grad.selectAll("stop")
-							.data(colors)
-							.enter()
-							.append("stop")
-							.style("stop-color", function(d){ return d; })
-							.attr("offset", function(d,i){
-								return 100 * (i / (colors.length - 1)) + "%";
-							});
-
-							svg.append("rect")
-							.attr("x", 50)
-							.attr("y", 30)
-							.attr("width", 200)
-							.attr("height", 30)
-							.style("fill", "url(#grad)");
-
-							var y = d3.scaleLinear()
-							.range([200, 0])
-							.domain(valRange);
-							
-							var yAxis = d3.axisBottom()
-							.scale(y)
-							.tickValues(valRange);
-							
-							svg.append("text")
-								.attr("x", (this.width / 2))             
-								.attr("y", 15)
-								.attr("text-anchor", "middle")  
-								.style("font-size", "16px") 
-								.style("text-decoration", "underline")  
-								.text(this.title);
-							
-							svg.append("g")
-							.attr("class", "y axis")
-							.attr("transform", "translate(50,60)")
-							.call(yAxis)
-							.append("text")
-							.attr("transform", "rotate(-90)")
-							.attr("y", -30)
-							.attr("x", 50)
-							.attr("dy", "0")
-							.attr("dx", "0")
-							.attr("fill", "#000")
-							*/
-
-
-							$("#legend_container_" + layer_id_number).append('<hr style="margin-top:0px; margin-bottom: 0px;" />');	
-						}
-						else {
-			
-						}
 					}
+
+					//Recreate a new container
+					var legend_container = '<div style="margin-left: 5px;width: 100%; /* padding-left: 20px;padding-right: 10px; */" id="legend_container_' + layer_id_number + '"></div>';
+					//$("#legend").append(legend_container);
+					$("#ct-layer-title-" + layer_id_number).parent().parent().append(legend_container);
+					
+					
+					var legend_container_title = '<div style="font-size: 18px; padding-left: 10px; margin-top: 5px;" id="legend_container_title_' + layer_id_number + '"></div>';
+					//if(this.html != undefined && this.html != '') {
+					legend_container_title = '<div style="font-size: 18px; padding-left: 10px; margin-top: 5px;" id="legend_container_title_' + layer_id_number + '"><i title="Legend details" id="legend_legend_icon_' + layer_id_number + '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 10px;" class="fas fa-chart-bar"></i></div>';
+					//}
+					$("#legend_container_" + layer_id_number).append(legend_container_title);
+
+					// Geoserver Legend
+					var legend_container_geoserver_legend = '<div style="text-align: center;" id="legend_container_geoserver_legend_' + layer_id_number + '"><img class="geoserver_legend_img" style="margin-left: 10px;width: 100%;"src="' + Drupal.settings.cartogratree.gis +  '?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=10&HEIGHT=10&LEGEND_OPTIONS=layout:' + legend_orientation + ';fontSize:10;&LAYER=' + Drupal.settings.layers[this.parentLayer.id]['name'] + '" /></div>';
+					// Add the geoserver legend to legend_container_html
+					$("#legend_container_" + layer_id_number).append(legend_container_geoserver_legend);
+					
+					if(legend_orientation == 'horizontal') {
+						$('#legend_container_geoserver_legend_' + layer_id_number + ' img')
+						.wrap('<span style="display:inline-block; width: 80%;"></span>')
+						.css('display', 'block')
+						.parent()
+						.zoom();
+					}
+					else {
+						$('#legend_container_geoserver_legend_' + layer_id_number + ' img')
+						.wrap('<span style="display:inline-block;"></span>')
+						.css('display', 'block')
+						.parent()
+						.zoom();					
+					}
+					
+					$('#legend_container_geoserver_legend_' + layer_id_number).toggle(); // hide the legend image
+
+					/*	
+					var legend_container_html = '<div style="font-size: 10px; margin-left: 10px;" id="legend_container_html_' + layer_id_number + '"></div>';
+					$("#legend_container_" + layer_id_number).append(legend_container_html);
+					*/
+
+					$("#legend_container_html_" + layer_id_number).toggle();//default hide
+
+					/*
+					$("#legend_info_icon_" + layer_id_number).click(function() {
+						$("#legend_container_html_" + layer_id_number).toggle();
+					});
+					*/
+
+					$("#legend_legend_icon_" + layer_id_number).click(function() {
+						$('#legend_container_geoserver_legend_' + layer_id_number).toggle();
+					});
+
+
+					//if (this.colors != null) {
+					if (false) {
+						var colors = this.colors[0];
+						var valRange = this.colors[1];
+			
+
+
+						var legend_container_svg = '<div id="legend_container_svg_' + layer_id_number + '"></div>';
+						$("#legend_container_" + layer_id_number).append(legend_container_svg);
+						
+						var svg_height = this.height / 4;
+
+						var svg = d3.select("#legend_container_svg_" + layer_id_number)
+						.append("svg")
+						.attr("width", this.width)
+						.attr("height", svg_height + 20);
+
+						var grad = svg.append("defs")
+						.append("linearGradient")
+						.attr("id", "grad")
+						.attr("x1", "0%")
+						.attr("x2", "100%")
+						.attr("y1", "0%")
+						.attr("y2", "0%");
+
+						grad.selectAll("stop")
+						.data(colors)
+						.enter()
+						.append("stop")
+						.style("stop-color", function(d){ return d; })
+						.attr("offset", function(d,i){
+							return 100 * (i / (colors.length - 1)) + "%";
+						});
+
+						svg.append("rect")
+						.attr("x", 10)
+						.attr("y", 0)
+						.attr("width", this.width - 20)
+						.attr("height", svg_height)
+						.style("fill", "url(#grad)");
+
+						var y = d3.scaleLinear()
+						.range([this.width - 20, 0])
+						.domain(valRange);
+						
+						var yAxis = d3.axisBottom()
+						.scale(y)
+						.tickValues(valRange);
+						
+						svg.append("text")
+							.attr("x", (this.width / 2))             
+							.attr("y", 15)
+							.attr("text-anchor", "middle")  
+							.style("font-size", "10px") 
+							.style("text-decoration", "underline")  
+							.text(this.title);
+						
+						svg.append("g")
+						.attr("class", "y axis")
+						.attr("transform", "translate(10," + (svg_height) + ")")
+						.call(yAxis)
+						.append("text")
+						.attr("transform", "rotate(-90)")
+						.attr("y", -30)
+						.attr("x", 50)
+						.attr("dy", "0")
+						.attr("dx", "0")
+						.attr("fill", "#000")
+
+						//This was the original code where the legend was larger
+						/*
+						var svg = d3.select("#legend_container_svg_" + this.parentLayer.id)
+						.append("svg")
+						.attr("width", this.width)
+						.attr("height", this.height);
+
+						var grad = svg.append("defs")
+						.append("linearGradient")
+						.attr("id", "grad")
+						.attr("x1", "0%")
+						.attr("x2", "100%")
+						.attr("y1", "0%")
+						.attr("y2", "0%");
+
+						grad.selectAll("stop")
+						.data(colors)
+						.enter()
+						.append("stop")
+						.style("stop-color", function(d){ return d; })
+						.attr("offset", function(d,i){
+							return 100 * (i / (colors.length - 1)) + "%";
+						});
+
+						svg.append("rect")
+						.attr("x", 50)
+						.attr("y", 30)
+						.attr("width", 200)
+						.attr("height", 30)
+						.style("fill", "url(#grad)");
+
+						var y = d3.scaleLinear()
+						.range([200, 0])
+						.domain(valRange);
+						
+						var yAxis = d3.axisBottom()
+						.scale(y)
+						.tickValues(valRange);
+						
+						svg.append("text")
+							.attr("x", (this.width / 2))             
+							.attr("y", 15)
+							.attr("text-anchor", "middle")  
+							.style("font-size", "16px") 
+							.style("text-decoration", "underline")  
+							.text(this.title);
+						
+						svg.append("g")
+						.attr("class", "y axis")
+						.attr("transform", "translate(50,60)")
+						.call(yAxis)
+						.append("text")
+						.attr("transform", "rotate(-90)")
+						.attr("y", -30)
+						.attr("x", 50)
+						.attr("dy", "0")
+						.attr("dx", "0")
+						.attr("fill", "#000")
+						*/
+
+
+						$("#legend_container_" + layer_id_number).append('<hr style="margin-top:0px; margin-bottom: 0px;" />');	
+					}
+					else {
+		
+					}
+
+					if(Drupal.settings.layers['cartogratree_layer_' + layer_id_number]['layer_legend_hide_default'] == "1") {
+						$('#legend_legend_icon_' + layer_id_number).hide();
+					}					
+					
 				}
 				catch (err) {
 					console.log(err);
@@ -2413,6 +2422,17 @@ var ct_ready_mapjs = function() {
 			}
 		}	
 		console.log('data compiled:', data);
+		console.log('Re counting number of plants since a filter occurred to get the new plants into the map');
+		if(cartograplant.tree_count_last_filter == 0) {
+			$('#num-trees').html(data.length);
+		}
+		else {
+			var temp_tree_count_calc = parseInt($('#num-trees').text()) - cartograplant.tree_count_last_filter;
+			if(temp_tree_count_calc < 0) {
+				$('#num-trees').html(data.length);
+			}
+		}
+		cartograplant.tree_count_last_filter = data.length;
 
 		cartograplant.current_dataset_data = {
 			'type': 'FeatureCollection',
@@ -3336,7 +3356,20 @@ var ct_ready_mapjs = function() {
 									var key_name = keys[i];
 									// console.log('key_name', key_name);
 									// console.log('data[key_name]', data[key_name]);
-									if (key_name == 'phenotype-files') {
+									if (key_name == 'organisms') {
+										$('#study-organisms-csv').html('');
+										var organisms = data[key_name];
+										console.log('study organisms_array', organisms);
+										var organisms_html = "";
+										for(var j=0; j<organisms.length; j++) {
+											if(j>0) {
+												organisms_html += ', '
+											}
+											organisms_html += organisms[j];
+										}
+										$('#study-organisms-csv').html(organisms_html);
+									}
+									else if (key_name == 'phenotype-files') {
 										// console.log('data[key_name]',data[key_name]);
 										// console.log('IT CAME HERE');
 										// console.log('data[key_name].length',Object.keys(data[key_name]).length);
@@ -3410,7 +3443,7 @@ var ct_ready_mapjs = function() {
 												if(data[key_name][key2_name]['filename'] != null) {
 													study_files_html += '<tr>';
 													study_files_html += '<td style="padding: 5px; padding-left: 0px;">Genotype SSRs/cpSSRs</td>';
-													study_files_html += '<td style="padding: 5px;"><a href="' + data[key_name][key2_name]['url'] + '"><i style="color: #5eb761;" class="fas fa-download"></i></a></td>';
+													study_files_html += '<td style="padding: 5px;"><a href="' + data[key_name][key2_name]['url'] + '"><i style="color: #5eb761;" class="fas fa-download"></i></a><span style="margin-left: 20px;">'+ data[key_name][key2_name]['organism_name'] + '</span></td>';
 													study_files_html += '</tr>';
 												}
 											}
@@ -3560,6 +3593,8 @@ var ct_ready_mapjs = function() {
 		var sourceId = data.source_id;
 		resetTreeModalData();
 
+		console.log('tree source_id', data.source_id);
+		console.log('species', data.species);
 		if (data.source_id == 1) {
 			sourceName = "TreeSnap";
 			if (treeImgsStore[treeId] == undefined) {
@@ -3568,6 +3603,7 @@ var ct_ready_mapjs = function() {
 					dataType: "json",
 					async: false,
 					success: function (tsData) {
+						console.log('treesnap-data', tsData);
 						$("#tree-submitter").text("Taken by: " + tsData.submitter);
 						$("#tree-collection-date").text("Collection date: " + tsData.collection_date);
 						updateTreeImgs(tsData.images.images, data.species);
@@ -3585,7 +3621,8 @@ var ct_ready_mapjs = function() {
 							});
 							console.log(xhr.responseText);
 						}
-						updateTreeImgs(undefined, "dummy_value");
+						// updateTreeImgs(undefined, "dummy_value");
+						updateTreeImgs(undefined, data.species);
 					}
 				});	
 			}
@@ -3700,7 +3737,7 @@ var ct_ready_mapjs = function() {
 					var cvtermsSet = {};
 					var phenotype_html = "";
 					$('#tree-more-info-phenotype-container').html();
-					phenotype_html = phenotype_html + "<h3 style='padding-top: 0px;padding-bottom: 5px;margin-left: -3px; margin-bottom: 10px;'>Plant Phenotypic Data</h3>";
+					phenotype_html = phenotype_html + "<h3 style='padding-top: 0px;padding-bottom: 5px;margin-left: 3px; margin-bottom: 10px;'>Plant Phenotypic Data</h3>";
 					phenotype_html = phenotype_html + "<table id='more_info_phenotype_table' style='width: 100%;'>";
 					phenotype_html = phenotype_html + "<tr><th>Plant ID</th><th>Name</th><th>Value</th><th>Units</th><th>Structure</th><th>Observation</th></tr>";
 					if(data.length > 0) {
@@ -3712,6 +3749,16 @@ var ct_ready_mapjs = function() {
 							var icon = '<i id="plants_details_phenotype_icon" title="Plants contain phenotypic data" class="fas fa-eye"></i>';
 							$("#plants_details_icons").append(icon);
 						}
+
+						// Also show unique phenotypes tree specific container with details
+						$('#tree-specific-unique-phenotypes-container').show();
+						$('#tree-specific-unique-phenotypes-count').html(data.length);
+					}
+					else {
+						// $('#tree-specific-unique-phenotypes-container').hide();
+						// Also show unique phenotypes tree specific container with details
+						$('#tree-specific-unique-phenotypes-container').show();
+						$('#tree-specific-unique-phenotypes-count').html(data.length);						
 					}
 					for (var i = 0; i < data.length; i++) {
 						for (var k in data[i]) {
@@ -3752,7 +3799,7 @@ var ct_ready_mapjs = function() {
 							data[i].observable_name = "<a target='_blank' href='https://www.ebi.ac.uk/ols/search?exact=true&q=" + data[i].observable_accession + "'>" + data[i].observable_name + "</a>";
 							//http://browser.planteome.org/amigo/search/ontology?q=
 							//https://www.ebi.ac.uk/ols/search?exact=true&q=
-							phenotype_html = phenotype_html + "<tr><td>"  + data[i]['tree_acc'] + "</td><td>" + data[i].mapped_name + "</td><td>" + data[i].value + "</td><td>" + data[i].units + "</td><td>" +  data[i].structure_name +"</td><td>" + data[i].observable_name + "</td></tr>";	
+							phenotype_html = phenotype_html + "<tr><td>"  + data[i]['tree_acc'] + "</td><td>" + data[i].mapped_name + "</td><td>" + data[i].value + "</td><td>" + data[i].cvterm_name + "</td><td>" +  data[i].structure_name +"</td><td>" + data[i].observable_name + "</td></tr>";	
 						}
 					}
 					phenotype_html = phenotype_html + "</table>";
@@ -3821,6 +3868,10 @@ var ct_ready_mapjs = function() {
 				genotype_html = genotype_html + "<table id='more_info_genotype_table' style='width: 100%;'>";
 				genotype_html = genotype_html + "<tr><th>Plant ID</th><th>Marker Name</th><th>Genotype</th><th>Marker Type</th></tr>";				
 				if(data.length > 0) {
+
+					$('#tree-specific-unique-genotypes-container').show();
+					$('#tree-specific-unique-genotypes-count').html(data.length);
+
 					$('#tree-more-info-genotype-container').show();
 					$('#tree-more-info-genotype-container').html();
 					if(debug) {
@@ -3865,6 +3916,9 @@ var ct_ready_mapjs = function() {
 				else {
 					$('#tree-more-info-genotype-container').html();
 					$('#tree-more-info-genotype-container').hide();
+
+					$('#tree-specific-unique-genotypes-container').show();
+					$('#tree-specific-unique-genotypes-count').html(data.length);					
 				}
 				genotype_html = genotype_html + "</table>";
 				
@@ -3900,6 +3954,7 @@ var ct_ready_mapjs = function() {
 
 		}
 		$("#tree-more-info-label").text(treeId);
+		$("#tree-specific-info-label").text(treeId);
 		$("#tree-coord-type").text(data.coordinate_type == 0 ? "Exact" : "Approximate");
 		$("#tree-coordinates").text(roundHundredths(data.latitude) + " Lat | " + roundHundredths(data.longitude) + " Long");
 		
@@ -5897,6 +5952,8 @@ var ct_ready_mapjs = function() {
 
 			if(getActiveDatasets().length < 1) {
 				$('#num-trees').html('0');
+				$('#num-species').html('0');
+				$('#num-pubs').html('0');
 			}
 		}
 		catch (err) {
@@ -6361,8 +6418,31 @@ var ct_ready_mapjs = function() {
 			return;
 		}
 		else if (mapState.includedTrees.length <= 0) {
-			alert("You have no plants selected for analysis");
-			return;
+			// Check to see if there are studies filtered - add these trees
+			var rule_containers = $('.rule-container .rule-filter-container select');
+
+
+			// This variable will keep track of if study filter has been selected
+			var found_study_filter_option = false;
+			
+			// Search to see whether filter option is a study filter
+			if(rule_containers.length > 0) {
+				for(var i=0; i<rule_containers.length;i++) {
+					var element = rule_containers.eq(i);
+					console.log('value', element.val());
+					if(element.val() == "accession") {
+						found_study_filter_option = true;
+						// Load all trees into included trees
+						mapState.includedTrees = cartograplant.currently_filtered_trees;
+					}	
+				}
+			}
+			
+			if(found_study_filter_option != true) {
+				alert("You have no plants selected for analysis");
+				return;
+			}
+			
 		}
 		
 
@@ -6398,7 +6478,170 @@ var ct_ready_mapjs = function() {
 		//createChart(700, 500, data);
 	});
 
+
+	function get_file_name_caption(dataset_name) {
+		var file_name_caption = "";
+		if(dataset_name.includes('AN') && dataset_name.includes('_TGDR') && dataset_name.includes('_snps.vcf')) {
+			var file_name_dash_parts = dataset_name.split('-');
+			var file_name_underscore = file_name_dash_parts[2];
+			var file_name_underscore_parts = file_name_dash_parts[2].split('_');
+			var file_name_relative_time = moment.unix(file_name_dash_parts[1]).fromNow();
+			var file_name_caption = "Analysis " +  file_name_underscore_parts[0].replace('AN','') + ": " + file_name_underscore_parts[1] + " Filtered SNPs VCF (" + file_name_relative_time + ")";
+		}
+		else {
+			file_name_caption = dataset_name;
+		}
+		return file_name_caption;
+	}
+	cartograplant['get_file_name_caption'] = get_file_name_caption;
+
+	
+
 	$('.analysis-filter-snp-section').click(function () {
+		console.log('Analysis filter snp tab clicked');
+		var studies = Object.keys(cartograplant.detected_studies);
+		console.log(JSON.stringify(studies));
+
+
+		// Check if galaxy_id and history_id has been selected
+		if(cartograplant.galaxy_id == undefined && cartograplant.history_id == undefined) {
+			alert('You must choose an analysis account and workspace before you can use genotype filtering workflows. Go to the BEGIN tab to set this up.')
+			return;
+		} 
+		if(cartograplant.history_id == null) {
+			alert('You must choose an analysis account and workspace before you can use genotype filtering workflows. Go to the BEGIN tab to set this up.')
+			return;			
+		}
+
+		var html = '<div style="float: left;" class="vcf_detection_loading"><img style="width: 48px; margin-top: 18px; margin-left: 15px; margin-right: 15px;" src="' + cartograplant.loading_icon_src + '"/></div>';
+		
+		html += '<div class="status">Detecting if VCF data exists for SNPs...</div>';
+		html += '<div class="detected_vcf_information"></div><hr />';
+		html += '<div class="vcf_snps_quality_filtering_ui">';
+		// html += '	<div style="margin-bottom: 5px;" class="vcf_filtered_snp_files_select_div"><div style="display: inline-block; width: 15%;">Filter SNP Files</div><select></select></div>';
+		html += '	<div style="margin-bottom: 5px;" class="vcf_snp_quality_workflow_select_div"><div style="display: inline-block; width: 15%;">Quality filtering method</div><select></select></div>';
+		html += '	<div class="vcf_snps_quality_filtering_ui_form">';
+		html += '	</div>';		
+		html += '</div>';
+
+		$('#analysis-filter-snp-vcf-detection').html(html);
+		$('.vcf_snps_quality_filtering_ui').fadeOut(50);
+		$('.vcf_detection_loading').fadeIn(500);
+
+		// Populate the snp_quality_workflow_select select list
+		var url = Drupal.settings.base_url + "/cartogratree_uianalysis/get_all_workflows_from_galaxy_account/" + cartograplant.galaxy_id;
+		$.ajax({
+			method: "GET",
+			url: url,
+			dataType: "json",
+			success: function (data) {
+				console.log(data);
+				var snps_workflows_html = '';
+				
+				for(var i=0; i<data.length; i++) {
+					if(data[i].workflow_name.includes('SNP Quality Filtering Step')) {
+						snps_workflows_html = snps_workflows_html +  '<option value="' + data[i].workflow_id + '">' + data[i].workflow_name +  '</option>';
+					}
+				}
+				$('.vcf_snp_quality_workflow_select_div select').html(snps_workflows_html);
+			}
+		});			
+
+		// Process VCF files in studies
+		$.ajax({
+			method: 'GET',
+			url: Drupal.settings.base_url + '/cartogratree_uiapi/vcf_files/' + Object.keys(cartograplant['detected_studies']).join(','),
+			success: function(data) {
+				
+				console.log('snp_vcf_files', data);
+				if(data != undefined) {
+					var detected_studies_containing_vcfs = Object.keys(data);
+					var vcf_info = data;
+					for(var i=0; i<detected_studies_containing_vcfs.length; i++) {
+						var study_vcf_html = "";
+						study_vcf_html += "<div>";
+						study_vcf_html += "✓ Found Genotype VCF for " + detected_studies_containing_vcfs[i];
+						study_vcf_html += "</div>";
+						$('#analysis-filter-snp-vcf-detection .detected_vcf_information').append(study_vcf_html);
+					}
+					$('#analysis-filter-snp-vcf-detection .detected_vcf_information').css('padding','20px');
+					$('#analysis-filter-snp-vcf-detection .detected_vcf_information').css('margin-top','10px');
+					$('#analysis-filter-snp-vcf-detection .detected_vcf_information').css('background-color','#dff0d8');
+
+					// So now we need to send all this data to the CT API endpoint
+					// that will work to filter the VCF files and produce a single merged
+					// VCF file
+					$('#analysis-filter-snp-vcf-detection .status').css('padding', '20px');
+					$('#analysis-filter-snp-vcf-detection .status').html('Filtering VCF files by genotype subsets selected... <br />Please wait, workflow interface will appear once files have finished uploading... <img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" />');
+					if(detected_studies_containing_vcfs.length > 0) {
+						$.ajax({
+							method: 'POST',
+							url: Drupal.settings.ct_nodejs_api + "/v2/genotypes/snp_vcf_filtering",
+							data: {
+								analysis_id: cartograplant.current_analysis_id,
+								galaxy_id: cartograplant.galaxy_id,
+								history_id: cartograplant.history_id,
+								cartogratree_base_url: Drupal.settings.base_url,
+								vcf_info: JSON.stringify(vcf_info)
+							},
+							success: function (data) {
+								$('.vcf_detection_loading').fadeOut(500);
+								console.log('snp_vcf_filtering api response', data);
+								$('#analysis-filter-snp-vcf-detection .status').html('VCF files successfully uploaded to workspace');
+								
+								// Update the file drop down list
+								var url_history_contents = Drupal.settings.base_url + '/cartogratree_uianalysis/get_history_details/' + cartograplant.galaxy_id + '/' + cartograplant.history_id;
+								console.log(url_history_contents);
+								// Empty the select list
+								$('.vcf_filtered_snp_files_select_div select').html('');
+								$.ajax({
+									method: 'GET',
+									url: url_history_contents,
+									success: function(data_history_items) {
+										console.log(data_history_items);
+										var files_html = "";
+										for(var i=0; i<data_history_items.length; i++) {
+											var file_object = data_history_items[i];
+											var file_name_caption = get_file_name_caption(file_object['dataset_name']);
+											// if(file_object['dataset_name'].includes('AN') && file_object['dataset_name'].includes('_TGDR') && file_object['dataset_name'].includes('_snps.vcf')) {
+											// 	var file_name_dash_parts = file_object['dataset_name'].split('-');
+											// 	var file_name_underscore = file_name_dash_parts[2];
+											// 	var file_name_underscore_parts = file_name_dash_parts[2].split('_');
+											// 	var file_name_relative_time = moment.unix(file_name_dash_parts[1]).fromNow();
+											// 	var file_name_caption = "Analysis " +  file_name_underscore_parts[0].replace('AN','') + ": " + file_name_underscore_parts[1] + " Filtered SNPs VCF (" + file_name_relative_time + ")";
+											// }
+											// else {
+											// 	file_name_caption = file_object['dataset_name'];
+											// }
+											files_html += '<option raw_name="'+ file_object['dataset_name'] + '" value="' + file_object['dataset_id'] + '">' + file_name_caption + '</option>';
+										}
+										$('.vcf_filtered_snp_files_select_div select').html(files_html);
+										$('.vcf_snps_quality_filtering_ui').fadeIn(500);
+
+										cartograplant_snp_quality_filtering_populate_workflow_submit_form();
+									}
+								});
+							}
+						});
+					}
+					else {
+						$('#analysis-filter-snp-vcf-detection .detected_vcf_information').html('');
+					}
+				}
+				else {
+					$('#analysis-filter-snp-vcf-detection .status').html('No VCF files detected');
+					$('#analysis-filter-snp-vcf-detection .detected_vcf_information').html('');
+				}
+			},
+			error: function (data) {
+				console.log('error', data);
+			}
+		});
+		
+
+		
+
+
 		$("#snp-chart").html("");
 
 		// append the svg object to the body of the page
@@ -6423,10 +6666,332 @@ var ct_ready_mapjs = function() {
 			}
 		}
 
-		ctapiwss_conn.send('generate_snps_to_missing_freq' 
-			+ '::' + tree_list_for_websocket_command 
-		);		
+		// Temporary disable this - new code to use Galaxy workflow instead
+		// ctapiwss_conn.send('generate_snps_to_missing_freq' 
+		// 	+ '::' + tree_list_for_websocket_command 
+		// );		
 	});
+
+	$('body').on('click', '.vcf_snp_quality_workflow_select_div select', function() {
+		cartograplant_snp_quality_filtering_populate_workflow_submit_form();
+	});
+
+	$('body').on('click', '.vcf_snps_quality_filtering_ui_refresh', function() {
+		cartograplant_snp_quality_filtering_populate_workflow_submit_form();
+	});
+
+	function cartograplant_snp_quality_filtering_populate_workflow_submit_form() {
+		// $('.button-refresh-snps-quality-filtering-workflow-status').html('<img style="height: 16px;" src="' + loading_icon_src + '" />');
+		$('.vcf_snps_quality_filtering_ui_form').html('Loading SNP Quality filtering user interface ... <img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" />');
+		var workflow_id = $('.vcf_snp_quality_workflow_select_div select').val();
+		cartograplant.history_id = $('#create-analysis-select-history').val();
+		cartograplant.workflow_name = $('.vcf_snp_quality_workflow_select_div select option:selected').text();
+		console.log('workflow_id', workflow_id);
+		// var analysis_workflow_step_indexes = {};
+		var url = Drupal.settings.base_url + "/cartogratree_uianalysis/get_workflow_input_types/" + cartograplant.galaxy_id + '/' + workflow_id + '/' + cartograplant.history_id + '?nocache=' + Math.floor(Date.now() / 1000);
+		console.log(url);
+
+		// There is a current bug with how history gets updated so we're double loading the endpoint
+		// This didn't work
+		// $.ajax({
+		// 	method: "GET",
+		// 	url: url,
+		// 	dataType: "json",
+		// 	success: function (data) {
+		// 		console.log('Force get_workflow_input_types call has been completed');
+		// 	}
+		// });
+
+		
+		// setTimeout(function() {
+			url = Drupal.settings.base_url + "/cartogratree_uianalysis/get_workflow_input_types/" + cartograplant.galaxy_id + '/' + workflow_id + '/' + cartograplant.history_id + '?nocache=' + Math.floor(Date.now() / 1000);
+			console.log(url);
+			$.ajax({
+				method: "GET",
+				url: url,
+				dataType: "json",
+				success: function (data) {
+					console.log(data);
+					var ui_controls = data.ui_controls;
+					var step_indexes = data.step_indexes;
+					cartograplant.analysis_workflow_step_indexes[workflow_id] = step_indexes;
+					
+					$('.vcf_snps_quality_filtering_ui_form').html('');
+					//$('#create-analysis-workflow-submit-form').append('<div id="workflow_form">');
+					$('.vcf_snps_quality_filtering_ui_form').append('<div style="display: inline-block; margin-top: 5px; margin-bottom: 5px; background-color: #d8e3e2; padding: 5px; color: #000000; border-radius: 5px; text-transform: uppercase; font-size: 18px;">' + $('.vcf_snp_quality_workflow_select_div select option:selected').text() +  ' Analysis Configuration</div>');
+					if(data.overall_annotation != undefined) {
+						$('.vcf_snps_quality_filtering_ui_form').append('<div>' + data.overall_annotation + '</div><hr />');
+					}
+					if(ui_controls.length != undefined) {
+						console.log('ui_controls', ui_controls);
+						for (var i=0; i<ui_controls.length; i++) {
+							var ui_control_info = ui_controls[i];
+							if(ui_control_info['name'] == undefined) {
+								// No name for a control means it's either not required
+								// or something went wrong - a name is needed for the controls 
+							}
+							else {
+								var name = ui_control_info['name'];
+								var title = ui_control_info['title'];
+								var description = ui_control_info['description'];
+								$('.vcf_snps_quality_filtering_ui_form').append('<div style=""><div style="font-size: 16px; margin-top: 5px; margin-bottom: 5px;"><i class="fas fa-cog"></i> '  + title +  '</div></div>');
+								if(description != undefined) {
+									$('.vcf_snps_quality_filtering_ui_form').append('<div style="display: inline-block; margin-top: 5px; margin-bottom: 5px; background-color: #d8e3e2; color: #000000; padding: 5px; font-size: 12px; border-radius: 4px;"><div><i class="fas fa-info-circle"></i> '  + description +  '</div></div>');	
+								}
+
+								if(ui_control_info['type'] == "text") {
+									// Show option to choose either file upload
+									// $('#create-analysis-workflow-submit-form').append('<div><h4>'  + title +  '</h4></div>');
+
+									var text_html = '<div style="margin-top: 5px; margin-bottom: 5px;"><input type="text" style="min-width: 15%;" id="' + name +  '-text" name="' + name + '-text" value="' + ui_control_info['default_value'] + '" /></div>';
+									$('.vcf_snps_quality_filtering_ui_form').append(text_html);
+								}
+								else if(ui_control_info['type'] == "float") {
+									// Show option to choose either file upload
+									// $('#create-analysis-workflow-submit-form').append('<div><h4>'  + title +  '</h4></div>');
+
+									var float_html = '<div style="margin-top: 5px; margin-bottom: 5px;"><input type="text" style="min-width: 15%;" id="' + name +  '-float" name="' + name + '-float" value="' + ui_control_info['default_value'] + '" /></div>';
+									$('.vcf_snps_quality_filtering_ui_form').append(float_html);
+								}							
+								else if(ui_control_info['type'] == "selectfile") {
+									// Show option to choose either file upload
+									// $('#create-analysis-workflow-submit-form').append('<div><h4>'  + title +  '</h4></div>');
+									
+									// $('.vcf_snps_quality_filtering_ui_form').append('<div style="margin-top: 5px; margin-bottom: 5px;"><input type="file" id="' + name + '-upload" name="' + name + '-upload" /><button class="history_file_upload_button" id="' + name + '-upload-button">Upload to workspace</button><div style="display: inline-block; padding-left: 5px;" id="' + name + '-upload-status"></div></div>');
+									
+
+									var options_html = "";
+									if(ui_control_info['options'] != undefined) {
+										var options_keys = Object.keys(ui_control_info['options']);
+										for(var options_html_counter = 0; options_html_counter < options_keys.length; options_html_counter++) {
+											// The key is a json encoded string containing the id and src, while value is name of file
+											var key_object = JSON.parse(options_keys[options_html_counter]);
+											var galaxy_history_file_id = key_object['id'];
+											var galaxy_history_file_src = key_object['src'];
+											var galaxy_history_file_name = ui_control_info['options'][options_keys[options_html_counter]];
+											var file_name_caption = get_file_name_caption(galaxy_history_file_name);
+											options_html += "<option value='" + options_keys[options_html_counter] + "'>" + file_name_caption +  '</option>';
+										}
+									}
+
+									var select_html = '<div style="margin-top: 5px; margin-bottom: 5px;">Workspace available files: <select style="min-width: 15%;" id="' + name +  '-selectfile" name="' + name + '-selectfile">' + options_html + '</select><div style="display: inline-block;width: 40%; float:right;text-align: right;font-size: 12px; margin-top: -35px;"><div>If files don\'t appear, please try refreshing the workflow</div><button style="float:right;" class="vcf_snps_quality_filtering_ui_refresh">REFRESH WORKFLOW</button></div></div>';
+									$('.vcf_snps_quality_filtering_ui_form').append(select_html);
+									// or select from galaxy history (if option exists)
+
+								}
+								else if (ui_control_info['type'] == "select") {
+									// $('#create-analysis-workflow-submit-form').append('<div><h4>'  + title +  '</h4></div>');
+									var options_html = "";
+									if(ui_control_info['options'] != undefined) {
+										var options_keys = Object.keys(ui_control_info['options']);
+										for(var options_html_counter = 0; options_html_counter < options_keys.length; options_html_counter++) {
+											// The key is a json encoded string containing the id and src, while value is name of file
+											var option_value = options_keys[options_html_counter];
+											var option_label = ui_control_info['options'][options_keys[options_html_counter]];
+											options_html += "<option value='" + option_value + "'>" + option_label +  '</option>';
+										}
+									}
+
+									var select_html = '<div style="margin-top: 5px; margin-bottom: 5px;"><select style="min-width: 15%;" id="' + name +  '-select" name="' + name + '-select">' + options_html + '</select></div>';
+									$('.vcf_snps_quality_filtering_ui_form').append(select_html);	
+															
+								}
+								$('.vcf_snps_quality_filtering_ui_form').append('<div style="border-bottom: 1px solid #dfdfdf; margin-top: 25px; margin-bottom: 25px;"></div>');
+							}		
+						}
+						$('.vcf_snps_quality_filtering_ui_form').append('<div style="margin-top: 5px; margin-bottom: 5px;"><button class="snps_quality_filter_initiate_analysis_job_button" id="' + workflow_id + '_intiate_analysis_job-button">Initiate analysis job</button></div>');
+						// $('#create-analysis-workflow-submit-form').append('</div>');
+						$('.vcf_snps_quality_filtering_ui_form').append('<div id="snps_quality_filter_analysis_job_results_status" style="margin-top: 5px; margin-bottom: 5px;"></div>');
+						$('.vcf_snps_quality_filtering_ui_form').append('<div id="snps_quality_filter_analysis_job_results" style="margin-top: 5px; margin-bottom: 5px;"></div>');
+					}
+					else {
+						$('.vcf_snps_quality_filtering_ui_form').html('<div style="margin-top: 5px; margin-bottom: 5px;">No requirements needed for this analysis, you may continue to send to Galaxy for processing.</div>');
+					}
+					$('.vcf_snps_quality_filtering_ui_form .button-refresh-workflow-status').html('');
+					try {
+						// restore_inputs_state_create_analysis_workflow_submit_form();
+					}
+					catch (err) {
+
+					}
+				}
+			});
+		//}, 5000);
+	}
+
+	// This should cater for initiating a job analysis by clicking on the button
+	$(document).on('click', '.snps_quality_filter_initiate_analysis_job_button', function() {
+		// We'll need to get creative here, try to select elements that contain workflow
+		// To do that, we'll need to get workflow from this button clicked
+		var workflow_id = ($(this).attr('id')).split('_')[0];
+		
+		var step_indexes = cartograplant.analysis_workflow_step_indexes[workflow_id]; // we need to send this to initiate_analysis_job endpoint
+
+		console.log('galaxy_id', cartograplant.galaxy_id);
+
+		var inputs = {}; // new array
+
+		//        id* means id contains      id$ means ends with
+		$("select[id*='" + workflow_id + "'][id$='-selectfile']").each(function(index) {
+			console.log('Found a match item:', $(this).attr('id'));
+			var selected_value = JSON.parse($(this).val());
+			var step_number = ($(this).attr('id')).split('_')[1];
+			var step_input_name = ((($(this).attr('id')).split('__')[1]).split('___'))[0];
+			// push this to inputs array
+			if(inputs[step_number] == undefined) {
+				inputs[step_number] = {};
+			}
+			inputs[step_number][step_input_name] = selected_value;
+		});
+
+		//        id* means id contains      id$ means ends with
+		$("select[id*='" + workflow_id + "'][id$='-select']").each(function(index) {
+			console.log('Found a match item:', $(this).attr('id'));
+			var selected_value = $(this).val();
+			var step_number = ($(this).attr('id')).split('_')[1];
+			var step_input_name = ((($(this).attr('id')).split('__')[1]).split('___'))[0];
+			// push this to inputs array
+			if(inputs[step_number] == undefined) {
+				inputs[step_number] = {};
+			}			
+			inputs[step_number][step_input_name] = selected_value;
+		});	
+		
+		//        id* means id contains      id$ means ends with
+		$("input[id*='" + workflow_id + "'][id$='-text']").each(function(index) {
+			console.log('Found a match item:', $(this).attr('id'));
+			var selected_value = $(this).val();
+			var step_number = ($(this).attr('id')).split('_')[1];
+			var step_input_name = ((($(this).attr('id')).split('__')[1]).split('___'))[0];
+			// push this to inputs array
+			if(inputs[step_number] == undefined) {
+				inputs[step_number] = {};
+			}			
+			inputs[step_number][step_input_name] = selected_value;
+		});				
+
+		//        id* means id contains      id$ means ends with
+		$("input[id*='" + workflow_id + "'][id$='-float']").each(function(index) {
+			console.log('Found a match item:', $(this).attr('id'));
+			var selected_value = $(this).val();
+			var step_number = ($(this).attr('id')).split('_')[1];
+			var step_input_name = ((($(this).attr('id')).split('__')[1]).split('___'))[0];
+			// push this to inputs array
+			if(inputs[step_number] == undefined) {
+				inputs[step_number] = {};
+			}			
+			inputs[step_number][step_input_name] = selected_value;
+		});			
+
+
+		console.log('inputs', inputs);
+		console.log('step_indexes', step_indexes);
+		var formData = new FormData();
+		formData.append('history_id', cartograplant.history_id);
+		formData.append('workflow_id', workflow_id);
+		formData.append('workflow_name', cartograplant.workflow_name);
+		formData.append('galaxy_id', cartograplant.galaxy_id);
+		formData.append('inputs', JSON.stringify(inputs));
+		formData.append('step_indexes', JSON.stringify(step_indexes));
+ 
+		var url = Drupal.settings.base_url + "/cartogratree_uianalysis/initiate_job";
+        $.ajax({
+            url: url,
+            method: 'POST',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+			success: function (data) {
+				console.log(data);
+				if(data.response == "success") {
+					$('#snps_quality_filter_analysis_job_results_status').html('');
+					$('#snps_quality_filter_analysis_job_results_status').append('<div>Successfully submitted job to Galaxy server</div>');
+					$('#snps_quality_filter_analysis_job_results_status').append('<div>Invocation ID: ' + data.invocation.id + '</div>');
+					$('#snps_quality_filter_analysis_job_results_status').append('<div id="snps_quality_filter_analysis_job_status">Status: Submitted <div style="display: inline-block" class="loading"></div> <img style="height: 16px;" src="' + cartograplant.loading_icon_src + '" /></div>');
+					$('#snps_quality_filter_analysis_job_results_status').append('<div id="snps_quality_filter_analysis_job_outputs"></div>');
+					if(cartograplant.analysis_job_check_timers[data.invocation.id] == undefined) {
+						// create a new interval timer
+						var invocation_id = data.invocation.id;
+						cartograplant.analysis_job_check_timers[data.invocation.id] = setInterval(function(galaxy_id, history_id, workflow_id, invocation_id) {
+							var url_invocation_outputs_details = Drupal.settings.base_url + "/cartogratree_uianalysis/get_invocation_outputs/" + galaxy_id + '/' + history_id + '/' + workflow_id + '/' + invocation_id;
+							console.log(url_invocation_outputs_details);
+							
+							$.ajax({
+								url: url_invocation_outputs_details,
+								method: 'GET',
+								success: function (invocation_outputs_details_data) {
+									$('#snps_quality_filter_analysis_job_outputs').html('');
+									console.log(invocation_outputs_details_data);
+									var job_finished = true;
+									var job_error = false;
+									var job_paused = false;
+									var job_states = invocation_outputs_details_data.job_states;
+									for(var i = 0; i<job_states.length; i++) {
+										if(job_states[i] == "ok" || job_states[i] == "error" || job_states[i] == "paused") {
+											if(job_states[i] == "error") {
+												job_error = true;
+											}
+											else if(job_states[i] == "paused") {
+												job_paused = true;
+											}
+										}
+										else {
+											job_finished = false;
+										}
+									}
+
+									var output_details = invocation_outputs_details_data.output_details;
+									$('#snps_quality_filter_analysis_job_outputs').append('<div id="snps_quality_filter_analysis_job_outputs_status" style="font-weight: bold; font-size: 16px; margin-top: 5px; margin-bottom: 5px;">Output Results (running) <span class="loading"><span> <img style="height: 16px;" src="' + cartograplant.loading_icon_src + '" /></div>');
+									for(i = 0; i<output_details.length; i++) {
+										var tmp_name = output_details[i]['name'];
+										var tmp_file_ext = output_details[i]['file_ext'];
+										var tmp_file_size = output_details[i]['file_size'];
+										var tmp_state = output_details[i]['state'];
+										var tmp_download_url = output_details[i]['download_url'];
+										if(tmp_state == "ok") {
+											$('#snps_quality_filter_analysis_job_outputs').append('<div style="margin-bottom: 5px;"><span style="padding: 5px; border-radius: 2px; background-color: #00d100;">Completed</span> File download: <a style="text-decoration: underline;" href="' + tmp_download_url + '">' + tmp_name + '</a> (' + tmp_file_size + ' bytes)</div>');
+										}
+										else if(tmp_state == "error") {
+											$('#snps_quality_filter_analysis_job_outputs').append('<div style="margin-bottom: 5px;"><span style="padding: 5px; border-radius: 2px; background-color: #d10000; color: #FFFFFF;">Error</span> <a style="text-decoration: underline;" href="' + tmp_download_url + '">' + tmp_name + '</a> (' + tmp_file_size + ' bytes)</div>');
+										}
+										else if(tmp_state == "paused") {
+											$('#snps_quality_filter_analysis_job_outputs').append('<div style="margin-bottom: 5px;"><span style="padding: 5px; border-radius: 2px; background-color: #4d4d4d; color: #FFFFFF;">Paused</span> <a style="text-decoration: underline;" href="' + tmp_download_url + '">' + tmp_name + '</a> (' + tmp_file_size + ' bytes)</div>');
+										}										
+										else {
+											$('#snps_quality_filter_analysis_job_outputs').append('<div style="margin-bottom: 5px;"><img style="height: 16px;" src="' + cartograplant.loading_icon_src + '" /> <span style="padding: 5px; border-radius: 2px; background-color: #ffbe0a;">Awaiting</span> File ' + tmp_name + ' (' + tmp_file_size + ' bytes)</div>');
+										}
+									}
+
+									if(job_finished) {
+										clearInterval(cartograplant.analysis_job_check_timers[data.invocation.id]);
+										
+										if(job_error) {
+											$('#snps_quality_filter_analysis_job_status').html("Status: Error, incompleted, stopped.");
+											$('#snps_quality_filter_analysis_job_outputs_status').html("Output results (Error!)");
+										}
+										else if(job_paused) {
+											$('#snps_quality_filter_analysis_job_status').html("Status: Error, paused.");
+											$('#snps_quality_filter_analysis_job_outputs_status').html("Output results (Paused, error!)");
+										}
+										else if (job_finished) {
+											$('#snps_quality_filter_analysis_job_status').html("Status: Successfully completed.");
+											$('#snps_quality_filter_analysis_job_outputs_status').html("Output results (Completed successfully!)");
+										}
+									}
+								}
+							});
+
+
+											
+						}, 10000, cartograplant.galaxy_id, cartograplant.history_id, workflow_id, invocation_id);
+					}
+
+				}
+			}
+		});		
+	});	
+
 
 	ct_ready_mapjs.generate_snps_to_missing_freq_data = generate_snps_to_missing_freq_data;
 	

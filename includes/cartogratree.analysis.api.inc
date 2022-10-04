@@ -82,6 +82,7 @@ function cartogratree_analysisapi_get_all_workflows_from_galaxy_account($galaxy_
 }
 
 function cartogratree_analysisapi_get_workflow_input_types($galaxy_id, $workflow_id, $history_id) {
+    drupal_page_is_cacheable(FALSE);
     require_once (libraries_get_path('blend4php') . '/galaxy.inc');
     // connect to the Galaxy instance
     $galaxy = tripal_galaxy_get_connection($galaxy_id);

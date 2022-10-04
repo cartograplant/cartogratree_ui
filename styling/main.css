@@ -680,6 +680,13 @@ a.list-group-item:focus, a.list-group-item-action:hover{
   color: #FFFFFF !important;
 }
 
+line {
+  vector-effect: non-scaling-stroke;
+  stroke: #000;
+  stroke-dasharray: 10;
+  stroke-width: 5px;
+}
+
 .row-100 {
   width: 100%;
 }

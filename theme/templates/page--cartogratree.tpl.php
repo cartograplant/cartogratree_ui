@@ -236,10 +236,22 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title" id="cartogratreeTitle">
-					<img id="ct-logo" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/cp_logo.png">
-					Analysis
-				</h3>
+				<div style="display: inline-block;">
+					<h3 class="modal-title" id="cartogratreeTitle">
+						<img id="ct-logo" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/cp_logo.png">
+						Analysis
+					</h3>
+				</div>
+				<div style="display: inline-block; width: 20%;">
+					&nbsp;
+				</div>
+				<div style="display: inline-block; width: 20%;">
+					&nbsp;
+				</div>	
+				<div style="display: inline-block;" id="analysis_summary_html">
+					&nbsp;
+				</div>						
+
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
                 </button>
@@ -290,13 +302,19 @@
 								<fieldset>
 									<div id="analysis_id" value="-1"></div>
 									<div>
-										Analysis name: <input id="analysis_name" type="text" value="Untitled" />
+										<div style="display: inline-block; margin-right: 10px;">Analysis name: <input id="analysis_name" type="text" value="Untitled" /></div>
+										<div style="display: inline-block; margin-right: 10px;">Analysis type: <select id="analysis_type">
+											<option value="GxPxE" selected>Genotype x Phenotype x Environmental</option>
+											<option value="GxP">Genotype x Phenotype</option>
+											<option value="GxE">Genotype x Environmental</option>
+										</select>
+										</div>
+										<div style="display: inline-block; margin-right: 10px;">
 										<button id="btn_update_analysis_name">Update</button>
+										</div>
 									</div>
 								</fieldset>
 								<hr />
-								
-								
 							</div>
 							<div style="margin-bottom: 10px;">
 								<div>To begin analyzing data, we strongly recommend creating a workspace.</div>
@@ -322,6 +340,7 @@
 								</div>							
 							</div>																
 						</div>
+						<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
 					</div>				
 					<div id="analysis-overlapping-traits" class="tab-pane fade in inactive">	
 						<div class="analysis-tab-content">
@@ -331,33 +350,51 @@
 							<div style="margin-bottom: 10px;">
 								<div id="analysis-overlapping-traits-studies"></div>
 							</div>
+							
 							<div id="analysis-overlapping-traits-traits-list-container" style="margin-bottom: 10px;">
-								<div style="display: flex;">
+								<div style="display: none;">
 									<div id="analysis-overlapping-traits-traits-list-summary" style="width: 25%; margin-bottom: 10px;"></div>
 									<div style="width: 75%;" id="studies_intersecting_traits_timer_div"></div>
 								</div>
 								<div id="analysis-overlapping-traits-traits-operation-container" style="margin-bottom: 10px;">
-									<div style="margin-bottom: 10px;">
+									<!-- <div style="margin-bottom: 10px;">
 										<i class="fas fa-filter"></i> Filter trees using 
 										<select id="analysis-overlapping-traits-traits-operation">
 											<option value="union">UNION (combination)</option>
-											<!-- <option value="intersect">INTERSECT (overlap only)</option> -->
 										</select> on traits:
 									</div>
 									<div style="margin-bottom: 10px;">
 										<span id="analysis-overlapping-traits-status"></span>
+									</div>	
+									-->
+									
+								
+									<div style="margin-bottom: 10px; min-width: 60%; display: inline-block; vertical-align: top;" id="analysis-overlapping-traits-traits-left-container">
+										<div style="margin-bottom: 10px; vertical-align: top;" id="analysis-overlapping-traits-traits-list">
+									
+										</div>
+										<div style="margin-bottom: 10px; vertical-align: top;" id="analysis-overlapping-traits-traits-histogram-grid">
+										<!-- Contains divs of each histogram of traits that overlap -->
+										</div>										
+									</div>
+									<div style="max-width: 38%; display: inline-block; vertical-align: top;" id="analysis-overlapping-traits-visual-elements">
+										<div id="analysis-overlapping-traits-histogram" style=""></div>	
+										<div id="analysis-overlapping-traits-pca" style=""></div>								
 									</div>									
-									<div style="margin-bottom: 10px;" id="analysis-overlapping-traits-traits-list"></div>
+
+									<!--
 									<div style="margin-bottom: 10px;">
 										<button id="analysis-overlapping-traits-filter-by-selected-phenotypes"><i class="fas fa-filter"></i> Filter</button>
 										<button id="analysis-overlapping-traits-download-by-selected-phenotypes"><i class="fas fa-download"></i> Download</button>
 									</div>
 									<div style="margin-bottom: 10px;" id="analysis-overlapping-traits-filter-by-selected-phenotypes-results">
 
-									</div>									
+									</div>
+									-->									
 								</div>
 							</div>
 						</div>
+						<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
 					</div>
 					<div id="analysis-overlapping-genotypes" class="tab-pane fade in inactive">	
 						<div class="analysis-tab-content">
@@ -398,13 +435,17 @@
 								<div id="analysis-overlapping-genotypes"></div>
 							</div>
 						</div>
+						<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
 					</div>
 					<div id="analysis-filter-snp" class="tab-pane fade in">
 						<div class="analysis-tab-content">
 							<div class="row">
 								<div class="col">
+									
+									<div id="analysis-filter-snp-vcf-detection">Please return to the begin tab and ensure you have set up your workspace.</div>
 									<div id="snp-chart"></div>
 								</div>
+								<!--
 								<div class="col">
 									<div class="form-row align-items-center">
 										<div class="col-9 my-1">
@@ -421,6 +462,7 @@
 										</div>
 									</div>
 								</div>
+								-->
 							</div>
 						</div>
 						<hr />
@@ -429,11 +471,14 @@
 
 					<div id="analysis-filter-indv" class="tab-pane fade">
 						<div class="analysis-tab-content">
+							
 							<!--
 							<h3 id="chart-loading" class="hidden">Loading...</h3>
 							<div class="row">
 								<div class="col">
+									<div id="snp-study-vcf-detection"></div>
 									<div id="snp-chart"></div>
+									
 								</div>
 								<div class="col">
 									<div class="form-row align-items-center">
@@ -459,18 +504,21 @@
 							<div class="row">
 								<div class="col">
 									<div class="form-row align-items-center" style="height: 100%;">
-										<div class="col-9 my-1">
+										<div class="col-7 my-1">
 											<label class="mr-sm-2">Choose environmental layers</label>
 											<div id="analysis-retrieve-envdata-section-layers-list"></div>
 										</div>
 										<div class="col my-1" style="vertical-align: top; height: 100%;">
 											  <!-- <button id="analysis-retrieve-envdata-section-button" class="btn btn-primary">Submit</button> -->
 											  <div style="text-align: center;"><button id="analysis-generateoutput-envdata-section-button" class="btn btn-primary">Generate data</button><div id="analysis-generateoutput-elapsed-time" style="display: inline-block;"></div></div>
+											  <div style="text-align: center;"><button id="analysis-generateoutput-envdata-section-from-db-button" class="btn btn-primary">Generate data from db</button></div>
+											  <div style="text-align: center;" id="analysis-generateoutput-envdata-section-from-db-status"></div>
 											  <div id="analysis-envdata-section-progressbar" style="margin-top: 10px; height: 20px;"></div>
 											  <div id="analysis-envdata-section-progressbar-description" style='text-align: center; font-size: 12px;'></div>
 											  <div id="analysis-envdata-section-progressbar2" style="margin-top: 10px; height: 20px;"></div>
 											  <div id="analysis-envdata-section-progressbar2-description" style='text-align: center; font-size: 10px; text-align: center;'></div>
 											  <div id="download_analysis_envdata_csv_data_button_container" style="text-align: center; margin-top: 10px;"></div>
+											  <div id="envdata_scatter_plot" style="text-align: center; margin-top: 10px;"></div>
 										</div>
 									</div>
 								</div>
@@ -652,78 +700,58 @@
                 </button>
             </div>
             <div class="modal-body">
-                <h3><small>Introduction</small></h3>
-                <p>The original concept of CartograTree was envisioned by a group of forest tree biology researchers that represented traditionally separate research areas including physiology, ecology, genomics, and systematics. Guided by the NSF-funded iPlant Cyberinfrastructure, the focus was to enable interdisciplinary forest tree biology research through geo-referenced data with an application that could be easily deployed, expanded, and used by members of all disciplines. CartograTree is a web-based application that allows researchers to identify, filter, compare, and visualize geo-referenced biotic and abiotic data. Its goal is to support numerous multi-disciplinary research endeavors including: phylogenetics, population structure, and association studies.</p>
-                <hr />
-                <h3><small>Development and Advisory Team</small></h3>
-                <!-- <table style="width: 100%">
-                    <tr>
-                        <th>Member</th>
-                        <th>Institution</th>
-                        <th>Position</th>
-                    </tr>
-                    <tr>
-                        <td>Nic Herndon</td>
-                        <td>University of Connecticut</td>
-                        <td>Programmer</td>
-                    </tr>
-                    <tr>
-                        <td>Emily Grau</td>
-                        <td>University of Connecticut</td>
-                        <td>TreeGenes Lead Database Administrator</td>
-                    </tr>
-                    <tr>
-                        <td>Charlie Demurjian</td>
-                        <td>University of Connecticut</td>
-                        <td>Curator</td>
-                    </tr>
-                    <tr>
-                        <td>Isaac McEvoy</td>
-                        <td>University of Connecticut</td>
-                        <td>Curator</td>
-                    </tr>
-                    <tr>
-                        <td>Irene Cobo</td>
-                        <td>University of Connecticut</td>
-                        <td>Postdoctoral Scholar</td>
-                    </tr>
-                    <tr>
-                        <td>Peter Richter</td>
-                        <td>University of Connecticut</td>
-                        <td>Developer</td>
-                    </tr>
-                    <tr>
-                        <td>Risharde Ramnath</td>
-                        <td>Dove Technologies</td>
-                        <td>TreeGenes Developer</td>
-                    </tr>
-                    <tr>
-                        <td>Jill Wegrzyn</td>
-                        <td>University of Connecticut</td>
-                        <td>Principal Investigator</td>
-                    </tr>
-                </table> -->
-				<table style="width: 100%; text-align: left;">
-					<tbody>
+				<style>
+					.ct_left_card {
+						width: 100%;
+    					margin-bottom: 10px !important;
+						display: inline-block;
+						border-radius: 3px;
+						border: 1px solid #EEEEEE;
+						padding: 10px;
+						border-left: 3px solid #e2b448;
+						background: #FFFFFF;
+					}
+
+					.ct_left_card h2 {
+						padding-top: 0px;
+						border-bottom: 3px solid #b4d6c9 !important;
+						font-size: 18px !important;
+						padding-bottom: 10px !important;
+						font-weight: normal !important;
+					}
+				</style>
+				<div class="ct_left_card">
+                	<h2>Introduction</h2>
+                	<p>The original concept of CartograPlant was envisioned by a group of forest tree biology researchers that represented traditionally separate research areas including physiology, ecology, genomics, and systematics. Guided by the NSF-funded iPlant Cyberinfrastructure, the focus was to enable interdisciplinary forest tree biology research through geo-referenced data with an application that could be easily deployed, expanded, and used by members of all disciplines. CartograPlant is a web-based application that allows researchers to identify, filter, compare, and visualize geo-referenced biotic and abiotic data. Its goal is to support numerous multi-disciplinary research endeavors including: phylogenetics, population structure, and association studies.</p>
+				</div>
+				<hr />
+				<div class="ct_left_card">
+					<h2>Development and Advisory Team</h2>
+					<!-- <table style="width: 100%">
 						<tr>
-							<th style="width: 32%;">Member</th>
-							<th style="width: 32%;">Institution</th>
-							<th style="width: 32%;">Position</th>
-						</tr>
-						<tr>
-							<td>Jill Wegrzyn</td>
-							<td>University of Connecticut</td>
-							<td>Principal Investigator</td>
+							<th>Member</th>
+							<th>Institution</th>
+							<th>Position</th>
 						</tr>
 						<tr>
 							<td>Nic Herndon</td>
 							<td>University of Connecticut</td>
-							<td>Co-Principal Investigator</td>
+							<td>Programmer</td>
 						</tr>
 						<tr>
-							<td>Meg Staton</td>
-							<td>University of Tennessee</td>
-							<td>Co-Principal Investigator</td>
+							<td>Emily Grau</td>
+							<td>University of Connecticut</td>
+							<td>TreeGenes Lead Database Administrator</td>
+						</tr>
+						<tr>
+							<td>Charlie Demurjian</td>
+							<td>University of Connecticut</td>
+							<td>Curator</td>
+						</tr>
+						<tr>
+							<td>Isaac McEvoy</td>
+							<td>University of Connecticut</td>
+							<td>Curator</td>
 						</tr>
 						<tr>
 							<td>Irene Cobo</td>
@@ -731,113 +759,197 @@
 							<td>Postdoctoral Scholar</td>
 						</tr>
 						<tr>
-							<td>Risharde Ramnath</td>
-							<td>University of Connecticut</td>
-							<td>Lead Developer</td>
-						</tr>
-						<tr>
 							<td>Peter Richter</td>
 							<td>University of Connecticut</td>
 							<td>Developer</td>
 						</tr>
 						<tr>
-							<td>Emily Grau</td>
-							<td>University of Connecticut</td>
-							<td>Lead Database Administrator</td>
+							<td>Risharde Ramnath</td>
+							<td>Dove Technologies</td>
+							<td>TreeGenes Developer</td>
 						</tr>
 						<tr>
-							<td>Charlie Demurjian</td>
+							<td>Jill Wegrzyn</td>
+							<td>University of Connecticut</td>
+							<td>Principal Investigator</td>
+						</tr>
+					</table> -->
+					<table style="width: 100%; text-align: left;">
+						<tbody>
+							<tr>
+								<th style="width: 32%;">Member</th>
+								<th style="width: 32%;">Institution</th>
+								<th style="width: 32%;">Position</th>
+							</tr>
+							<tr>
+								<td>Jill Wegrzyn</td>
+								<td>University of Connecticut</td>
+								<td>Principal Investigator</td>
+							</tr>
+							<tr>
+								<td>Nic Herndon</td>
+								<td>University of Connecticut</td>
+								<td>Co-Principal Investigator</td>
+							</tr>
+							<tr>
+								<td>Meg Staton</td>
+								<td>University of Tennessee</td>
+								<td>Co-Principal Investigator</td>
+							</tr>
+							<tr>
+								<td>Irene Cobo</td>
+								<td>University of Connecticut</td>
+								<td>Postdoctoral Scholar</td>
+							</tr>
+							<tr>
+								<td>Risharde Ramnath</td>
+								<td>University of Connecticut</td>
+								<td>Lead Developer</td>
+							</tr>
+							<tr>
+								<td>Emily Grau</td>
+								<td>University of Connecticut</td>
+								<td>Lead Database Administrator</td>
+							</tr>
+							<tr>
+								<td>Meghan Myles</td>
+								<td>University of Connecticut</td>
+								<td>Curator</td>
+							</tr>
+							<tr>
+								<td>Madison Gadomski</td>
+								<td>University of Connecticut</td>
+								<td>Curator</td>
+							</tr>
+							<tr>
+								<td>Nicola Bacon</td>
+								<td>University of Connecticut</td>
+								<td>Curator</td>
+							</tr>
+							<tr>
+								<td>Isabella Harding</td>
+								<td>University of Connecticut</td>
+								<td>Curator</td>
+							</tr>												
+						</tbody>
+					</table>
+				</div>
+                <div class="featurette-divider"></div>
+				<div class="ct_left_card">
+					<h2>TreeSnap</h2>
+					<p><a href="treesnap.org">TreeSnap</a> is a forest tree map utility that allows users to locate and take pictures of trees around the nation. TreeSnap was developed as a collaboration between Scientists at the University of Kentucky and the University of Tennessee. CartograPlant makes use of the tree data collected by TreeSnap</p>
+					<table style="width: 100%">
+						<tr>
+							<th>Member</th>
+							<th>Institution</th>
+							<th>Position</th>
+						</tr>
+						<tr>
+							<td>Meg Staton</td>
+							<td>University of Tennessee</td>
+							<td>Principal Investigator</td>
+						</tr>
+						<tr>
+							<td>Abdullah Almsaeed</td>
+							<td>University of Tennessee</td>
+							<td>TreeSnap Developer</td>
+						</tr>
+						<tr>
+							<td>Ellen Crocker</td>
+							<td>College of Agriculture, Food and Environment</td>
+							<td>Extension and Outreach Specialist</td>
+						</tr>					
+					</table>
+				</div>
+				<div class="featurette-divider"></div>
+				<div class="ct_left_card">
+					<h2>Citing</h2>
+					<!-- 
+					<p>Wegrzyn J.L., Staton M.A., Street N. R., Main D., Grau E., Herndon N., Buehler S., Falk T., Zaman S., Ramnath R., Richter P., Sun L., Condon B., Almsaeed A., Chen M.,Mannapperuma C., Jung S., Ficklin S. Cyberinfrastructure to Improve Forest Health and Productivity: The Role of Tree Databases in Connecting Genomes, Phenomes, and the Environment, TreeGenes. Database, Volume 2019. doi:10.3389/fpls.2019.00813</p>
+					<p>Falk, T., Herndon, N., Grau, E., Buehler, S., Richter, P., Zaman, S., Baker, E. M., Ramnath, R., Ficklin, S., Staton, M., Feltus, F. A., Jung, S., Main, D., & Wegrzyn, J. L (2018) <a href=" http://dx.doi.org/10.1093/database/bay084">Growing and cultivating the forest genomics database, TreeGenes</a> <i>Database, Volume 2018</i></p>
+					-->
+					<p>Wegrzyn J.L., Staton M.A., Street N. R., Main D., Grau E., Herndon N., Buehler S., Falk T., Zaman S., Ramnath R., Richter P., Sun L., Condon B., Almsaeed A., Chen M.,Mannapperuma C., Jung S., Ficklin S. Cyberinfrastructure to Improve Forest Health and Productivity: The Role of Tree Databases in Connecting Genomes, Phenomes, and the Environment, TreeGenes. Database, Volume 2019. doi:10.3389/fpls.2019.00813</p>
+
+					<p>Falk, T., Herndon, N., Grau, E., Buehler, S., Richter, P., Zaman, S., Baker, E. M., Ramnath, R., Ficklin, S., Staton, M., Feltus, F. A., Jung, S., Main, D., & Wegrzyn, J. L (2018) Growing and cultivating the forest genomics database, TreeGenes Database, Volume 2018</p>
+
+					<p>Herndon, N., Grau, E. S., Batra, I., Demurjian Jr., S. A., Vasquez-Gross, H. A., Staton, M. E., and Wegrzyn, J. L. (2016) CartograTree: Enabling Landscape Genomics for Forest Trees. In Proceedings of the Open Source Geospatial Research & Education Symposium (OGRS 2016), Perugia, Italy.</p>
+
+					<p>Vasquez-Gross H.A., Yu J.J., Figueroa B., Gessler D.D.G., Neale D.B., and Wegrzyn J.L. (2013) CartograTree: connecting tree genomes, phenotypes, and environment Molecular Ecology Resources, 13(3), 528-537</p>					<!-- <p>Herndon, N., Grau, E. S., Batra, I., Demurjian Jr., S. A., Vasquez-Gross, H. A., Staton, M. E., and Wegrzyn, J. L. (2016) <a href="https://peerj.com/preprints/2345v4.pdf">CartograTree: Enabling Landscape Genomics for Forest Trees</a>. In <i>Proceedings of the Open Source Geospatial Research & Education Symposium</i> (OGRS 2016), Perugia, Italy.</p> -->
+				</div>
+				<hr />
+				<div class="ct_left_card">
+					<h2>Participating Groups</h2>
+					<div class="d-flex justify-content-between" style='align-items: center;'>
+						<img style="height: 5em;" src='/sites/default/files/uploads/uconn.png' />
+						<img style="height: 6em;" src='/sites/default/files/uploads/wsu.png' />
+						<img style="height: 6em;" src='/sites/default/files/uploads/utk.png' />
+					</div>
+				</div>
+				<hr />
+				<div class="ct_left_card">
+					<h2>Funding</h2>	
+					<div style='text-align: center;'>
+						<img style='width: 25%;' src='https://treegenesdb.org/Drupal/sites/default/files/uploads/USDA_logo-cmp.png' />
+						<h3>National Institute of Food and Agirculture</h3>
+						<h3>USDA-NIFA #2018-09223</h3>
+					</div>
+				</div>							
+				</hr />
+				<div class="ct_left_card">	
+					<h2>In collaboration with: </h2>
+					<div id="sources-imgs" class="d-flex justify-content-between" style="margin-left: 2em; margin-right: 2em; align-items: center;">
+						<img style="width:8em; height:7em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/Galaxy_icon.png">
+						<img style="width:15em; height:5em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/GMod_Chado.png">
+						<img style="width:15em; height:4.5em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TripalLogo_dark.png">
+						
+					</div>
+					<div id="sources-imgs-2" class="d-flex justify-content-between" style="margin-left: 2em; margin-right: 2em; align-items: center;">
+						<img style="width:8em; height:8em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TreeSnap.jpg">
+						<img style="width:12em; height:7em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/wfid.png">
+						<img style="width:15em; height:5em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/wildtype.png">
+					</div>
+				</div>
+				<hr />
+				<div class="ct_left_card">				
+					<h2>Project Alumni</h2>
+					<table style="width: 100%">
+						<tr>
+							<th>Member</th>
+							<th>Institution</th>
+							<th>Position</th>
+						</tr>
+						<tr>
+							<td>Damian Gessler</td>
+							<td>Semantic Options, LLC</td>
+							<td>Advisory member</td>
+						</tr>
+						<tr>
+							<td>Taylor Falk</td>
+							<td>University of Connecticut</td>
+							<td>Bioinformatics Developer</td>
+						</tr>
+						<tr>
+							<td>Ronald Santos</td>
+							<td>University of Connecticut</td>
+							<td>Programmer</td>
+						</tr>
+						<tr>
+							<td>Peter Richter</td>
+							<td>University of Connecticut</td>
+							<td>Programmer</td>
+						</tr>
+						<tr>
+							<td>Charles Demurjian</td>
 							<td>University of Connecticut</td>
 							<td>Curator</td>
-						</tr>
-					</tbody>
-				</table>							
-                <div class="featurette-divider"></div>
-				<h3>TreeSnap</h3>
-				<p><a href="treesnap.org">TreeSnap</a> is a forest tree map utility that allows users to locate and take pictures of trees around the nation. TreeSnap was developed as a collaboration between Scientists at the University of Kentucky and the University of Tennessee. CartograTree makes use of the tree data collected by TreeSnap</p>
-                <table style="width: 100%">
-                    <tr>
-                        <th>Member</th>
-                        <th>Institution</th>
-                        <th>Position</th>
-                    </tr>
-                    <tr>
-                        <td>Meg Staton</td>
-                        <td>University of Tennessee</td>
-                        <td>Principal Investigator</td>
-                    </tr>
-					<tr>
-						<td>Abdullah Almsaeed</td>
-						<td>University of Tennessee</td>
-						<td>TreeSnap Developer</td>
-					</tr>
-					<tr>
-						<td>Ellen Crocker</td>
-						<td>College of Agriculture, Food and Environment</td>
-						<td>Extension and Outreach Specialist</td>
-					</tr>					
-				</table>
-				<div class="featurette-divider"></div>
-                <h3><small>Citing</small></h3>
-				<p>Wegrzyn J.L., Staton M.A., Street N. R., Main D., Grau E., Herndon N., Buehler S., Falk T., Zaman S., Ramnath R., Richter P., Sun L., Condon B., Almsaeed A., Chen M.,Mannapperuma C., Jung S., Ficklin S. Cyberinfrastructure to Improve Forest Health and Productivity: The Role of Tree Databases in Connecting Genomes, Phenomes, and the Environment, TreeGenes. Database, Volume 2019. doi:10.3389/fpls.2019.00813</p>
-				<p>Falk, T., Herndon, N., Grau, E., Buehler, S., Richter, P., Zaman, S., Baker, E. M., Ramnath, R., Ficklin, S., Staton, M., Feltus, F. A., Jung, S., Main, D., & Wegrzyn, J. L (2018) <a href=" http://dx.doi.org/10.1093/database/bay084">Growing and cultivating the forest genomics database, TreeGenes</a> <i>Database, Volume 2018</i></p>
-                <!-- <p>Herndon, N., Grau, E. S., Batra, I., Demurjian Jr., S. A., Vasquez-Gross, H. A., Staton, M. E., and Wegrzyn, J. L. (2016) <a href="https://peerj.com/preprints/2345v4.pdf">CartograTree: Enabling Landscape Genomics for Forest Trees</a>. In <i>Proceedings of the Open Source Geospatial Research & Education Symposium</i> (OGRS 2016), Perugia, Italy.</p> -->
-				<hr />
-				<h3><small>Participating Groups</small></h2>
-				<div class="d-flex justify-content-between" style='align-items: center;'>
-					<img style="height: 5em;" src='/sites/default/files/uploads/uconn.png' />
-					<img style="height: 6em;" src='/sites/default/files/uploads/wsu.png' />
-					<img style="height: 6em;" src='/sites/default/files/uploads/utk.png' />
-				</div>
-				<hr />
-				<h3><small>Funding</small></h2>	
-				<div style='text-align: center;'>
-					<img style='width: 25%;' src='https://treegenesdb.org/Drupal/sites/default/files/uploads/USDA_logo-cmp.png' />
-					<h3>National Institute of Food and Agirculture</h3>
-					<h3>USDA-NIFA #2018-09223</h3>
-				</div>							
-				</hr />			
-				<h3>In collaboration with: </h3>
-				<div id="sources-imgs" class="d-flex justify-content-between" style="margin-left: 2em; margin-right: 2em; align-items: center;">
-					<img style="width:8em; height:7em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/Galaxy_icon.png">
-					<img style="width:15em; height:5em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/GMod_Chado.png">
-					<img style="width:15em; height:4.5em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TripalLogo_dark.png">
-					
-				</div>
-				<div id="sources-imgs-2" class="d-flex justify-content-between" style="margin-left: 2em; margin-right: 2em; align-items: center;">
-					<img style="width:8em; height:8em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TreeSnap.jpg">
-					<img style="width:12em; height:7em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/wfid.png">
-					<img style="width:15em; height:5em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/wildtype.png">
-				</div>				
-                <hr />
-                <h3><small>Project Alumni</small></h3>
-                <table style="width: 100%">
-					<tr>
-                        <th>Member</th>
-                        <th>Institution</th>
-                        <th>Position</th>
-                    </tr>
-                    <tr>
-                        <td>Damian Gessler</td>
-                        <td>Semantic Options, LLC</td>
-                        <td>Advisory member</td>
-                    </tr>
-                    <tr>
-                        <td>Taylor Falk</td>
-                        <td>University of Connecticut</td>
-                        <td>Bioinformatics Developer</td>
-                    </tr>
-                    <tr>
-                        <td>Ronald Santos</td>
-                        <td>University of Connecticut</td>
-                        <td>Programmer</td>
-                    </tr>
-					<tr>
-						<td>Isaac McEvoy</td>
-						<td>University of Connecticut</td>
-						<td>Curator</td>
-					</tr>										
-				</table>					
+						</tr>											
+						<tr>
+							<td>Isaac McEvoy</td>
+							<td>University of Connecticut</td>
+							<td>Curator</td>
+						</tr>										
+					</table>
+				</div>	
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -1087,7 +1199,7 @@
 				            <div class="row row-100">
                                 <div class="col-8">
                                     <h6>
-                                        <i class="fas fa-leaf"></i> Number of Species
+                                        <div style="display: inline-block; margin-left: -4px; margin-right: 3px;"><i class="fas fa-leaf"></i></div><div style="display: inline-block">Species count</div>
                                     </h6>
                                 </div>
                                 <div class="col-3">
@@ -1158,8 +1270,8 @@
                         <li class="list-group-item list-group-item-action d-flex ">
                             <div class="row row-100">
                                 <div class="col-7">
-                                    <h6 class="text-muted">
-                                        <i class="fas fa-tree"></i> TreeGenes
+                                    <h6 class="text-muted" style="line-height: 20px;">
+                                        <div style="display: inline-block; width: 20%;"><i class="fas fa-tree" style="position: relative; top: -5px;"></i></div><div style="display: inline-block; width: 70%;">Internal submissions</div><!-- TreeGenes -->
                                     </h6>
                                 </div>
                                 <div class="col-4">
@@ -1173,7 +1285,7 @@
                             <div class="row row-100">
                                 <div class="col-7">
                                     <h6 class="text-muted">
-                                        <i class="fas fa-mobile-alt"></i> TreeSnap
+                                        <i class="fas fa-mobile-alt" style="margin-right: 5px;"></i> TreeSnap
                                     </h6>
                                 </div>
                                 <div class="col-4">
@@ -1186,8 +1298,8 @@
                         <li class="list-group-item list-group-item-action d-flex">
                             <div class="row row-100">
                                 <div class="col-7">
-                                    <h6 class="text-muted">
-                                        <i class="fas fa-database"></i> DRYAD
+                                    <h6 class="text-muted" style="line-height: 20px;">
+                                        <div style="display: inline-block; width: 20%;"><i class="fas fa-database" style="position:relative; top:-5px;"></i></div><div style="display: inline-block; width: 70%;">Direct submissions</div> <!-- DRYAD -->
                                     </h6>
                                 </div>
                                 <div class="col-4">
@@ -1240,7 +1352,7 @@
 								<div class="row row-100">
 									<div class="col-7">
 										<h6 class="text-muted">
-											<i class="fas fa-table"></i> <?php echo $r['geoserver_dataset_name']; ?>
+											<i class="fas fa-table" style="margin-right: 5px;"></i> <?php echo $r['geoserver_dataset_name']; ?>
 										</h6>
 									</div>
 									<div class="col-4">
@@ -1260,7 +1372,7 @@
                             <div class="row row-100">
                                 <div class="col-7">
                                     <h6 class="text-muted">
-                                        <i class="fas fa-database"></i> WFID
+                                        <i class="fas fa-database" style="margin-right: 5px;"></i> WFID
                                     </h6>
                                 </div>
                                 <div class="col-4">
@@ -1596,8 +1708,9 @@
 							<div class="media-body">
 								<h4 class="mt-0" id="tree-pub-title" style="margin-bottom: 0px;">Who</h4>
 								<h5 id="tree-pub-author" style="display: inline-block; margin-right: 10px;">Unknown.</h5>
-								<p class="mb-0" id="tree-pub-year" style="display: inline-block; margin-right: 10px;">2000</p>
+								<div class="mb-0" id="tree-pub-year" style="display: inline-block; margin-right: 10px;">2000</div>
 								<a href="#" target="_blank" id="tree-pub-link">View Additional Details</a>
+								<p id="study-organisms-csv" style="margin: 0; padding: 0; margin-bottom: 10px;"></p>	
 								<p id="study-download-files" class="hidden" style="margin: 0; padding: 0;"></p>						
 							</div>
 						</div>
@@ -1624,11 +1737,23 @@
 					<div style="width: 30%">
 						<h3 id="tree-markers-label" style="padding-bottom: 5px; font-size: 16px;">Markers Count</h3>
 						<span style='font-size: 14px;' class="badge badge-primary" id="tree-markers-count"></span>
-						<h3 id="tree-markers-label" style="padding-bottom: 5px; font-size: 16px;">Phenotype Reads</h3>
+						<h3 id="tree-markers-label" style="padding-bottom: 5px; font-size: 16px;">Phenotype Measures</h3>
 						<span style='font-size: 14px;' class="badge badge-primary" id="tree-phenotypes-count"></span>
 					</div>					
 				</div>
+				<hr />
 				<div style= "width: 100%;" class="row">
+					<div id="" style="margin-left: 22px; margin-top: 10px; width: 60%; display: inline-block;">
+					<h3>Plant specific details for <span style="font-weight: bold;" id="tree-specific-info-label"></span></h3>
+					</div>
+					<div id="tree-specific-unique-phenotypes-container" style="display: inline-block; width: 15%">
+						<h3 id="tree-markers-label" style="padding-bottom: 5px; font-size: 16px;">Unique Phenotypes</h3>
+						<span style='font-size: 14px;' class="badge badge-primary" id="tree-specific-unique-phenotypes-count"></span>
+					</div>
+					<div id="tree-specific-unique-genotypes-container" style="display: inline-block; width: 15%">
+						<h3 id="tree-markers-label" style="padding-bottom: 5px; font-size: 16px;">Unique Genotypes</h3>
+						<span style='font-size: 14px;' class="badge badge-primary" id="tree-specific-unique-genotypes-count">0</span>
+					</div>					
 					<div id="tree-more-info-phenotype-container" style="margin-left: 22px; margin-top: 10px; width: 100%;">
 						
 					</div>

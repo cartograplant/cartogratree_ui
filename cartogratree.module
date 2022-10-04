@@ -279,6 +279,20 @@ function cartogratree_menu() {
     //UIAPI / UI API
 
 
+    $items['cartogratree_uiapi/vcf_files/%'] = array(
+        'description' => 'Cartogratree UI API: VCF Files',
+        'title' => 'Cartogratree UI API: VCF Files',
+        'page callback' => 'cartogratree_uiapi_get_vcf_studies',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );     
+
+
     $items['cartogratree_uiapi/study_files/%'] = array(
         'description' => 'Cartogratree UI API: Study Files',
         'title' => 'Cartogratree UI API: Study Files',
@@ -956,6 +970,16 @@ function cartogratree_preprocess_page(&$variables) {
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/overlap_grid.js');
         drupal_add_css(drupal_get_path('module', 'cartogratree') . '/styling/overlap_grid.css');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/venn/venn.js');
+        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/scatterplot/scatterplot_basic.js');
+        // drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/d3multi.js');
+        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/interactivehistogram/interactivehistogramv5.js');
+        // drupal_add_css(drupal_get_path('module', 'tripald3') . '/css/tripald3.css');
+        // drupal_add_js(drupal_get_path('module', 'tripald3') . '/js/tripalD3.js');
+        // drupal_add_js(drupal_get_path('module', 'tripald3') . '/js/tripalD3.histo.js');
+        // drupal_add_js(drupal_get_path('module', 'tripald3') . '/js/tripalD3.simpleHisto.js');
+        // $library = libraries_load('d3');
+        //tripald3_load_libraries();
+        tripald3_register_colorschemes();
     }
 }
 

@@ -1,5 +1,35 @@
 <?php
 
+function cartogratree_uiapi_get_vcf_studies($tgdr_numbers_csv) {
+    $tgdr_numbers = explode(',',$tgdr_numbers_csv);
+    $tgdr_count = count($tgdr_numbers);
+    foreach($tgdr_numbers as $tgdr_number) {
+        $results_data = chado_query('SELECT * FROM tpps_submission WHERE accession ILIKE :accession LIMIT 1',
+            array(
+                ':accession' => $tgdr_number
+            )
+        );
+        $data = null;
+        $return_results = array();
+        foreach($results_data as $results_row) {
+            $data_all = unserialize($results_row->submission_state);
+            // drupal_json_output($data_all);
+            $data = $data_all['saved_values'];
+        }
+        if($data != null) {
+            // dpm($data);   
+            if(isset($data[4]['organism-1']['genotype']['files']['vcf'])) {
+                $file = file_load($data[4]['organism-1']['genotype']['files']['vcf']);
+                $uri = $file->uri;
+                $return_results[$tgdr_number] = $uri;
+            }
+        }
+    }
+    // return array(
+    //     '#markup' => 'Some arbitrary markup.',
+    // );
+    drupal_json_output($return_results);
+}
 
 function cartogratree_uiapi_get_study_files($tgdr_number) {
     $results_data = chado_query('SELECT * FROM tpps_submission WHERE accession ILIKE :accession LIMIT 1',
@@ -46,6 +76,7 @@ function cartogratree_uiapi_get_study_files($tgdr_number) {
             }
         }
 
+        $return_results['organisms'] = array();
         $return_results['genotype-snp-files'] = array();
         $return_results['genotype-ssrs-files'] = array();
         $return_results['genotype-assaydesign-files'] = array();
@@ -58,6 +89,7 @@ function cartogratree_uiapi_get_study_files($tgdr_number) {
             //print_r($i);
             $org = $page_4[$key];
             $org_name = $data_all['saved_values'][1]['organism'][$i]['name'];
+            $return_results['organisms'][] = $org_name;
             //print_r($org_name);
             if (isset($org['phenotype'])) {
                 $pheno = $org['phenotype'];
@@ -98,6 +130,7 @@ function cartogratree_uiapi_get_study_files($tgdr_number) {
                 $return_results['genotype-ssrs-files'][$i] = array (
                     'url' => $url,
                     'filename' => $filename,
+                    'organism_name' => $org_name,
                 );
             }  
             if(isset($value['genotype']['files']['assaydesign'])) {
