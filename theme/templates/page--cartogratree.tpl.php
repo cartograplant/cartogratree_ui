@@ -724,7 +724,13 @@
                 	<h2>Introduction</h2>
                 	<p>The original concept of CartograPlant was envisioned by a group of forest tree biology researchers that represented traditionally separate research areas including physiology, ecology, genomics, and systematics. Guided by the NSF-funded iPlant Cyberinfrastructure, the focus was to enable interdisciplinary forest tree biology research through geo-referenced data with an application that could be easily deployed, expanded, and used by members of all disciplines. CartograPlant is a web-based application that allows researchers to identify, filter, compare, and visualize geo-referenced biotic and abiotic data. Its goal is to support numerous multi-disciplinary research endeavors including: phylogenetics, population structure, and association studies.</p>
 				</div>
-				<hr />
+				
+				<div class='ct_left_card'>
+					<h2>TreeGenes Database</h2>
+					<div class='about_treegenesdatabase'>The TreeGenes database provides custom informatics tools to manage the flood of information resulting from high-throughput genomics projects in forest trees from sample collection to downstream analysis. This resource is enhanced with systems that are well connected with federated databases, automated data flows, machine learning analysis, standardized annotations and quality control processes. The database itself contains several curated modules that support the storage of data and provide the foundation for web-based searches and visualization tools.
+					</div>
+				</div>	
+							
 				<div class="ct_left_card">
 					<h2>Development and Advisory Team</h2>
 					<!-- <table style="width: 100%">
@@ -876,7 +882,7 @@
 
 					<p>Vasquez-Gross H.A., Yu J.J., Figueroa B., Gessler D.D.G., Neale D.B., and Wegrzyn J.L. (2013) CartograTree: connecting tree genomes, phenotypes, and environment Molecular Ecology Resources, 13(3), 528-537</p>					<!-- <p>Herndon, N., Grau, E. S., Batra, I., Demurjian Jr., S. A., Vasquez-Gross, H. A., Staton, M. E., and Wegrzyn, J. L. (2016) <a href="https://peerj.com/preprints/2345v4.pdf">CartograTree: Enabling Landscape Genomics for Forest Trees</a>. In <i>Proceedings of the Open Source Geospatial Research & Education Symposium</i> (OGRS 2016), Perugia, Italy.</p> -->
 				</div>
-				<hr />
+				
 				<div class="ct_left_card">
 					<h2>Participating Groups</h2>
 					<div class="d-flex justify-content-between" style='align-items: center;'>
@@ -885,7 +891,7 @@
 						<img style="height: 6em;" src='/sites/default/files/uploads/utk.png' />
 					</div>
 				</div>
-				<hr />
+				
 				<div class="ct_left_card">
 					<h2>Funding</h2>	
 					<div style='text-align: center;'>
@@ -894,7 +900,7 @@
 						<h3>USDA-NIFA #2018-09223</h3>
 					</div>
 				</div>							
-				</hr />
+				
 				<div class="ct_left_card">	
 					<h2>In collaboration with: </h2>
 					<div id="sources-imgs" class="d-flex justify-content-between" style="margin-left: 2em; margin-right: 2em; align-items: center;">
@@ -909,7 +915,7 @@
 						<img style="width:15em; height:5em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/wildtype.png">
 					</div>
 				</div>
-				<hr />
+				
 				<div class="ct_left_card">				
 					<h2>Project Alumni</h2>
 					<table style="width: 100%">
