@@ -4777,6 +4777,7 @@ var ct_ready_mapjs = function() {
 						var data_embedded_data_eval_part_value = data_embedded_data_eval_parts[1];
 						console.log('data_embedded_data_eval_part_value:' + data_embedded_data_eval_part_value);
 						console.log('data_embedded_data_eval_i:' + data_embedded_data_eval_i);
+						console.log('k', k);
 						if(data_embedded_data_eval_part_name == data_embedded_data_eval_i + 1) {
 							eval(data_embedded_data_eval_part_value);
 							var item_container = '<tr><td style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
@@ -4795,11 +4796,16 @@ var ct_ready_mapjs = function() {
 								}
 							}
 							//eval("feature = feature + '_ok';");
+							eval(data_embedded_data_eval_part_value);
 							var item_container = '<tr><td style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
 							$('#env_layer_' + envLayer.layer_id +  '_values').append(item_container);																	
 						}
+						else {
+							var item_container = '<tr><td style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
+							$('#env_layer_' + envLayer.layer_id +  '_values').append(item_container);	
+						}
 					}
-					
+
 				}
 				else {
 					//Check to see if any of the keys need to be renamed
