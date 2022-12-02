@@ -259,21 +259,21 @@
             <div class="modal-body">
 				<ul class="nav nav-tabs nav-fill">
 					<li class="nav-item">
-						<a id='analysis-initial-configuration-tab' class="nav-link analysis-nav-tab analysis-initial-configuration active" data-toggle="tab" href="#analysis-initial-configuration">Begin</a>
+						<a id='analysis-initial-configuration-tab' class="nav-link analysis-nav-tab analysis-initial-configuration active" data-toggle="tab" href="#analysis-initial-configuration">Manage</a>
 					</li>				
 					<li class="nav-item">
 						<a id="analysis-overlapping-traits-tab" class="nav-link analysis-nav-tab analysis-overlapping-traits" data-toggle="tab" href="#analysis-overlapping-traits">Filter By Traits</a>
 					</li>	
 					<li class="nav-item">
-						<a id="analysis-overlapping-genotypes-tab" class="nav-link analysis-nav-tab analysis-overlapping-genotypes" data-toggle="tab" href="#analysis-overlapping-genotypes">Filter By Genotypic Data</a>
+						<a id="analysis-overlapping-genotypes-tab" class="nav-link analysis-nav-tab analysis-overlapping-genotypes" data-toggle="tab" href="#analysis-overlapping-genotypes">Filter By Genotypes</a>
 					</li>				
 					<!-- analysis-overlapping-genotypes -->
 					
 					<li class="nav-item">
-						<a class="nav-link analysis-nav-tab analysis-filter-snp-section" data-toggle="tab" href="#analysis-filter-snp">Filter By SNPs</a>
+						<a class="nav-link analysis-nav-tab analysis-filter-snp-section" data-toggle="tab" href="#analysis-filter-snp">Quality Filtering</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link analysis-nav-tab analysis-filter-indv-section" data-toggle="tab" href="#analysis-filter-indv">Filter By Individuals</a>
+						<a class="nav-link analysis-nav-tab analysis-popstruct-section-tab" data-toggle="tab" href="#analysis-popstruct-section">Population Structure</a>
 					</li>
 					<li class="nav-item">
 						<a id='analysis-retrieve-envdata-section-tab' class="nav-link analysis-nav-tab analysis-retrieve-envdata-section" data-toggle="tab" href="#analysis-retrieve-envdata-section">Add environmental data</a>
@@ -281,10 +281,7 @@
 					<li class="nav-item">
 						<a id='analysis-create-analysis-section-tab' class="nav-link analysis-nav-tab analysis-create-analysis-section" data-toggle="tab" href="#analysis-create-analysis-section">Run Analysis</a>
 					</li>					
-					<!--
-					<li class="nav-item">
-						<a class="nav-link analysis-nav-tab analysis-map-state-section" data-toggle="tab" href="#analysis-map-state">Filter By Individuals</a>
-					</li>
+					<!-- 
 					<li class="nav-item">
 						<a class="nav-link analysis-nav-tab analysis-options-section" data-toggle="tab" href="#analysis-options">Additional Options</a>
 					</li>
@@ -310,7 +307,7 @@
 										</select>
 										</div>
 										<div style="display: inline-block; margin-right: 10px;">
-										<button id="btn_update_analysis_name">Update</button>
+										<button class="btn btn-info" id="btn_update_analysis_name">Update</button>
 										</div>
 									</div>
 								</fieldset>
@@ -321,13 +318,14 @@
 								<div>A workspace stores all your uploaded files so you can use (or reuse) them when running workflow analyses. Without a workspace, you can't select data files to be used when running analyses.</div>
 							</div>
 							<div style="margin-bottom: 10px;">
-								<div style="display: flex; margin-bottom: 10px;">
-									<div style="width: 25%;">Select analysis account</div><div style="width: 75%;"><select id="create-analysis-select-galaxy-account"></select></div>
+								<div style="display: flex; margin-bottom: 10px;" id="create-analysis-select-galaxy-account-container">
+									<div style="width: 25%;" id="create-analysis-select-galaxy-account-caption">Select analysis account</div>
+									<div style="width: 75%;"><select id="create-analysis-select-galaxy-account"></select></div>
 								</div>
 								<div style="display: flex; margin-bottom: 10px;">
-									<div style="width: 25%;">Select workspace</div>
+									<div style="width: 25%;" id="create-analysis-select-history-caption">Select workspace</div>
 									<div style="width: 50%;"><select id="create-analysis-select-history"></select></div>
-									<div style="width: 25%;"><button id="create-analysis-new-history-button">Create new workspace</button></div>
+									<div style="width: 25%;"><button class="btn btn-info" id="create-analysis-new-history-button">Create new workspace</button></div>
 								</div>
 								<div id="create-analysis-new-history-configuration" style="display: none; margin-bottom: 10px;">
 									<div style="width: 25%; padding-left: 10px;">Workspace name</div>
@@ -369,18 +367,22 @@
 									-->
 									
 								
-									<div style="margin-bottom: 10px; min-width: 60%; display: inline-block; vertical-align: top;" id="analysis-overlapping-traits-traits-left-container">
-										<div style="margin-bottom: 10px; vertical-align: top;" id="analysis-overlapping-traits-traits-list">
+									<div style="margin-bottom: 10px;  vertical-align: top;" id="analysis-overlapping-traits-traits-left-container">
+										<div style="margin-bottom: 10px; vertical-align: top; display: inline-block; vertical-align: top; width: 65%;" id="analysis-overlapping-traits-traits-list">
 									
 										</div>
-										<div style="margin-bottom: 10px; vertical-align: top;" id="analysis-overlapping-traits-traits-histogram-grid">
+										<div style="max-width: 30%; display: inline-block; vertical-align: top; width: 30%;" id="analysis-overlapping-traits-visual-elements">
+											
+											<div id="analysis-overlapping-traits-pca" style=""></div>								
+										</div>	
+										
+										<div style="margin-bottom: 10px; vertical-align: top; display: inline-block; width: 65%;" id="analysis-overlapping-traits-traits-histogram-grid">
 										<!-- Contains divs of each histogram of traits that overlap -->
-										</div>										
+										</div>	
+										<div id="analysis-overlapping-traits-histogram" style="margin-bottom: 10px; vertical-align: top; display: inline-block; width: 30%;"></div>	
+																			
 									</div>
-									<div style="max-width: 38%; display: inline-block; vertical-align: top;" id="analysis-overlapping-traits-visual-elements">
-										<div id="analysis-overlapping-traits-histogram" style=""></div>	
-										<div id="analysis-overlapping-traits-pca" style=""></div>								
-									</div>									
+								
 
 									<!--
 									<div style="margin-bottom: 10px;">
@@ -399,7 +401,7 @@
 					<div id="analysis-overlapping-genotypes" class="tab-pane fade in inactive">	
 						<div class="analysis-tab-content">
 							<div style="margin-bottom: 10px;">
-								<div><span>Filter By Genotypic Data</span><span style="float: right;" id="analysis_genotypes_overall_status"></span></div>
+								<div><span>Filter By Genotypes</span><span style="float: right;" id="analysis_genotypes_overall_status"></span></div>
 								<table style="width: 100%;">
 									<tr>
 										<td style="width: 60%; vertical-align: top;">
@@ -469,9 +471,23 @@
 						<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
 					</div>
 
-					<div id="analysis-filter-indv" class="tab-pane fade">
+					<div id="analysis-popstruct-section" class="tab-pane fade">
 						<div class="analysis-tab-content">
-							
+							POPULATION STRUCTURE GENERATION - Please check back for more updates as we build this out<br />
+							<select style="margin-bottom: 10px; " id="analysis-popstruct-section-vcf-selectfile">
+								<option>SELECT VCF FILE</option>
+							</select>
+							<table style="margin-bottom: 10px;">
+								<tr>
+									<td>Number of PCs to retain:</td>
+									<td style="padding-left: 10px;"><input type="text" id="analysis-popstruct-section-input-pcs-to-retain" /></td>
+								</tr>
+								<tr>
+									<td>Number of clusters to retain:</td>
+									<td style="padding-left: 10px;"><input type="text" id="analysis-popstruct-section-input-clusters-to-retain" /></td>
+								</tr>								
+							</table>
+							<button class="btn btn-info" id="analysis-popstruct-section-button-generate-dapc">Generate DAPC output file</button>
 							<!--
 							<h3 id="chart-loading" class="hidden">Loading...</h3>
 							<div class="row">
@@ -1464,13 +1480,28 @@
 						<div class="col">
 							<button class="btn btn-success" id="btn-get">Apply filter</button>
 						</div>
-						<div class="col">
+						<div class="col" style="margin-bottom: 15px;">
 							<!--<button class="btn btn-primary" id="btn-get">Get Rules</button>-->
 							<button class="btn btn-danger" id="btn-reset">Reset filter</button>
 						</div>
 					</div>
 				</div>
 			</li>
+
+			<li id="pop-struct-options-container">			
+				<a href="#pop-struct-options" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">
+					<div class="d-flex w-100 sidebar-menu-header justify-content-start align-items-center">
+						<span class="mr-2"><i class="fas fa-filter"></i></span>
+						<span class="menu-collapsed"><b>Population Structures</b></span>
+						<span class="submenu-icon ml-auto"></span>
+					</div>
+				</a>
+				<div class="collapse sidebar-submenu" id="pop-struct-options" aria-expanded="false">
+					<div id="pop-struct-options-toggles" style="background-color: #FFFFFF; color: #000000;">
+						HELLO
+					</div>
+				</div>
+			</li>			
 		
 			<hr />
 
@@ -1577,7 +1608,7 @@
 					<div style="padding: .75rem 0.75rem;" class="card-header" id="headingOne">
 						<table>
 							<tr>
-							<td><i id="tree-details-prev-tree" class="fas fa-arrow-left"></i></td>
+							<td><i style="margin: 10px; cursor: pointer;" id="tree-details-prev-tree" class="fas fa-arrow-left"></i></td>
 							<td>
 							<h4 class="mb-0" id="tree-id">
 							Unknown
@@ -1585,7 +1616,7 @@
 							<h6 id="tree-coordinates">Unknown</h6>
 							<h6 id="tree-elevation">Unknown</h6>
 							</td>
-							<td><i id="tree-details-next-tree" class="fas fa-arrow-right"></i></td>
+							<td><i style="margin: 10px; cursor: pointer;" id="tree-details-next-tree" class="fas fa-arrow-right"></i></td>
 							</tr>
 						</table>
 					</div>
@@ -1660,14 +1691,16 @@
 							<ul class="list-group" id="tree-details-extra">
 							</ul>
 
-							<button class="btn btn-success" id="add-all-trees">Add All Trees</button>
+							
 
 						</div>
 					</div>
 			  		<!--/.Card content-->
 				</div>
 				<!--</div>-->
-				<div class="btn-group-vertical" id="tree-ids-list" style='padding-top: 10px;'>
+				<div class="btn-group-vertical card narrower mb-4 tree-card"  style='padding-top: 10px; overflow-y: scroll; overflow-x: hidden; max-height: 15vh;'>
+					<button style="line-height: 140%; width: 80%; margin-left: auto; margin-right: auto;" class="btn btn-success" id="add-all-trees">Add All Plants</button>
+					<div id="tree-ids-list" style='padding-top: 10px;'></div>
 				</div>
 			</div>
     	</div>
@@ -1741,9 +1774,9 @@
 						<span style='font-size: 14px;' class="badge badge-primary" id="tree-markers"></span>
 					</div>
 					<div style="width: 30%">
-						<h3 id="tree-markers-label" style="padding-bottom: 5px; font-size: 16px;">Markers Count</h3>
+						<h3 id="tree-markers-count-label" style="padding-bottom: 5px; font-size: 16px;">Markers Count</h3>
 						<span style='font-size: 14px;' class="badge badge-primary" id="tree-markers-count"></span>
-						<h3 id="tree-markers-label" style="padding-bottom: 5px; font-size: 16px;">Phenotype Measures</h3>
+						<h3 id="tree-phenotypes-count-label" style="padding-bottom: 5px; font-size: 16px;">Phenotype Measures</h3>
 						<span style='font-size: 14px;' class="badge badge-primary" id="tree-phenotypes-count"></span>
 					</div>					
 				</div>
@@ -1753,11 +1786,11 @@
 					<h3>Plant specific details for <span style="font-weight: bold;" id="tree-specific-info-label"></span></h3>
 					</div>
 					<div id="tree-specific-unique-phenotypes-container" style="display: inline-block; width: 15%">
-						<h3 id="tree-markers-label" style="padding-bottom: 5px; font-size: 16px;">Unique Phenotypes</h3>
+						<h3 id="tree-specific-unique-phenotypes-count-label" style="padding-bottom: 5px; font-size: 16px;">Unique Phenotypes</h3>
 						<span style='font-size: 14px;' class="badge badge-primary" id="tree-specific-unique-phenotypes-count"></span>
 					</div>
 					<div id="tree-specific-unique-genotypes-container" style="display: inline-block; width: 15%">
-						<h3 id="tree-markers-label" style="padding-bottom: 5px; font-size: 16px;">Unique Genotypes</h3>
+						<h3 id="tree-specific-unique-genotypes-count-label" style="padding-bottom: 5px; font-size: 16px;">Unique Genotypes</h3>
 						<span style='font-size: 14px;' class="badge badge-primary" id="tree-specific-unique-genotypes-count">0</span>
 					</div>					
 					<div id="tree-more-info-phenotype-container" style="margin-left: 22px; margin-top: 10px; width: 100%;">

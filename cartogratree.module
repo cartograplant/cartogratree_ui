@@ -264,6 +264,17 @@ function cartogratree_menu() {
     	),        
     );
 
+    $items['cartogratree_uianalysis/upload_file_raw_data_to_history'] = array(
+        'description' => 'Cartogratree ANALYSIS API: upload_file_raw_data_to_history',
+        'title' => 'Cartogratree ANALYSIS API: upload file to history',
+        'page callback' => 'cartogratree_analysisapi_upload_file_raw_data_to_history',
+        'page arguments' => array(),          
+        'file' => 'includes/cartogratree.analysis.api.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );    
+
 
     $items['cartogratree_uianalysis/initiate_job'] = array(
         'description' => 'Cartogratree ANALYSIS API: initiate job',
@@ -278,6 +289,57 @@ function cartogratree_menu() {
 
     //UIAPI / UI API
 
+    $items['cartogratree_uiapi/get_popstruct_icon'] = array(
+        'description' => 'Cartogratree UI API: Pop Struct Icon',
+        'title' => 'Cartogratree UI API: Pop Struct Icon',
+        'page callback' => 'cartogratree_uiapi_get_pop_struct_icon',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );   
+
+    $items['cartogratree_uiapi/list_pop_struct_studies'] = array(
+        'description' => 'Cartogratree UI API: List of all tables/studies with pop structures generated',
+        'title' => 'Cartogratree UI API: List of all tables/studies with pop structures generated',
+        'page callback' => 'cartogratree_uiapi_get_all_pop_struct_studies',
+        'page arguments' => array(
+            1,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );   
+
+    $items['cartogratree_uiapi/create_pop_struct_layer/%'] = array(
+        'description' => 'Cartogratree UI API: Create Population Structure table',
+        'title' => 'Cartogratree UI API: Create Population Structure table',
+        'page callback' => 'cartogratree_uiapi_create_pop_struct_table',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );   
+
+    $items['cartogratree_uiapi/pop_struct_layer_json/%'] = array(
+        'description' => 'Cartogratree UI API: Population Structure Layer GeoJSON Formatted',
+        'title' => 'Cartogratree UI API: Population Structure Layer GeoJSON Formatted',
+        'page callback' => 'cartogratree_uiapi_get_pop_struct_layer_json',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );   
 
     $items['cartogratree_uiapi/vcf_files/%'] = array(
         'description' => 'Cartogratree UI API: VCF Files',
@@ -413,6 +475,19 @@ function cartogratree_menu() {
 			'use cartogratree',
     	),        
     );
+
+    $items['cartogratree_uiapi/get_layer_fields_adjustments/%'] = array(
+        'description' => 'Cartogratree UI API: get layer embedded fields adjustments.',
+        'title' => 'Cartogratree UI API: get layer embedded fields adjustments.',
+        'page callback' => 'cartogratree_uiapi_get_layer_fields_adjustments',
+        'page arguments' => array(
+            2,
+        ),          
+        'file' => 'includes/cartogratree.uiapi.inc',      
+		'access arguments' => array(
+			'use cartogratree',
+    	),        
+    );        
 
     $items['cartogratree_uiapi/get_layer_embedded_fields_hide/%'] = array(
         'description' => 'Cartogratree UI API: get layer embedded fields to hide.',
@@ -1009,11 +1084,14 @@ function cartogratree_add_external_files($bootstrap_latest = TRUE, $jquery_lates
         // Version 2
         // drupal_add_js('https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js', 'external');
         // drupal_add_css('https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css', 'external'); 
-        drupal_add_js('https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.js', 'external');
-        drupal_add_css('https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.css', 'external'); 
-        drupal_add_js('https://unpkg.com/@turf/turf@6/turf.min.js', 'external');
-        drupal_add_js('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.2.2/mapbox-gl-draw.js', 'external');
-        drupal_add_css('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.2.2/mapbox-gl-draw.css', 'external');                    
+        drupal_add_js('https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.js', 'external');
+        drupal_add_css('https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css', 'external'); 
+        // drupal_add_js('https://unpkg.com/@turf/turf@6/turf.min.js', 'external');
+        drupal_add_js('https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js', 'external');
+        // drupal_add_js('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.2.2/mapbox-gl-draw.js', 'external');
+        // drupal_add_css('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.2.2/mapbox-gl-draw.css', 'external'); 
+        drupal_add_js('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.3.0/mapbox-gl-draw.js', 'external');
+        drupal_add_css('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.3.0/mapbox-gl-draw.css', 'external');                             
     }
     if($d3s) {
         drupal_add_js('https://d3js.org/d3.v5.min.js', 'external');

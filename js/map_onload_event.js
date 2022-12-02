@@ -57,6 +57,11 @@ var ct_ready_map_onload_events = function() {
 			cartograplant.loadImageWrapper(Drupal.settings.tree_img["treesnap"]["angiosperm"], "treesnap_angio");	
 			cartograplant.loadImageWrapper(Drupal.settings.tree_img["wfid"]["angiosperm"], "wfid_ex");
 
+			//load popstruct images
+			for(var i=0; i<7; i++) {
+				cartograplant.loadImageWrapper(Drupal.settings.base_url + '/cartogratree_uiapi/get_popstruct_icon/' + i, "popstruct_" + i);
+			}
+
 			//intialize reusable mapbox popups
 			var popupInfo = new mapboxgl.Popup();
 			var popupHover = new mapboxgl.Popup({closeButton: false});

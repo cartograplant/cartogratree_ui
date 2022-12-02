@@ -314,7 +314,7 @@ var ct_ready_map_jobs = function() {
 					overall_status += '<span style="padding: 5px; border-radius: 2px; background-color: #4d4d4d; color: #FFFFFF;">Paused, error</span>';
 				}
 				else if(completed) {
-					overall_status += '<span style="padding: 5px; border-radius: 2px; background-color: #00d100;">Completed</span>';
+					overall_status += '<span style="padding: 5px; border-radius: 2px; background-color: #00d100; color: #FFFFFF;">Completed</span>';
 				}                    
 				else {
 					overall_status += '<img style="height: 16px;" src="' + cartograplant.loading_icon_src + '" /> <span style="padding: 5px; border-radius: 2px; background-color: #ffbe0a;">Awaiting</span>';
@@ -330,7 +330,7 @@ var ct_ready_map_jobs = function() {
 				for(var od_count=0; od_count < data_io.output_details.length; od_count++) {
 					var output_details = data_io.output_details[od_count];
 					if(output_details.state == "ok") {
-						$('#jobs-details-output-details').append('<div style="margin-bottom: 5px;"><span style="padding: 5px; border-radius: 2px; background-color: #00d100;">Completed</span>' + ' <a href="' + output_details.download_url + '">' + output_details.name + '</a></div>');
+						$('#jobs-details-output-details').append('<div style="margin-bottom: 5px;"><span style="padding: 5px; border-radius: 2px; background-color: #00d100; color: #FFFFFF;">Completed</span>' + ' <a href="' + output_details.download_url + '">' + output_details.name + '</a></div>');
 					}
 					else if (output_details.state == "paused") {
 						$('#jobs-details-output-details').append('<div style="margin-bottom: 5px;"><span style="padding: 5px; border-radius: 2px; background-color: #4d4d4d; color: #FFFFFF;">Paused, error</span>' + ' <a href="' + output_details.download_url + '">' + output_details.name + '</a></div>');
@@ -404,7 +404,7 @@ var ct_ready_map_jobs = function() {
 					overall_status += '<span style="padding: 5px; border-radius: 2px; background-color: #4d4d4d; color: #FFFFFF;">Paused, error</span>';
 				}
 				else if(completed) {
-					overall_status += '<span style="padding: 5px; border-radius: 2px; background-color: #00d100;">Completed</span>';
+					overall_status += '<span style="padding: 5px; border-radius: 2px; background-color: #00d100; color: #FFFFFF;">Completed</span>';
 				}                    
 				else {
 					overall_status += '<img style="height: 16px;" src="' + cartograplant.loading_icon_src + '" /> <span style="padding: 5px; border-radius: 2px; background-color: #ffbe0a;">Awaiting</span>';
@@ -423,7 +423,7 @@ var ct_ready_map_jobs = function() {
 					var output_details = data_io.output_details[od_count];
 					if(output_details.state == "ok" || output_details.state == "paused" || output_details.state == "error") {
 						if(output_details.state == "ok") {
-							$('#jobs-details-output-details').append('<div style="margin-bottom: 5px;"><span style="padding: 5px; border-radius: 2px; background-color: #00d100;">Completed</span>' + ' <a href="' + output_details.download_url + '">' + output_details.name + '</a></div>');
+							$('#jobs-details-output-details').append('<div style="margin-bottom: 5px;"><span style="padding: 5px; border-radius: 2px; background-color: #00d100; color: #FFFFFF;">Completed</span>' + ' <a href="' + output_details.download_url + '">' + output_details.name + '</a></div>');
 						}
 						else if (output_details.state == "paused") {
 							$('#jobs-details-output-details').append('<div style="margin-bottom: 5px;"><span style="padding: 5px; border-radius: 2px; background-color: #4d4d4d; color: #FFFFFF;">Paused, error</span>' + ' <a href="' + output_details.download_url + '">' + output_details.name + '</a></div>');

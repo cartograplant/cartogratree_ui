@@ -1,25 +1,136 @@
 <?php
 
+/**
+ * This function will dynamically create a color icon for popstruct
+ * based on the population id (the population column)
+ * @return image/png
+ */
+function cartogratree_uiapi_get_pop_struct_icon($population_group_id) {
+    $population_group_id = intval($population_group_id);
+    $color_palette = [
+        '249,135,8', // orange
+        '243,255,0', // yellow
+        '55,178,175', // teal
+        '255,16,16', // red
+        '9,159,219', // blue
+        '151, 130, 216', // purple
+        '247, 112, 215', // pink
+    ];
+    $color_palette_count = count($color_palette);
+    $color_selected_string = $color_palette[$population_group_id % $color_palette_count];
+
+    // RGB array 0 is R, 1 is G, 2 is B
+    $color_selected_parts = explode(',', $color_selected_string);
+
+    $images_path = __DIR__ . '/../theme/templates/trees_imgs';
+    // echo $images_path;
+    $imgname = $images_path . "/popstruct_exact.png";
+    // echo file_get_contents($imgname);
+    $im = imagecreatefrompng($imgname);
+
+    imagefilter($im, IMG_FILTER_NEGATE); 
+    imagefilter($im, IMG_FILTER_COLORIZE, $color_selected_parts[0], $color_selected_parts[1], $color_selected_parts[2]); 
+    // imagefilter($im, IMG_FILTER_NEGATE); 
+    
+    imagealphablending( $im, false );
+    imagesavealpha( $im, true );
+
+    header('Content-type: image/png');
+    imagepng($im);
+    imagedestroy($im);
+    // $imgname = "result.gif";
+    // imagegif($im, $imgname ); // save image as gif
+    // imagedestroy($im);
+}
+
+/**
+ * This function will get all table names of pop structures within the db
+ * @return JSON 
+ */
+function cartogratree_uiapi_get_all_pop_struct_studies() {
+    // SELECT COUNT(table_name) FROM  information_schema.tables WHERE 
+    // table_schema LIKE 'public' AND table_type LIKE 'BASE TABLE' AND
+    // table_name = 'actor';
+    $return_results = [];
+    $sql = "SELECT DISTINCT(study_accession) FROM public.cartogratree_popstruct_layer";
+    $results = db_query($sql, []);
+    foreach ($results as $row) {
+        // Check to make sure the table for TGDR000 does not get listed
+        if(strpos($row->table_name, 'tgdr000') == FALSE) {
+            $return_results[] = $row->table_name;
+        }
+    }
+    drupal_json_output($return_results);
+}
+
+
+
+/**
+ * This function will convert a pop struct table into geojson format
+ * @param mixed $tgdr_number_only 
+ * @return JSON 
+ */
+function cartogratree_uiapi_get_pop_struct_layer_json($tgdr_number_only) {
+    // For security reasons, we just want the integer value of the TGDR number
+    $return_results = [];
+    if(is_numeric($tgdr_number_only)) {      
+        $results_data = NULL;
+        try {
+            $results_data = db_query('SELECT * FROM cartogratree_popstruct_layer WHERE study_accession = :study_accession', 
+            [':study_accession' => 'TGDR' . $tgdr_number_only]);
+        }
+        catch (Exception $ex) {
+            print_r($ex);
+        }
+        foreach($results_data as $row) {
+            $return_results[] = [
+                'geometry' => [
+                    'coordinates' => [
+                        $row->latitude,
+                        $row->longitude
+                    ],
+                    'type' => 'Point'
+                ],
+                'properties' => [
+                    'id' => $row->uniquename,
+                    'icon_type' => 0,
+                    'is_tree' => true
+                ],
+                'type' => 'Feature'
+            ];
+        }
+    }
+    drupal_json_output($return_results);
+}
+
 function cartogratree_uiapi_get_vcf_studies($tgdr_numbers_csv) {
     $tgdr_numbers = explode(',',$tgdr_numbers_csv);
     $tgdr_count = count($tgdr_numbers);
+    $return_results = array();
     foreach($tgdr_numbers as $tgdr_number) {
+        // Find per study submission values
         $results_data = chado_query('SELECT * FROM tpps_submission WHERE accession ILIKE :accession LIMIT 1',
             array(
                 ':accession' => $tgdr_number
             )
         );
         $data = null;
-        $return_results = array();
         foreach($results_data as $results_row) {
             $data_all = unserialize($results_row->submission_state);
-            // drupal_json_output($data_all);
+            // Debug code for finding the VCF file information
+            // print_r(array_keys($data_all));
+            // print_r($data_all['saved_values'][4]);
+            // print_r($data_all['saved_values']);
             $data = $data_all['saved_values'];
         }
         if($data != null) {
-            // dpm($data);   
+            // This IF statement actually does not work the way one would expect
+            // An empty vcf field will hold 0 in it, so in theory it always 
+            // should pass this IF condition. But as a good side effect, we want
+            // the null record for the UI to show a VCF file was not found.
             if(isset($data[4]['organism-1']['genotype']['files']['vcf'])) {
                 $file = file_load($data[4]['organism-1']['genotype']['files']['vcf']);
+                // print_r($file);
                 $uri = $file->uri;
                 $return_results[$tgdr_number] = $uri;
             }
@@ -388,6 +499,67 @@ function cartogratree_uiapi_get_layer_information($layer_id) {
     drupal_json_output($output);
 }
 
+
+function cartogratree_uiapi_get_layer_fields_adjustments($layer_id) {
+    $layer_id = explode('_', $layer_id)[0];
+    $results = chado_query('SELECT * FROM public.cartogratree_layers WHERE layer_id = :layer_id LIMIT 1', array(
+        ':layer_id' => $layer_id
+    ));
+
+    $output = array();
+
+    $results_count = 0;
+    foreach($results as $row) {
+        $output['layer_id'] = $row->layer_id;
+        $output['name'] = $row->name;
+        $output['title'] = $row->title;
+        $output['layer_embedded_fields_hide'] = explode("\r\n",$row->layer_embedded_fields_hide);
+        $output['layer_embedded_fields_rename'] = explode("\r\n",$row->layer_embedded_fields_rename);
+        $output['layer_embedded_data_eval'] = explode("\r\n",$row->layer_embedded_data_eval);
+
+        //Trim results
+        $fields_count = count($output['layer_embedded_fields_hide']);
+        for ($i=0; $i<$fields_count; $i++) {
+            $output['layer_embedded_fields_hide'][$i] = trim($output['layer_embedded_fields_hide'][$i]);
+        }
+
+
+        //Clean empty values in the layer_embedded_fields_hide
+        $to_remove = array("");
+        $output['layer_embedded_fields_hide'] = array_diff($output['layer_embedded_fields_hide'], $to_remove);
+
+
+        //Trim results
+        $fields_count = count($output['layer_embedded_fields_rename']);
+        for ($i=0; $i<$fields_count; $i++) {
+            $output['layer_embedded_fields_rename'][$i] = trim($output['layer_embedded_fields_rename'][$i]);
+        }
+
+        //Clean empty values in the layer_embedded_fields_hide
+        $to_remove = array("");
+        $output['layer_embedded_fields_rename'] = array_diff($output['layer_embedded_fields_rename'], $to_remove);
+
+        //Trim results
+        $fields_count = count($output['layer_embedded_data_eval']);
+        for ($i=0; $i<$fields_count; $i++) {
+            $output['layer_embedded_data_eval'][$i] = trim($output['layer_embedded_data_eval'][$i]);
+        }
+
+        //Clean empty values in the layer_embedded_fields_hide
+        $to_remove = array("");
+        $output['layer_embedded_data_eval'] = array_diff($output['layer_embedded_data_eval'], $to_remove);
+
+        $results_count = $results_count + 1;
+    }
+
+    if($results_count == 0) {
+        $output['error'] = 'No layer was found with the specified layer_id';
+    }
+
+    //$output['layer_legend_html']
+    drupal_json_output($output);    
+}
+
 function cartogratree_uiapi_get_layer_embedded_fields_hide($layer_id) {
     $layer_id = explode('_', $layer_id)[0];
     $results = chado_query('SELECT * FROM public.cartogratree_layers WHERE layer_id = :layer_id LIMIT 1', array(
@@ -405,9 +577,16 @@ function cartogratree_uiapi_get_layer_embedded_fields_hide($layer_id) {
         $output['title'] = $row->title;
         $output['layer_embedded_fields_hide'] = explode("\r\n",$row->layer_embedded_fields_hide);
 
+
         //Clean empty values in the layer_embedded_fields_hide
         $to_remove = array("");
         $output['layer_embedded_fields_hide'] = array_diff($output['layer_embedded_fields_hide'], $to_remove);
+
+        //Trim results
+        $fields_count = count($output['layer_embedded_fields_hide']);
+        for ($i=0; $i<$fields_count; $i++) {
+            $output['layer_embedded_fields_hide'][$i] = trim($output['layer_embedded_fields_hide'][$i]);
+        }
 
         $results_count = $results_count + 1;
     }

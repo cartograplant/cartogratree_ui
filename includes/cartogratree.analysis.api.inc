@@ -524,6 +524,48 @@ function cartogratree_analysisapi_upload_file_to_history() {
     
 }
 
+function cartogratree_analysisapi_upload_file_raw_data_to_history() {
+    require_once (libraries_get_path('blend4php') . '/galaxy.inc');
+    
+    global $user;
+
+    // GET FILE CONTENTS
+    $file_data = $_POST['raw_data'];
+    $file_name = $_POST['file_name'];
+    
+
+    //@drupal_mkdir();
+    $upload_dir = DRUPAL_ROOT . '/sites/default/files/cartogratree_analysis_history_uploads/';
+    @file_prepare_directory($upload_dir, FILE_CREATE_DIRECTORY);
+    
+
+    $file = @file_save_data($file_data, 'public://cartogratree_analysis_history_uploads/' . $user->uid . '-' . time() . '-' . $file_name);
+
+
+    $galaxy_id = $_POST['galaxy_id'];
+    $workflow_id = $_POST['workflow_id'];
+    $history_id = $_POST['history_id'];
+
+    $galaxy = tripal_galaxy_get_connection($galaxy_id);
+    $galaxy_history_contents = new GalaxyHistoryContents($galaxy);
+    $history_contents = $galaxy_history_contents->index(['history_id' => $history_id]);
+    
+    // if ($error['message']) {
+    //     $error = $b4p_galaxy->getError();
+    //     throw new Exception($error['message']);
+    // }
+    
+    // Now upload the file.
+    ob_start();
+    @tripal_galaxy_upload_file($galaxy, $file->fid, $history_id, $history_contents);    
+    ob_end_clean();
+    $result = array(
+        'result' => 'uploaded'
+    );
+    drupal_json_output($result);
+    
+}
+
 function cartogratree_analysisapi_initiate_job() {
     require_once (libraries_get_path('blend4php') . '/galaxy.inc');
 
@@ -784,10 +826,19 @@ function cartogratree_analysisapi_get_history_details($galaxy_id, $history_id) {
     $datasets = [];//new array
 
     foreach($history_content as $history_content_item) {
+        // print_r($history_content_item);
         if($history_content_item['deleted'] == false) {
             $galaxy_datasets = new GalaxyDatasets($galaxy);
             // $galaxy_dataset = $galaxy_datasets->show(['dataset_id' => $galaxy_content_item['dataset_id']]);
             $galaxy_dataset = $galaxy_datasets->show(['dataset_id' => $history_content_item['id']]);
+            
+            $content_params['history_id'] = $history_id;
+            $content_params['id'] = $galaxy_dataset['id'];
+            $content = $history_contents->show($content_params);
+            // $output_array['name'] = $content['name'];
+            // $output_array['file_ext'] = $content['file_ext'];
+            // $output_array['file_size'] = $content['file_size'];
+            // $output_array['state'] = $content['state'];
             /*
             $debug[] = $galaxy_dataset;
             $key = array(
@@ -799,11 +850,12 @@ function cartogratree_analysisapi_get_history_details($galaxy_id, $history_id) {
             $new_item = array(
                 'dataset_name' => $history_content_item['name'],
                 'dataset_id' => $galaxy_dataset['id'],
+                'dataset_url' => $output_array['download_url'] =  $galaxy->getURL() . '/api/histories/' . $history_id . '/contents/' . $galaxy_dataset['id'] . '/display?to_ext=' . $content['file_ext'] . '&key=' . $galaxy->getAPIKey(),
+                'dataset_size' => $content['file_size']
             );
             $datasets[] = $new_item;
         }        
     }
-
     // drupal_json_output($history_content);
     drupal_json_output($datasets);
 }
@@ -896,6 +948,9 @@ function cartogratree_analysisapi_get_invocation_outputs($galaxy_id, $history_id
         $content_params['id'] = $file_id;
         $content = $galaxy_history_contents->show($content_params);
         $output_array = array();
+        $output_array['history_id'] = $history_id;
+        $output_array['file_id'] = $file_id;
+        $output_array['api_key'] = $galaxy->getAPIKey();
         $output_array['name'] = $content['name'];
         $output_array['file_ext'] = $content['file_ext'];
         $output_array['file_size'] = $content['file_size'];
