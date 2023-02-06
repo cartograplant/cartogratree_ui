@@ -237,10 +237,10 @@
         <div class="modal-content">
             <div class="modal-header">
 				<div style="display: inline-block;">
-					<h3 class="modal-title" id="cartogratreeTitle">
-						<img id="ct-logo" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/cp_logo.png">
-						Analysis
-					</h3>
+					<!-- <h3 style="padding: 0px;" class="modal-title" id="cartogratreeTitle">
+
+					</h3> -->
+					<img style="width: 175px;" id="ct-logo" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/cp_logo.png">
 				</div>
 				<div style="display: inline-block; width: 20%;">
 					&nbsp;
@@ -270,7 +270,7 @@
 					<!-- analysis-overlapping-genotypes -->
 					
 					<li class="nav-item">
-						<a class="nav-link analysis-nav-tab analysis-filter-snp-section" data-toggle="tab" href="#analysis-filter-snp">Quality Filtering</a>
+						<a class="nav-link analysis-nav-tab analysis-filter-snp-section" data-toggle="tab" href="#analysis-filter-snp">Filtering & Imputation</a>
 					</li>
 					<li class="nav-item">
 						<a class="nav-link analysis-nav-tab analysis-popstruct-section-tab" data-toggle="tab" href="#analysis-popstruct-section">Population Structure</a>
@@ -333,6 +333,9 @@
 										<input type="text" id="create-analysis-new-history-name" />
 										<button id="create-analysis-new-history-name-button">Create</button>
 									</div>
+								</div>
+								<div>
+									<div style="display: inline-block;"><h2>Manage workspace files</h2></div><div id="manage-workspace-files-loader" style="margin-left:5px; display: inline-block;"></div>
 								</div>
 								<div id="manage-history-contents">
 								</div>							
@@ -473,21 +476,17 @@
 
 					<div id="analysis-popstruct-section" class="tab-pane fade">
 						<div class="analysis-tab-content">
-							POPULATION STRUCTURE GENERATION - Please check back for more updates as we build this out<br />
-							<select style="margin-bottom: 10px; " id="analysis-popstruct-section-vcf-selectfile">
-								<option>SELECT VCF FILE</option>
-							</select>
-							<table style="margin-bottom: 10px;">
-								<tr>
-									<td>Number of PCs to retain:</td>
-									<td style="padding-left: 10px;"><input type="text" id="analysis-popstruct-section-input-pcs-to-retain" /></td>
-								</tr>
-								<tr>
-									<td>Number of clusters to retain:</td>
-									<td style="padding-left: 10px;"><input type="text" id="analysis-popstruct-section-input-clusters-to-retain" /></td>
-								</tr>								
-							</table>
-							<button class="btn btn-info" id="analysis-popstruct-section-button-generate-dapc">Generate DAPC output file</button>
+							<div style="text-align: center;">
+								Number of populations<br />
+								<input id="analysis-popstruct-section-k-value" type="text" value="2" style="text-align: center" /><br />
+								Select VCF file<br />
+								<select style="margin-bottom: 10px; " id="analysis-popstruct-section-vcf-selectfile">
+									<option>SELECT VCF FILE</option>
+								</select><br />
+								<button class="btn btn-info" id="analysis-popstruct-section-button-generate-fast-structure">Generate Fast Structure</button>
+							</div>
+							<div id="analysis-popstruct-status" style="text-align: center"></div>
+							<div id="analysis-popstruct-dapc-step1-plot-container"></div>
 							<!--
 							<h3 id="chart-loading" class="hidden">Loading...</h3>
 							<div class="row">
@@ -519,15 +518,25 @@
 						<div class="analysis-tab-content">
 							<div class="row">
 								<div class="col">
-									<div class="form-row align-items-center" style="height: 100%;">
-										<div class="col-7 my-1">
+									<!-- class: align-items-center -->
+									<div class="form-row" style="height: 100%;">
+										<div class="col-md-8 my-1">
 											<label class="mr-sm-2">Choose environmental layers</label>
 											<div id="analysis-retrieve-envdata-section-layers-list"></div>
 										</div>
-										<div class="col my-1" style="vertical-align: top; height: 100%;">
+										<div class="col-md-4 my-1" style="vertical-align: top; height: 100%;">
 											  <!-- <button id="analysis-retrieve-envdata-section-button" class="btn btn-primary">Submit</button> -->
-											  <div style="text-align: center;"><button id="analysis-generateoutput-envdata-section-button" class="btn btn-primary">Generate data</button><div id="analysis-generateoutput-elapsed-time" style="display: inline-block;"></div></div>
-											  <div style="text-align: center;"><button id="analysis-generateoutput-envdata-section-from-db-button" class="btn btn-primary">Generate data from db</button></div>
+											  <?php
+												global $user;
+												if (in_array('administrator', $user->roles)) {
+													// do fancy stuff
+											  ?>
+											  <div style="border: 1px solid #c3b113; background-color: #fff2be; padding: 10px; text-align: center; margin-bottom: 10px;">
+											  <i class="fa-solid fa-circle-info"></i> By adjusting your selected environmental layers, the PCA scatterplot will (re)generate after you click Gather and upload to workspace button. 
+											  </div>
+											  <div style="text-align: center;"><button id="analysis-generateoutput-envdata-section-button" class="btn btn-primary">Precache values</button><div id="analysis-generateoutput-elapsed-time" style="display: inline-block;"></div></div><br />
+											  <?php } ?>
+											  <div style="text-align: center;"><button id="analysis-generateoutput-envdata-section-from-db-button" class="btn btn-primary">Gather and upload to workspace</button></div>
 											  <div style="text-align: center;" id="analysis-generateoutput-envdata-section-from-db-status"></div>
 											  <div id="analysis-envdata-section-progressbar" style="margin-top: 10px; height: 20px;"></div>
 											  <div id="analysis-envdata-section-progressbar-description" style='text-align: center; font-size: 12px;'></div>
@@ -1498,7 +1507,6 @@
 				</a>
 				<div class="collapse sidebar-submenu" id="pop-struct-options" aria-expanded="false">
 					<div id="pop-struct-options-toggles" style="background-color: #FFFFFF; color: #000000;">
-						HELLO
 					</div>
 				</div>
 			</li>			

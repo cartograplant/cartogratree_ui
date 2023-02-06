@@ -8,13 +8,17 @@
 function cartogratree_uiapi_get_pop_struct_icon($population_group_id) {
     $population_group_id = intval($population_group_id);
     $color_palette = [
-        '249,135,8', // orange
         '243,255,0', // yellow
-        '55,178,175', // teal
+        '249,135,8', // orange
         '255,16,16', // red
-        '9,159,219', // blue
         '151, 130, 216', // purple
+        '3, 156, 41', // green
+        '46, 46, 46', // dark grey
+        '89, 89, 89', // lighter grey
         '247, 112, 215', // pink
+        '10, 10, 10', // black
+        '55,178,175', // teal
+        '9,159,219', // blue
     ];
     $color_palette_count = count($color_palette);
     $color_selected_string = $color_palette[$population_group_id % $color_palette_count];

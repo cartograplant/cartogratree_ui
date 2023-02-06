@@ -824,7 +824,8 @@ function cartogratree_preprocess_page(&$variables) {
 		
 		$rids = is_array($user->roles) ? array_keys($user->roles) : array();
       
-		$api_key = 'ct-72933e3b31f0070af6478edc3becf96e-e01154ac1b1e3d0c1564b25828cf00cf'; 	
+		// $api_key = 'ct-72933e3b31f0070af6478edc3becf96e-e01154ac1b1e3d0c1564b25828cf00cf'; 
+        $api_key = 'ct-5feceb66ffc86f38d952786c6d696c79-b0da57c4736a61f2d8ae0c83c15eed07';	
 	
         parse_str($_SERVER['QUERY_STRING'], $query_string);
         if (isset($query_string['session_id'])) {
@@ -897,6 +898,7 @@ function cartogratree_preprocess_page(&$variables) {
         $fields_data = cartogratree_get_tree_options($api_key);
         //store queried and processed values to Drupal.settings to be accessed by the front-end
 		$tgdr = cartogratree_get_publications_info();
+        $popstruct_studies = cartogratree_get_popstruct_studies_list();
         //$variables['total_publications'] = count($tgdr);	
 
 
@@ -906,7 +908,7 @@ function cartogratree_preprocess_page(&$variables) {
         if (($key = array_search('indel', $fields_data['marker_type'])) !== false) {
             unset($fields_data['marker_type'][$key]);
         }
-        if (($key = array_search('genetic marker', $fields_data['marker_type'])) !== false) {
+        if (($key = array_search('genetic_marker', $fields_data['marker_type'])) !== false) {
             unset($fields_data['marker_type'][$key]);
         }
         if (($key = array_search('microsatellite', $fields_data['marker_type'])) !== false) {
@@ -917,13 +919,13 @@ function cartogratree_preprocess_page(&$variables) {
 		$fields_data = cartogratree_get_phenotype_options($fields_data);
         try {
             // dpm($fields_data);
-            unset($fields_data['organism_data']['family'][0]);
-            
-            
+            unset($fields_data['organism_data']['family'][0]);   
         }
         catch(Exception $ex) {
 
         }
+
+        
 
         $user_info = array('logged_in' => user_is_logged_in());
         if(user_is_logged_in()){
@@ -986,6 +988,7 @@ function cartogratree_preprocess_page(&$variables) {
 			//'layers_groups' => $groups,
             'fields' => cartogratree_get_fields($layer_ids),
             'options_tgdr' => $tgdr,
+            'popstruct_studies' => $popstruct_studies,
             'session' => $session,
             'user' => $user_info,
 			
@@ -1036,6 +1039,7 @@ function cartogratree_preprocess_page(&$variables) {
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_onload_event.js');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_click_events.js');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_analysis.js');
+        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_realtime.js');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_jobs.js');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/select2c.min.js'); 
         drupal_add_css(drupal_get_path('module', 'cartogratree') . '/styling/select2.min.css'); 
@@ -1062,7 +1066,8 @@ function cartogratree_add_external_files($bootstrap_latest = TRUE, $jquery_lates
     //toastr notifications
     drupal_add_js('//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js', 'external');
     drupal_add_css('//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css', 'external');   
-    drupal_add_css('https://use.fontawesome.com/releases/v5.5.0/css/all.css', 'external');
+    // drupal_add_css('https://use.fontawesome.com/releases/v5.5.0/css/all.css', 'external');
+    drupal_add_css('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css','external');
     if($jquery_latest){
  		drupal_add_js('https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js', 'external');       
         drupal_add_js('https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js', 'external');
@@ -1108,6 +1113,8 @@ function cartogratree_add_external_files($bootstrap_latest = TRUE, $jquery_lates
 	drupal_add_css('https://cdnjs.cloudflare.com/ajax/libs/jQuery-QueryBuilder/2.6.2/css/query-builder.default.min.css', 'external');
     drupal_add_js('https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.5/js/standalone/selectize.js', 'external');
     drupal_add_css('https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.5/css/selectize.css', 'external');
+
+    drupal_add_js('https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js', 'external');
 
     drupal_add_js('https://cdnjs.cloudflare.com/ajax/libs/jquery-zoom/1.7.21/jquery.zoom.min.js', 'external');
 
@@ -1302,6 +1309,16 @@ function cartogratree_session_redirect($session_id){
     $qry_separator = $_SERVER['QUERY_STRING'] == '' ? '?' : '&';
     $location = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . $qry_separator. 'session_id=' . $session_id;
     header('Location: ' . $location);
+}
+
+function cartogratree_get_popstruct_studies_list() {
+    $sql = 'SELECT distinct(accession) as accession FROM public.ct_trees_all_view WHERE population IS NOT NULL;';
+    $results = chado_query($sql, array());
+    $popstruct_studies = [];
+    foreach ($results as $row) {
+        $popstruct_studies[] = $row->accession;
+    }
+    return $popstruct_studies;
 }
 
 function cartogratree_get_publications_info() {

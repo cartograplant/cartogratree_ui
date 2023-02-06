@@ -2714,10 +2714,15 @@ var ct_ready_mapjs = function() {
 	 * @return no return value
 	*/
 	function removeDynamicDatasetLayer(suffix) {
-		map.removeLayer('dynamic-cluster-' + suffix + "-count");
-		map.removeLayer('dynamic-cluster-' + suffix);
-		map.removeLayer('dynamic-layer-' + suffix);		
-		map.removeSource('dynamic-source-' + suffix);
+		try {
+			map.removeLayer('dynamic-cluster-' + suffix + "-count");
+			map.removeLayer('dynamic-cluster-' + suffix);
+			map.removeLayer('dynamic-layer-' + suffix);		
+			map.removeSource('dynamic-source-' + suffix);
+		}
+		catch (err) {
+			console.log('removeDynamicDatasetLayer error', err);
+		}
 	}
 
 	/**
@@ -3401,6 +3406,23 @@ var ct_ready_mapjs = function() {
 							console.log(err);
 						}
 					}
+
+					
+					$('#tree-markers-count-label').hide();
+					$('#tree-markers-count').hide();
+					try {
+						if(data[0].marker_count.length > 0) {
+							$('#tree-markers-count-label').show();
+							$('#tree-markers-count').show();	
+							$("#tree-markers-count").text(data[0].marker_count);
+						}
+					}
+					catch(err) {
+						if(debug) {
+							console.log(err);
+						}
+					}
+	
 					
 					// try {
 					// 	if(data[0].study_type.length > 0) {
@@ -3998,25 +4020,27 @@ var ct_ready_mapjs = function() {
 
 
 		//perform genotypes count lookup
-		$('#tree-markers-count-label').hide();
-		$('#tree-markers-count').hide();
-		$.ajax({
-			url: Drupal.settings.ct_nodejs_api + "/v2/genotypes/count/all?api_key=" + Drupal.settings.ct_api + "&tree_id=" + genotype_treeId,
-			dataType: "json",
-			success: function (data) {
-				console.log('Genotypes/Markers for ' + genotype_treeId + ' count:');
-				console.log(data);
-				if(data.length > 0) {
-					for (var i = 0; i < data.length; i++) {
-						$('#tree-markers-count').html(data[i].c1);
-						if(data[i].c1 > 0) {
-							$('#tree-markers-count-label').show();
-							$('#tree-markers-count').show();
-						}
-					}
-				}
-			}
-		});		
+		//IGNORE THIS SINCE WE CAN GET THE COUNTS VIA THE /v2/publications API we likely also
+		//call in the process of rendering the tree details popup
+		// $('#tree-markers-count-label').hide();
+		// $('#tree-markers-count').hide();
+		// $.ajax({
+		// 	url: Drupal.settings.ct_nodejs_api + "/v2/genotypes/count/all?api_key=" + Drupal.settings.ct_api + "&tree_id=" + genotype_treeId,
+		// 	dataType: "json",
+		// 	success: function (data) {
+		// 		console.log('Genotypes/Markers for ' + genotype_treeId + ' count:');
+		// 		console.log(data);
+		// 		if(data.length > 0) {
+		// 			for (var i = 0; i < data.length; i++) {
+		// 				$('#tree-markers-count').html(data[i].c1);
+		// 				if(data[i].c1 > 0) {
+		// 					$('#tree-markers-count-label').show();
+		// 					$('#tree-markers-count').show();
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// });		
 
 		//perform genotypes lookup
 		$('#tree-specific-unique-genotypes-container').hide();
@@ -4797,7 +4821,7 @@ var ct_ready_mapjs = function() {
 												}
 												var url_uiapi_get_layer_embedded_data_eval = Drupal.settings.base_url + '/cartogratree_uiapi/get_layer_embedded_data_eval/' + envLayer.layer_id;
 												console.log(url_uiapi_get_layer_embedded_data_eval);
-												perform_layer_embedded_data_eval(url_uiapi_get_layer_embedded_data_eval, k, feature, replace_keys, envLayer, bbox);
+												perform_layer_embedded_data_eval(url_uiapi_get_layer_embedded_data_eval, k, feature, replace_keys, replace_keys_new, envLayer, bbox);
 											}
 										}
 										//var units = getClimUnits(k);
@@ -4934,7 +4958,7 @@ var ct_ready_mapjs = function() {
 
 	}
 
-	function perform_layer_embedded_data_eval(url_uiapi_get_layer_embedded_data_eval, k, feature, replace_keys, envLayer, bbox) {
+	function perform_layer_embedded_data_eval(url_uiapi_get_layer_embedded_data_eval, k, feature, replace_keys, replace_keys_new, envLayer, bbox) {
 		var xhr = $.ajax({
 			url: url_uiapi_get_layer_embedded_data_eval,
 			dataType: "json",
@@ -4979,6 +5003,7 @@ var ct_ready_mapjs = function() {
 				}
 				else {
 					//Check to see if any of the keys need to be renamed
+					console.log('replace_keys', replace_keys);
 					if(replace_keys.includes(k)) {
 						for(var replace_keys_iterator=0; replace_keys_iterator < replace_keys.length; replace_keys_iterator++) {
 							console.log('Replace_keys found k:' + k + ' with ' + replace_keys_new[replace_keys_iterator]);
@@ -5817,13 +5842,22 @@ var ct_ready_mapjs = function() {
 				console.log('pop struct study filter:', filter_element.val());
 				if(filter_element.val() == "accession") {
 					console.log('pop struct study value:' + value_element.val());
-					cartograplant.ui_add_pop_struct_toggle({
-						caption: value_element.val() + ' Population Structure',
-						name: value_element.val()
-					});
+
+					// Check to see whether a pop_struct exists for this study
+					if (Drupal.settings.popstruct_studies.includes(value_element.val())) {
+						cartograplant.ui_add_pop_struct_toggle({
+							caption: value_element.val() + ' Population Structure',
+							name: value_element.val()
+						});
+					}
 				}
 			}
-			$('#pop-struct-options-container').slideDown(500);
+			if ($('#pop-struct-options-toggles').html() == '') {
+				$('#pop-struct-options-container').slideUp(500); // hide since empty
+			}
+			else {
+				$('#pop-struct-options-container').slideDown(500); // show since it contains content
+			}
 		}
 	}
 
@@ -5972,7 +6006,7 @@ var ct_ready_mapjs = function() {
 
 	$("#btn-get").on("click", function() {
 		
-		
+		$('#analysis-overlapping-traits-studies').html('');
 		$("#plants_details_icons").html('');
 
 
@@ -6798,6 +6832,7 @@ var ct_ready_mapjs = function() {
 
 
 	function get_file_name_caption(dataset_name) {
+		console.log('raw_file_name', dataset_name);
 		var file_name_caption = "";
 		if(dataset_name.includes('AN') && dataset_name.includes('_TGDR') && dataset_name.includes('_snps.vcf')) {
 			var file_name_dash_parts = dataset_name.split('-');
@@ -6812,7 +6847,23 @@ var ct_ready_mapjs = function() {
 			var file_name_underscore_parts = file_name_dash_parts[2].split('_');
 			var file_name_relative_time = moment.unix(file_name_dash_parts[1]).fromNow();
 			var file_name_caption = "Analysis " +  file_name_underscore_parts[0].replace('AN','') + ": " + " Filtered Phenotypes - " + file_name_underscore_parts[1].replace('PHENOVER','') + " - " + file_name_underscore_parts[2].toUpperCase() + " (" + file_name_relative_time + ")";
-		}		
+		}
+		else if(dataset_name.includes('AN') && dataset_name.includes('_ENVDATA')) {
+			var file_name_dash_parts = dataset_name.split('-',3);
+			var properties = dataset_name.split('ENVDATA_');
+			console.log('file_name_dash_parts', file_name_dash_parts);
+			var file_name_underscore = file_name_dash_parts[2];
+			var file_name_underscore_parts = file_name_dash_parts[2].split('_',3);
+			var file_name_relative_time = moment.unix(file_name_dash_parts[1]).fromNow();
+			var file_name_caption = "Analysis " +  file_name_underscore_parts[0].replace('AN','') + ": " + " Environmental data - " + properties[1].toUpperCase() + " (" + file_name_relative_time + ")";
+		}
+		else if(dataset_name.includes('AN') && dataset_name.includes('_POPSTRUCT')) {
+			var file_name_dash_parts = dataset_name.split('-');
+			var file_name_underscore = file_name_dash_parts[2];
+			var file_name_underscore_parts = file_name_dash_parts[2].split('_');
+			var file_name_relative_time = moment.unix(file_name_dash_parts[1]).fromNow();
+			var file_name_caption = "Analysis " +  file_name_underscore_parts[0].replace('AN','') + ": " + " PopStruct Panel Final (" + file_name_relative_time + ")";
+		}				
 		else {
 			file_name_caption = dataset_name;
 		}
@@ -6861,11 +6912,13 @@ var ct_ready_mapjs = function() {
 			url: url,
 			dataType: "json",
 			success: function (data) {
-				console.log(data);
+				console.log('vcf_snp_quality_workflow_select', data);
+				data.sort((a,b)=> (a.workflow_name > b.workflow_name ? 1 : -1));
+				console.log('vcf_snp_quality_workflow_select sorted', data);
 				var snps_workflows_html = '';
 				
 				for(var i=0; i<data.length; i++) {
-					if(data[i].workflow_name.includes('SNP Quality Filtering Step')) {
+					if(data[i].workflow_name.includes('SNP Quality Filtering Step') || data[i].workflow_name.includes('LinkImputeR')) {
 						snps_workflows_html = snps_workflows_html +  '<option value="' + data[i].workflow_id + '">' + data[i].workflow_name +  '</option>';
 					}
 				}

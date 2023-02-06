@@ -1947,7 +1947,7 @@ var ct_ready_map_analysis = function() {
 						var options_html = '';
 						for(var i=0; i<data.length; i++) {
 							var file_name_caption = cartograplant.get_file_name_caption(data[i]['dataset_name']);
-							options_html += "<option value='" + data[i]['dataset_id'] + "'>" + file_name_caption + "</option>"
+							options_html += "<option value='" + data[i]['dataset_url'] + "'>" + file_name_caption + "</option>"
 						}
 						$('#analysis-popstruct-section-vcf-selectfile').html(options_html);
 					}
@@ -1958,6 +1958,61 @@ var ct_ready_map_analysis = function() {
 			console.log(err);
 		}
 	});
+
+
+	$('#analysis-popstruct-section-button-generate-fast-structure').click(function() {
+		console.log('generate-fast-structure');
+		// formData.append('galaxy_id', cartograplant.galaxy_id);
+		// formData.append('workflow_id', workflow_id);
+		// formData.append('history_id', cartograplant.history_id);
+		// // var file_upload_element = document.getElementById(file_id);
+		// formData.append('raw_data', csv_data);
+		// formData.append('file_name', 'AN' + cartograplant.current_analysis_id + '_PHENOVER' + phenotype_name + '_adjusted-overlaps.csv');
+
+		try {
+			console.log('analysis-popstruct-section-vcf-selectfile value', $('#analysis-popstruct-section-vcf-selectfile').val());
+			$('#analysis-popstruct-dapc-step1-plot-container').html('<div style="text-align: center">This can take minutes, please be patient...</div>');
+			var url = Drupal.settings.base_url + "/cartogratree/api/v2/popstruct/fast_structure";
+			$.ajax({
+				method: "POST",
+				url: url,
+				data: {
+					realtime_client_id: cartograplant['realtime']['client_id'],
+					galaxy_id: cartograplant.galaxy_id,
+					workflow_id: workflow_id,
+					history_id: cartograplant.history_id,
+					vcf_url: $('#analysis-popstruct-section-vcf-selectfile').val(),
+					k_value: $('#analysis-popstruct-section-k-value').val(),
+					analysis_id: cartograplant.current_analysis_id,
+					history_upload_url: Drupal.settings.base_url + "/cartogratree_uianalysis/upload_file_raw_data_to_history",
+					// pcs_to_retain: $('#analysis-popstruct-section-input-pcs-to-retain').val(),
+					// clusters_to_retain: $('#analysis-popstruct-section-input-clusters-to-retain').val()
+				},
+				success: function (data) {
+					console.log(data);
+					var data = JSON.parse(data);
+					if(data['success'] == true) {
+						// alert('Success');
+						// const blob = b64toBlob(data['data_base64'], 'image/jpeg');
+						// var html = "";
+						// html += '<img style="width: 100%;" src="' + URL.createObjectURL(blob) + '" />';
+						// $('#analysis-popstruct-dapc-step1-plot-container').html(html);
+					}
+					else {
+						// alert('Failed');
+					}
+				},
+				error: function (err) {
+					console.log(err);
+					alert(err);
+				}
+			});	
+		}
+		catch (err) {
+			console.log(err);
+		}
+	});
+
 
 
 
@@ -1996,7 +2051,7 @@ var ct_ready_map_analysis = function() {
 		cartograplant_analysis_populate_histories_select_list();
 		// Do not show any of the SNP Quality Filtering
 		cartograplant_analysis_populate_workflow_select_list({
-			'hide': 'SNP Quality Filtering'
+			'show': ['Multiple Testing', 'GWAS']
 		});
 		
 	});	
@@ -2048,6 +2103,7 @@ var ct_ready_map_analysis = function() {
 			cartograplant.history_id = $('#create-analysis-select-history').val();
 			var url_history_contents = Drupal.settings.base_url + '/cartogratree_uianalysis/get_history_details/' + cartograplant.galaxy_id + '/' + cartograplant.history_id;
 			console.log(url_history_contents);
+			$('#manage-workspace-files-loader').html('<i class="fa-solid fa-sync fa-spin"></i>');
 			$.ajax({
 				method: 'GET',
 				url: url_history_contents,
@@ -2055,7 +2111,7 @@ var ct_ready_map_analysis = function() {
 					console.log(data);
 					$('#manage-history-contents').html('');
 					if(data.length > 0) {
-						var div = "<h2>Manage workspace files</h2>";
+						var div = '';
 						for(var i=0; i<data.length; i++) {
 							// console.log(data);
 							var history_item = data[i];
@@ -2064,12 +2120,12 @@ var ct_ready_map_analysis = function() {
 								div += '<div style="display: flex;"></div>';
 								div += '<div style="margin-bottom: 5px;">';
 								// id, history_id, dataset_id
-								div += '<button class="btn btn-danger" id="manage-history-contents-delete-' + history_item['dataset_id'] + '" data-toggle="tooltip" title="Delete"><i class="fa fa-trash" aria-hidden="true"></i></button>';
-								div += '<button class="btn btn-info" id="manage-history-contents-download-' + history_item['dataset_id'] + '" data-toggle="tooltip" title="Download"><a href="' + history_item['dataset_url'] + '"><i class="fa fa-download" aria-hidden="true"></i></a></button>';
+								div += '<button style="display: inline-block; vertical-align: top;" class="btn btn-danger" id="manage-history-contents-delete-' + history_item['dataset_id'] + '" data-toggle="tooltip" title="Delete"><i class="fa fa-trash" aria-hidden="true"></i></button>';
+								div += '<button style="display: inline-block; vertical-align: top;" class="btn btn-info" id="manage-history-contents-download-' + history_item['dataset_id'] + '" data-toggle="tooltip" title="Download"><a href="' + history_item['dataset_url'] + '"><i class="fa fa-download" aria-hidden="true"></i></a></button>';
 								// <i class="fa fa-download" aria-hidden="true"></i>
 								// div += '<button class="btn btn-info" id="manage-history-contents-delete-' + history_item['dataset_id'] + '" style=""><i class="fa fa-download" aria-hidden="true"></i></button>';
 								var file_name_caption = cartograplant.get_file_name_caption(history_item['dataset_name']);
-								div += ' <div style="display: inline-block;"><a href="' + history_item['dataset_url'] + '">' + file_name_caption + '</a></div>';
+								div += ' <div style="display: inline-block; vertical-align: top; width: 80%;"><a href="' + history_item['dataset_url'] + '">' + file_name_caption + '</a></div>';
 								div += '</div>';
 								
 							//}
@@ -2079,6 +2135,10 @@ var ct_ready_map_analysis = function() {
 					else {
 						$('#manage-history-contents').html('This workspace currently contains no files');
 					}
+					$('#manage-workspace-files-loader').html('');
+				},
+				error: function(err) {
+					$('#manage-workspace-files-loader').html('');
 				}
 			});	
 		}
@@ -2093,6 +2153,7 @@ var ct_ready_map_analysis = function() {
 		var content_id = id_parts[4];
 		var url_delete_history_content_id = Drupal.settings.base_url + '/cartogratree_uianalysis/delete_history_content_id/' + cartograplant.galaxy_id + '/' + cartograplant.history_id + '/' + content_id;
 		console.log(url_delete_history_content_id);
+		$('#manage-workspace-files-loader').html('<i class="fa-solid fa-trash fa-fade"></i>');
 		$.ajax({
 			method: 'GET',
 			url: url_delete_history_content_id,
@@ -2111,7 +2172,7 @@ var ct_ready_map_analysis = function() {
 			url: url,
 			dataType: "json",
 			success: function (data) {
-				console.log(data);
+				console.log('workflow options', data);
 				var html = '';
 				for(var i=0; i<data.length; i++) {
 					if (filters != undefined) {
@@ -2122,10 +2183,20 @@ var ct_ready_map_analysis = function() {
 							}
 						}
 						else if (filters.hide != undefined) {
-							if (data[i].workflow_name.includes(filters.hide) == false) {
+							var hide = false;
+							for(var j=0; j<filters.hide.length; j++) {
+								var filter_name = filters.hide[j];
+								if(data[i].workflow_name.includes(filter_name) == true) {
+									console.log('Filter found in hide');
+									hide = true;
+								}
+							}
+							if (hide == false) {
+							// if (filters.hide.includes(data[i].workflow_name) == undefined) {
 								// show it
 								html = html +  '<option value="' + data[i].workflow_id + '">' + data[i].workflow_name +  '</option>';
-							}							
+							}
+				
 						}
 					}
 					else {
@@ -2839,22 +2910,25 @@ var ct_ready_map_analysis = function() {
 											checkbox_element.parent().find('img').hide();
 											if(data != undefined) {
 												// this should be csv
-												var keys = data.split(',');
-												for(var i = 0; i < keys.length; i++) {
-													var key_name = keys[i];
-													// Create a checkbox element for this key / property
-													if (url_field_details_data['layer_embedded_fields_hide'].includes(key_name) == false) {
-														
-														if(replacements[key_name] != undefined) {
-															key_name = replacements[key_name];
+												// console.log('data',data);
+
+													var keys = data.split(',');
+													for(var i = 0; i < keys.length; i++) {
+														var key_name = keys[i];
+														// Create a checkbox element for this key / property
+														if (url_field_details_data['layer_embedded_fields_hide'].includes(key_name) == false) {
+															
+															if(replacements[key_name] != undefined) {
+																key_name = replacements[key_name];
+															}
+
+
+															var item_html = "<div style='padding-left: 5px;'><div style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪</div><input id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id + "_property_" + i + "_checkbox' class='analysis_category_groups_layer_property_checkbox' type='checkbox' data-value='" + key_name + "' /><div style='display: inline-block; color:#FFFFFF; background-color: #0984ec; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>property</div>" + key_name +  "</div>";
+															$("#analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id).append(item_html);
+													
 														}
-
-
-														var item_html = "<div style='padding-left: 5px;'><div style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪</div><input id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id + "_property_" + i + "_checkbox' class='analysis_category_groups_layer_property_checkbox' type='checkbox' data-value='" + key_name + "' /><div style='display: inline-block; color:#FFFFFF; background-color: #0984ec; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>property</div>" + key_name +  "</div>";
-														$("#analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id).append(item_html);
-												
 													}
-												}
+												
 											}
 										},
 										error: function(err) {
@@ -3016,6 +3090,8 @@ var ct_ready_map_analysis = function() {
 		// console.log(mapState.includedTrees);
 
 		// STEP 1 - Check if SNPs were selected using the analysis_id
+		var treeids_locations = [];
+		var treeids_locations_completed = false;
 		$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(500).html('Looking up plant ids from filters snps... ' + '<img style="height: 16px;" src="' + loading_icon_src + '" />').fadeIn(500);
 		$.ajax({
 			method: 'POST',
@@ -3033,164 +3109,347 @@ var ct_ready_map_analysis = function() {
 					tree_ids.push(rows[i]['unnest']);
 				}
 				console.log('tree_ids', tree_ids);
-						// We need to send these tree ids to the CT API to get the distinct locations (lat lon vals);
-				$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(500).html('Looking up locations for ' + mapState.includedTrees.length + ' plant ids...' + '<img style="height: 16px;" src="' + loading_icon_src + '" />').fadeIn(500);
-				$.ajax({
-					url: Drupal.settings.base_url + '/cartogratree/api/v2/environmental/get_locations_from_treeids',
-					method: 'POST',
-					data: {
-						tree_ids: JSON.stringify(tree_ids)
-					},
-					success: function(data) {
-						console.log('get_loctions_from_treeids', data); // this is the distinct rows of lat lon values
-
-						// Translate the rows to location objects
-						var locations = [];
-						for(var i=0; i<data.length; i++) {
-							var row_string = data[i]['row'];
-							row_string = row_string.replaceAll('(','');
-							row_string = row_string.replaceAll(')','');
-							var row_string_parts = row_string.split(',');
-							var location_object = {
-								latitude: row_string_parts[0],
-								longitude: row_string_parts[1]
+				if(tree_ids.length <= 0) {
+					alert('No tree_ids were selected. Please ensure that you choose an option from the Filter by Genotypes tab so you can generate environmental data.')
+				}
+				else {
+					// STEP 1 - get all tree_id and locations
+					
+					$.ajax({
+						url: Drupal.settings.base_url + '/cartogratree/api/v2/environmental/get_locations_from_treeids',
+						method: 'POST',
+						data: {
+							tree_ids: JSON.stringify(tree_ids)
+						},
+						success: function(data) {
+							// console.log('get_locations_from_treeids', data);
+							for(var i=0; i<data.length; i++) {
+								treeids_locations.push(data[i]);
 							}
-							locations.push(location_object);
+							treeids_locations_completed = true;
+							console.log('treeids_locations', treeids_locations);
+						},
+						error: function(err) {
+							treeids_locations_completed = true;
 						}
+					});
 
+					// STEP 2 - get unique locations
+					// We need to send these tree ids to the CT API to get the distinct locations (lat lon vals);
+					$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(500).html('Looking up locations for ' + mapState.includedTrees.length + ' plant ids...' + '<img style="height: 16px;" src="' + loading_icon_src + '" />').fadeIn(500);
+					$.ajax({
+						url: Drupal.settings.base_url + '/cartogratree/api/v2/environmental/get_unique_locations_from_treeids',
+						method: 'POST',
+						data: {
+							tree_ids: JSON.stringify(tree_ids)
+						},
+						success: function(data) {
+							console.log('get_unique_loctions_from_treeids', data); // this is the distinct rows of lat lon values
 
-						$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(2000).html('Found ' + data.length + ' locations from the database!').fadeIn(2000);
-						// We need to check which layers were selected from the checkboxes
-						// This reuses code from the original generate button which sends to websocket
-						// We need to get the selected layer and corresponding data property names
-						// var analysis_envdata_array_items = [];
-
-
-						// analysis_timers['analysis_environmental_data_generate_csv_output']
-						// This timer would listen and wait until all data has been pulled
-						var analysis_environmental_data_count_per_data_batch = 0;
-						var analysis_environmental_data_results = [];
-						analysis_timers['analysis_environmental_data_generate_csv_output'] = setInterval(function() {
-							if(analysis_environmental_data_count_per_data_batch == analysis_environmental_data_selected_properties.length) {
-								// stop the interval check
-								clearInterval(analysis_timers['analysis_environmental_data_generate_csv_output']);
-								// generate CSV
-								var csv_data = '';
-								var csv_data_header = '';
-								var dataset_rows_length = -1;
-								// Generate the header first
-								for(var i=0; i<analysis_environmental_data_results.length; i++) {
-									var dataset = analysis_environmental_data_results[i];
-									if(i > 0) {
-										csv_data_header += ',' + dataset['property_name'];
-									}
-									else {
-										csv_data_header += dataset['property_name'];
-										dataset_rows_length = dataset['rows'].length;
-									}
+							// Translate the rows to location objects
+							var locations = [];
+							for(var i=0; i<data.length; i++) {
+								console.log('data[i][row]', data[i]['row']);
+								// This code using the distinct clause from the CT API endpoint
+								var row_string = data[i]['row'];
+								row_string = row_string.replaceAll('(','');
+								row_string = row_string.replaceAll(')','');
+								console.log('row_string',row_string);
+								var row_string_parts = row_string.split(',');
+								var location_object = {
+									latitude: row_string_parts[0],
+									longitude: row_string_parts[1]
 								}
-								csv_data_header += "\n";
+								locations.push(location_object);
+								
+								// BACKUP CODE IN CASE: This is the new version which returns the tree_id (this is slower but needed)
+								// var location_object = {
+								// 	latitude: data[i]['latitude'],
+								// 	longitude: data[i]['longitude']
+								// }
+								// locations.push(location_object);
+							}
+							console.log('unique_locations', locations);
+							
 
-								// Go through each dataset rows length
-								for(var i=0; i<dataset_rows_length;i++) {
-									// go through each datasets
-									for(var j=0; j<analysis_environmental_data_results.length; j++) {
-										dataset = analysis_environmental_data_results[j];
-										console.log('row val:', analysis_environmental_data_results[j]['rows'][i]);
-										if(j > 0) {
-											csv_data += ',' + analysis_environmental_data_results[j]['rows'][i]['property_value'];
+
+							$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(2000).html('Found ' + data.length + ' locations from the database!').fadeIn(2000);
+							// We need to check which layers were selected from the checkboxes
+							// This reuses code from the original generate button which sends to websocket
+							// We need to get the selected layer and corresponding data property names
+							// var analysis_envdata_array_items = [];
+
+
+							// analysis_timers['analysis_environmental_data_generate_csv_output']
+							// This timer would listen and wait until all data has been pulled
+							var analysis_environmental_data_count_per_data_batch = 0;
+							var analysis_environmental_data_results = [];
+							analysis_timers['analysis_environmental_data_generate_csv_output'] = setInterval(function() {
+								if(analysis_environmental_data_count_per_data_batch >= analysis_environmental_data_selected_properties.length && treeids_locations_completed == true) {
+									// stop the interval check
+									clearInterval(analysis_timers['analysis_environmental_data_generate_csv_output']);
+									// generate CSV
+									// var csv_data_full = '';
+									// var csv_data_full_header = 'latitude,longitude,';
+									var locations_indexes_with_env_data = {};
+									var property_names = []; // holds the names of the properties by index 0, 1 etc
+									var csv_data = '';
+									var csv_data_header = '';
+									var dataset_rows_length = -1;
+									// Generate the header first
+									for(var i=0; i<analysis_environmental_data_results.length; i++) {
+										
+										var dataset = analysis_environmental_data_results[i];
+										property_names.push(dataset['property_name']);
+										if(i > 0) {
+											csv_data_header += ',' + dataset['property_name'];
+											// csv_data_full_header += ',' + dataset['property_name'];
 										}
 										else {
-											csv_data += analysis_environmental_data_results[j]['rows'][i]['property_value'];
+											csv_data_header += dataset['property_name'];
+											// csv_data_full_header += dataset['property_name'];
+											dataset_rows_length = dataset['rows'].length;
 										}
 									}
-									csv_data += "\n";
-								}
+									csv_data_header += "\n";
 
-								csv_data = csv_data_header + csv_data;
-								console.log('csv_data', csv_data);
+									// Go through each dataset rows length
+									for(var i=0; i<dataset_rows_length;i++) {
+										// go through each datasets
+										for(var j=0; j < analysis_environmental_data_results.length; j++) {
 
-
-								// Push this data to the environmental scatter plot API endpoint
-								$.ajax({
-									url: Drupal.settings.base_url + '/cartogratree/api/v2/environmental/environmental_scatter_plot',
-									method: 'POST',
-									data: {
-										analysis_id: cartograplant.current_analysis_id,
-										csv_data: csv_data
-									},
-									success: function(data) {
-										// show picture
-										console.log('environmental_scatter_plot', data)
-										data = JSON.parse(data);
-										if(data['error'] == undefined) { 
-											$('#envdata_scatter_plot').html('');
-											const blob = b64toBlob(data['data_base64'], 'image/jpeg');
-
-											// const byteCharacters = atob(data['data_base64']);
-											// const byteNumbers = new Array(byteCharacters.length);
-											// for (let i = 0; i < byteCharacters.length; i++) {
-											// 	byteNumbers[i] = byteCharacters.charCodeAt(i);
-											// }
-											// const byteArray = new Uint8Array(byteNumbers);
-											// const blob = new Blob([byteArray], {type: 'image/jpeg'});
-
-											var html = "";
-											html += '<img style="width: 100%;" src="' + URL.createObjectURL(blob) + '" />';
-											$('#envdata_scatter_plot').html(html);
-				
-											$('#envdata_scatter_plot img').wrap('<span style="display:inline-block"></span>')
-											.css('display', 'block')
-											.parent().zoom({magnify:1.5});
-										}										
+											// dataset = analysis_environmental_data_results[j];
+											dataset = analysis_environmental_data_results[j]['rows'][i];
+											if(dataset != undefined) {
+												var latitude = analysis_environmental_data_results[j]['rows'][i]['latitude'];
+												var longitude = analysis_environmental_data_results[j]['rows'][i]['longitude'];
+												if(locations_indexes_with_env_data[latitude + ',' + longitude] == undefined) {
+													locations_indexes_with_env_data[latitude + ',' + longitude] = {};
+												}
+												if (locations_indexes_with_env_data[latitude + ',' + longitude][j] == undefined) {
+													locations_indexes_with_env_data[latitude + ',' + longitude][j] = analysis_environmental_data_results[j]['rows'][i]['property_value'];
+												}
+												console.log('row val:', analysis_environmental_data_results[j]['rows'][i]);
+												if(j > 0) {
+													csv_data += ',' + analysis_environmental_data_results[j]['rows'][i]['property_value'];
+													// csv_data_full += ',' + analysis_environmental_data_results[j]['rows'][i]['property_value'];
+												}
+												else {
+													csv_data += analysis_environmental_data_results[j]['rows'][i]['property_value'];
+													// csv_data_full += analysis_environmental_data_results[j]['rows'][i]['property_value'];
+												}
+											}
+										}
+										csv_data += "\n";
+										// csv_data_full += "\n";
 									}
-								})
-							}
-						},1000);
 
-						for(i = 0; i < analysis_environmental_data_selected_properties.length; i++) {
-							var property_object = analysis_environmental_data_selected_properties[i];
-							console.log(property_object);
-							$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(500).html('Looking up ' + property_object['property_value'] + ' values from database...' + '<img style="height: 16px;" src="' + loading_icon_src + '" />').fadeIn(500);
-							$.ajax({
-								method: 'POST',
-								url: Drupal.settings.base_url + '/cartogratree/api/v2/environmental/get_envdata_from_db_table',
-								data: {
-									layer_id: property_object['layer_id'],
-									property_id: property_object['property_id'],
-									property_name: property_object['property_value'],
-									locations: JSON.stringify(locations),
-								},
-								success: function(data) {
-									analysis_environmental_data_count_per_data_batch = analysis_environmental_data_count_per_data_batch + 1;
-									console.log('get_envdata_from_db_table', data);
-									if(data['rows'] != undefined) {
-										if(data['rows'].length > 0) {
-											analysis_environmental_data_results.push(data);
+									console.log('locations_indexes_with_env_data', locations_indexes_with_env_data);
+
+
+									csv_data = csv_data_header + csv_data;
+									console.log('csv_data', csv_data);
+
+
+									// Compile the full csv file with the tree_id,lat,lon,propname1,propname2 etc
+									var csv_data_full = "tree_id,latitude,longitude";
+									// Generate header
+									for(var i=0; i<property_names.length; i++) {
+										csv_data_full += ',' + property_names[i];
+									}
+									csv_data_full += "\n";
+									// Generate the values
+									console.log('treeids_locations.length', treeids_locations.length);
+									for(var i=0; i<treeids_locations.length; i++) {
+											
+											var row = treeids_locations[i];
+											console.log('row',row);
+											if(row != undefined) {
+											csv_data_full += row['uniquename']+','+row['latitude']+','+row['longitude'];
+
+											// Cross reference to the locations_indexes_with_env_data
+											var cross_reference = row['latitude']+','+row['longitude'];
+											// each dataset
+											for(var j=0; j<analysis_environmental_data_results.length;j++) {
+												// use the index i
+												if(locations_indexes_with_env_data[cross_reference] == undefined) {
+													csv_data_full += ',NA';
+												}
+												else {
+													if (locations_indexes_with_env_data[cross_reference][j] == undefined) {
+														csv_data_full += ',NA';
+													}
+													else {
+														csv_data_full += ',' + locations_indexes_with_env_data[cross_reference][j];
+													}
+												}
+											}
+											csv_data_full += "\n";
 										}
 									}
+
+
 									
-									$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(500).html('Found ' + data['rows'].length + ' ' + data['property_name'] + ' values.').fadeIn(500);
-								},
-								error: function(data) {
+									console.log('csv_data_full', csv_data_full);
+									// Push to csv_data_full (all columns) to galaxy history
+									// Upload to history / workspace
+									var formData = new FormData();
+									formData.append('galaxy_id', cartograplant.galaxy_id);
+									formData.append('workflow_id', workflow_id);
+									formData.append('history_id', cartograplant.history_id);
+									// var file_upload_element = document.getElementById(file_id);
+									formData.append('raw_data', csv_data_full);
+									var env_property_text_list = "";
+									for(var i=0; i<property_names.length; i++) {
+										if (i == 0) {
+											env_property_text_list += property_names[i];
+										}
+										else {
+											env_property_text_list += '-' + property_names[i];
+										}
+									}
+									formData.append('file_name', 'AN' + cartograplant.current_analysis_id + '_ENVDATA_' + env_property_text_list + '.csv');
+									
+									if(cartograplant.history_id == null) {
+										alert('Cannot upload a file without selecting a workspace to store the file, please visit the Begin tab to select or create a workspace');
+										return;
+									}
+							
+									
+									var url = Drupal.settings.base_url + "/cartogratree_uianalysis/upload_file_raw_data_to_history";
+									$.ajax({
+										xhr: function() {
+											var xhr = new window.XMLHttpRequest();
+										
+											xhr.upload.addEventListener("progress", function(evt) {
+												if (evt.lengthComputable) {
+													var percentComplete = evt.loaded / evt.total;
+													percentComplete = parseInt(percentComplete * 100);
+													console.log(percentComplete);
+													// $('#' + status_container).html('Uploading ... ' + percentComplete + '% completed.');
+											
+													if (percentComplete === 100) {
+											
+													}
+										
+												}
+											}, false);
+										
+											return xhr;
+										},			
+										url: url,
+										method: 'POST',
+										type: 'POST',
+										data: formData,
+										contentType: false,
+										processData: false,
+										success: function (data) {
+											console.log(data);
+											if(data.result != undefined) {
+												if(data.result == "uploaded") {
+													alert('Environmental data uploaded to workspace!');
+													// $('#' + status_container).html('<br /><div style="padding: 5px; border-radius: 3px; background-color: #fffd9c;">Successfully uploaded! Please refresh workflow until it appears in the select list</div>');
+													// Refresh the history files by reloading the entire submit form
+													/*
+													setTimeout(function() {
+														console.log('Attempt to reload the form to update the workflow input files etc...');
+														cartograplant_analysis_populate_workflow_submit_form();
+													}, 7000);	
+													*/					
+												}
+											}
+										}
+									});
+
+
+									// Push csv_data (only values of each property) to the environmental scatter plot API endpoint
+									$.ajax({
+										url: Drupal.settings.base_url + '/cartogratree/api/v2/environmental/environmental_scatter_plot',
+										method: 'POST',
+										data: {
+											analysis_id: cartograplant.current_analysis_id,
+											csv_data: csv_data
+										},
+										success: function(data) {
+											// show picture
+											console.log('environmental_scatter_plot', data)
+											data = JSON.parse(data);
+											if(data['error'] == undefined) { 
+												$('#envdata_scatter_plot').html('');
+												const blob = b64toBlob(data['data_base64'], 'image/jpeg');
+
+												// const byteCharacters = atob(data['data_base64']);
+												// const byteNumbers = new Array(byteCharacters.length);
+												// for (let i = 0; i < byteCharacters.length; i++) {
+												// 	byteNumbers[i] = byteCharacters.charCodeAt(i);
+												// }
+												// const byteArray = new Uint8Array(byteNumbers);
+												// const blob = new Blob([byteArray], {type: 'image/jpeg'});
+
+												var html = "";
+												html += '<img style="width: 100%;" src="' + URL.createObjectURL(blob) + '" />';
+												$('#envdata_scatter_plot').html(html);
+					
+												$('#envdata_scatter_plot img').wrap('<span style="display:inline-block"></span>')
+												.css('display', 'block')
+												.parent().zoom({magnify:1.5});
+											}										
+										}
+									})
+								}
+							},1000);
+
+							for(i = 0; i < analysis_environmental_data_selected_properties.length; i++) {
+								try {
+									var property_object = analysis_environmental_data_selected_properties[i];
+									console.log(property_object);
+									$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(500).html('Looking up ' + property_object['property_value'] + ' values from database...' + '<img style="height: 16px;" src="' + loading_icon_src + '" />').fadeIn(500);
+									$.ajax({
+										method: 'POST',
+										url: Drupal.settings.base_url + '/cartogratree/api/v2/environmental/get_envdata_from_db_table',
+										data: {
+											layer_id: property_object['layer_id'],
+											property_id: property_object['property_id'],
+											property_name: property_object['property_value'],
+											locations: JSON.stringify(locations),
+										},
+										success: function(data) {
+											analysis_environmental_data_count_per_data_batch = analysis_environmental_data_count_per_data_batch + 1;
+											console.log('get_envdata_from_db_table', data);
+											if(data['rows'] != undefined) {
+												if(data['rows'].length > 0) {
+													analysis_environmental_data_results.push(data);
+												}
+											}
+											
+											$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(500).html('Found ' + data['rows'].length + ' ' + data['property_name'] + ' values.').fadeIn(500);
+										},
+										error: function(err) {
+											analysis_environmental_data_count_per_data_batch = analysis_environmental_data_count_per_data_batch + 1;
+										}
+									});
+								}
+								catch (err) {
 									analysis_environmental_data_count_per_data_batch = analysis_environmental_data_count_per_data_batch + 1;
 								}
-							});
-							//analysis_envdata_array_items.push(property_object);//0 is assumed to be headers
+								//analysis_envdata_array_items.push(property_object);//0 is assumed to be headers
+							}
+
+
+							// console.log(analysis_envdata_array_items);
+
+
+
+						},
+						error: function(data) {
+							alert('An error occurred. Please ensure you selected at least one option in the Filter by Genotypes tab.');
+							console.log('Error received while trying to get locations. Please contact administrator.')
 						}
-
-
-						// console.log(analysis_envdata_array_items);
-
-
-
-					},
-					error: function(data) {
-						console.log('Error received while trying to get locations. Please contact administrator.')
-					}
-				})
+					})
+				}
 			},
 			error: function(data) {
+				alert('An error occurred retrieving environmental data, please ensure you selected SNPs in the Filter by Genotypes and try again. If this does not work, please contact us!');
 				console.log(data);
 				console.log('treeids_by_analysis_id error occurred');
 			}
@@ -3427,6 +3686,7 @@ var ct_ready_map_analysis = function() {
 			analysis_envdata_csv_data += "\n";
 		}
 	}
+
 
 	$(document).on('click', '#download_analysis_envdata_csv_data_button', function() {
 		generateFileDownload("envdata.csv",analysis_envdata_csv_data);
