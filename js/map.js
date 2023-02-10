@@ -8,8 +8,6 @@ var generate_snps_to_missing_freq_objects_array = [];
 var generate_snps_to_missing_freq_objects_total = 0;
 var generate_snps_to_missing_freq_objects_current = 0;
 
-
-
 var ct_ready_mapjs = function() {
 //$(function () {
 	console.log(Drupal.settings);
@@ -3734,10 +3732,16 @@ var ct_ready_mapjs = function() {
 
 		$('#tree-more-info-phenotype-container').html("");
 		$('#tree-more-info-label').html("");
+
+		
 	}
 
 
 	function renderTreeDetails(data) {
+
+		$('#tree-coord-type').html('Approximate');
+		$('#tree-details .btn-primary[data-target="#tree-more-info"]').show();
+
 		var sourceName = "TreeGenes";
 		if(debug) {
 			console.log("renderTreeDetails function");
@@ -3746,6 +3750,7 @@ var ct_ready_mapjs = function() {
 		var treeId = data.uniquename;
 		var sourceId = data.source_id;
 		resetTreeModalData();
+
 
 		console.log('tree source_id', data.source_id);
 		console.log('species', data.species);
@@ -3815,6 +3820,8 @@ var ct_ready_mapjs = function() {
 			}
 			else if(data.source_id == 3) {
 				sourceName = 'BIEN';
+				$('#tree-details .btn-primary[data-target="#tree-more-info"]').hide();
+				data.coordinate_type = 0;
 			}
 
 			$("#tree-submitter").text("This is a default image");
@@ -4642,11 +4649,17 @@ var ct_ready_mapjs = function() {
 									}
 									else {
 										var column_data = line.split(",");
-										cartograplant.clickedTrees.push(column_data[id_index]);
-										
-										latitude = column_data[latitude_index];
-										longitude = column_data[longitude_index];
-										//we only need one tree for the location
+										// It's possible to receive a blank line in which case
+										// so check to make sure column_data is more than 0
+										// before adding the clickTrees array which the UI 
+										// code uses to add buttons in the tree detail popup
+										if (column_data.length > 1) {
+											cartograplant.clickedTrees.push(column_data[id_index]);
+											
+											latitude = column_data[latitude_index];
+											longitude = column_data[longitude_index];
+											//we only need one tree for the location
+										}
 										
 									}
 								}
