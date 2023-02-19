@@ -165,7 +165,7 @@ function cartogratree_admin_debug_cpapi($form, &$form_state) {
     global $base_url; 
     $html = "";
     $html .= '<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.min.js" integrity="sha512-uXal8CICQ52UxoF9A3yBP6GUXGu5N2IoTZf/YXGMW4M0AvNyViA0ZjpGf9uqRpkN4kyx41Y5I0DmTQNOS6G05A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>';
-    $html .= '<style>.debug-line { background-color: #d0ffe5;padding: 5px; margin-bottom: 2px; }</style>';
+    $html .= '<style>.debug-line { background-color: #a8ffc8;padding: 5px; margin-bottom: 2px; }</style>';
     $html .= '<script>';
     $html .= 'jQuery(document).ready(function() {';
     $html .= ' console.log("Ready for socket io");';
