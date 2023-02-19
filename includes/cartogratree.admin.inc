@@ -29,6 +29,7 @@ function cartogratree_admin_list() {
         $output .= l('Update', 'admin/cartogratree/settings/servers/edit');
         $output .= ' GIS and API servers.</p>';
     }
+    $output .= '<p><a target="_blank" href="settings/debug/cpapi">Cartograplant NodeJS API realtime console output</a></p>';
 
     $output .= '<h1>Additional Geoserver Datasets</h1>';
     $output .= '<p>In order to make additional datasets available, you must add them here</p>';
@@ -155,6 +156,63 @@ function cartogratree_admin_list() {
 //    $output .= theme('pager');
 
     return $output;
+}
+
+/**
+ * CPIAPI DEBUG CONSOLE OUTPUT REALTIME
+ */
+function cartogratree_admin_debug_cpapi($form, &$form_state) {
+    global $base_url; 
+    $html = "";
+    $html .= '<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.min.js" integrity="sha512-uXal8CICQ52UxoF9A3yBP6GUXGu5N2IoTZf/YXGMW4M0AvNyViA0ZjpGf9uqRpkN4kyx41Y5I0DmTQNOS6G05A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>';
+    $html .= '<style>.debug-line { background-color: #d0ffe5;padding: 5px; margin-bottom: 2px; }</style>';
+    $html .= '<script>';
+    $html .= 'jQuery(document).ready(function() {';
+    $html .= ' console.log("Ready for socket io");';
+    
+    $ctapi_path = '/cartogratree/api/realtime';
+    $html .= ' var socket = io("' . $base_url . '", {"path":"' . $ctapi_path . '"});' . "\n";
+    $html .= ' onConnect();';
+    $html .= ' socket.io.on("reconnect", () => {';  
+    $html .= '  console.log("Reconnecting...");';
+    $html .= '  onConnect();';
+    $html .= ' });';
+    $html .= ' function onConnect() {';
+    $html .= '  socket.emit("join_channel", {channel_name: "cp-debug"});' . "\n";
+    $html .= ' }';
+    $html .= ' socket.on("debug-line", function(obj) {';
+    $html .= '  console.log(obj);';
+    $html .= '  var space_parts = obj["line"].split(" ");';
+    $html .= '  if(space_parts[1] == "memory_used:") {';
+    $html .= '   jQuery("#memory_used").html(Math.ceil(space_parts[2]) + " MB");';
+    $html .= '  }';
+    $html .= '  else if(space_parts[1] == "realtime_connections_count:") {';
+    $html .= '   jQuery("#realtime_connections_count").html(space_parts[2]);';
+    $html .= '  }';    
+    $html .= '  else {';
+    // $html .= '  jQuery("#debug").prepend("<div class=\"debug-line-time\">" + space_parts[0] + "</div>");';
+    $html .= '   jQuery("#debug").prepend("<div class=\"debug-line\">" + obj["line"] + "</div>").hide().fadeIn(500);';
+    $html .= '  }';
+    $html .= ' });';
+    $html .= '});';
+    $html .= '</script>';
+    $html .= '<div style="text-align: center;">';
+    $html .= '<div style="display: inline-block; width: 25%; text-align: center;">';
+    $html .= '  <div><i style="font-size: 20px;" class="fa fa-microchip" aria-hidden="true"></i><br />Memory used</div>';
+    $html .= '  <div id="memory_used" style="font-size: 24px;"><i class="fa fa-clock-o" aria-hidden="true"></i></div>';
+    $html .= '</div>';
+    $html .= '<div style="display: inline-block; width: 25%; text-align: center;">';
+    $html .= '  <div><i style="font-size: 20px;" class="fa fa-eye" aria-hidden="true"></i><br />Realtime connections</div>';
+    $html .= '  <div id="realtime_connections_count" style="font-size: 24px;"><i class="fa fa-clock-o" aria-hidden="true"></i></div>';
+    $html .= '</div>';  
+    $html .= '</div>';    
+    $html .= '<div style="margin-top: 20px; text-align: center;">Realtime logs - latest messages first</div>';
+    $html .= '<div id="debug"></div>';
+
+    $form['console'] = array(
+        '#prefix' => $html
+    );
+    return $form;
 }
 
 /**
