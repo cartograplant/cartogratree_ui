@@ -2732,8 +2732,47 @@ var ct_ready_mapjs = function() {
 		$.ajax({
 			url: Drupal.settings.ct_nodejs_api + "/v2/trees",
 			dataType: "json",		
-			async: false,	
-			success: function (data) {
+			async: true,
+			xhr: function () {
+				var xhr = new window.XMLHttpRequest();
+				//Download progress
+				xhr.addEventListener("progress", function (evt) {
+					if (evt.lengthComputable) {
+						var percentComplete = evt.loaded / evt.total;
+						console.log('percent complete:' + Math.round(percentComplete * 100));
+						var percentCompleteRevised = Math.round(percentComplete * 100);
+						if($('#map-dataset-loading').css('display') == "none") {
+							$('#map-dataset-loading').slideDown(0);
+							$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+
+							// Summary loading progress
+							$('#map-summary-loading').slideDown(0);
+							$('#map-summary-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+						}
+						else {
+							$('#map-dataset-loading-text-status').html('<img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" /> Downloading filtered data (' + percentCompleteRevised + '%)');
+							$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+							$('#map-dataset-loading-progressbar-progress-text').html(Math.round(evt.loaded / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB of ' + Math.round(evt.total / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB');
+
+							// Summary loading progress
+							$('#map-summary-loading-text-status').html('<img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" /> Map summary awaiting revised data... (' + percentCompleteRevised + '%)');
+							$('#map-summary-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+							$('#map-summary-loading-progressbar-progress-text').hide();
+							// $('#map-summary-loading-progressbar-progress-text').html(Math.round(evt.loaded / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB of ' + Math.round(evt.total / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB');									
+						}
+						// progressElem.html(Math.round(percentComplete * 100) + "%");
+					}
+				}, false);
+				return xhr;
+			},				
+			success: function (data) {	
+				$('#map-dataset-loading').slideUp(1000);
+				$('#map-dataset-loading-progressbar-progress').css('width','100%');
+
+				// Summary loading progress
+				$('#map-summary-loading').slideUp(1000);
+				$('#map-summary-loading-progressbar-progress').css('width', '100%');							
+				
 				// This is JSON stringified, zlib deflated and base 64 encoded so we need to undo that
 				var base64Data = data.zlib_deflated_base64;
 				// console.log('base64Data', base64Data);
@@ -5149,6 +5188,9 @@ var ct_ready_mapjs = function() {
 			toastr.error("Filter successful </br> No trees found that match those parameters.");
 		}
 		else{
+			// setTimeout(function() {
+			// 	$('#num-trees').text(result);
+			// }, 2000);
 			toastr.success("Filter successful </br> Result: " + result + " trees.");
 		}
 	}
@@ -5272,6 +5314,9 @@ var ct_ready_mapjs = function() {
 				}
 
 				var jsonData = {"query": filterQuery, "active_sources": active};
+				var query_str = parse_json_query(jsonData.query,'');
+
+
 				if(debug) {
 					console.log('-- jsonData:' + JSON.stringify(jsonData, null, 2));
 				}
@@ -5289,7 +5334,7 @@ var ct_ready_mapjs = function() {
 					var dataset_index = active[i];//you cannot just use i as the main index because this could vary
 					
 					// This updates the unique species count per enabled layer
-					updateUniqueSpeciesCount(dataset_index, ""); // "" is an empty filter
+					updateUniqueSpeciesCount(dataset_index, ''); // "" is an empty filter
 					
 
 					for(var j=0; j<Object.keys(datasetKey).length; j++) {
@@ -5388,15 +5433,6 @@ var ct_ready_mapjs = function() {
 										$('#map-summary-loading').slideDown(0);
 										$('#map-summary-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
 									}
-									else if (percentCompleteRevised == 100) {
-										$('#map-dataset-loading').slideUp(1000);
-										$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
-
-										// Summary loading progress
-										$('#map-summary-loading').slideUp(1000);
-										$('#map-summary-loading-progressbar-progress').css('width', percentCompleteRevised + '%');							
-												
-									}
 									else {
 										$('#map-dataset-loading-text-status').html('<img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" /> Downloading filtered data (' + percentCompleteRevised + '%)');
 										$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
@@ -5407,7 +5443,6 @@ var ct_ready_mapjs = function() {
 										$('#map-summary-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
 										$('#map-summary-loading-progressbar-progress-text').hide();
 										// $('#map-summary-loading-progressbar-progress-text').html(Math.round(evt.loaded / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB of ' + Math.round(evt.total / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB');									
-
 									}
 									// progressElem.html(Math.round(percentComplete * 100) + "%");
 								}
@@ -5417,6 +5452,15 @@ var ct_ready_mapjs = function() {
 						contentType: "application/json", 
 						data: JSON.stringify(jsonData),
 						success: function(res) {
+							
+							$('#map-dataset-loading').slideUp(1000);
+							$('#map-dataset-loading-progressbar-progress').css('width','100%');
+
+							// Summary loading progress
+							$('#map-summary-loading').slideUp(1000);
+							$('#map-summary-loading-progressbar-progress').css('width', '100%');							
+										
+							
 							console.log('res',res);
 							// This is JSON stringified, zlib deflated and base 64 encoded so we need to undo that
 							var base64Data = res.zlib_deflated_base64;
@@ -5697,6 +5741,7 @@ var ct_ready_mapjs = function() {
 				dynamic_dataset_source_ids.push(datasetKey[dynamicDatasetLayersKeys[i]]);
 				dynamic_dataset_keys.push(dynamicDatasetLayersKeys[i]);
 			}
+
 			for(var i=0; i<res["features"].length; i++) {
 				if(dynamic_dataset_source_ids.includes(res["features"][i]["properties"]["sid"])) {
 					// we have to add this to the dynamic_features_trees object under the datasetkey name
@@ -5837,8 +5882,11 @@ var ct_ready_mapjs = function() {
 		if(debug) {
 			console.log(map_unique_species.length);
 		}
-		updateMapSummary(res["num_trees"] + parseInt($('#num-trees').text()), map_unique_species.length, res["num_pubs"]);	
-		
+
+		// RISH TODO DOUBLE CHECK MORE 3/9/2023
+		// updateMapSummary(res["num_trees"] + parseInt($('#num-trees').text()), map_unique_species.length, res["num_pubs"]);
+		// This code stops the double counting which was the problem I encountered when filtering the SNPs as an example	
+		updateMapSummary(res["num_trees"], map_unique_species.length, res["num_pubs"]);
 
 		// Call check to see if any studies are detected from the filters
 		console.log('Pop struct debug');

@@ -186,6 +186,7 @@ var ct_ready_mainjs = function () {
 	$("#collapse-icon").addClass("fa-angle-double-left");
 	$("#map-options").collapse("show");	
 	$("#map-summary").collapse("show");
+	$("#dataset-options").collapse("show");
 
 	$("body").tooltip({
 		selector: "[data-toggle='tooltip']",

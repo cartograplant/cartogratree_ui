@@ -1169,7 +1169,7 @@
                     </div>
                 </a>
                 <div class="filter-options collapse sidebar-submenu" id="map-summary" aria-expanded="false">
-                    <ul class="list-group">	
+                    <ul class="list-group">							
 						<li id="map-summary-loading">
 							<div class="map-summary-loading-class sidebar-submenu"  aria-expanded="false">
 								<ul class="list-group">
@@ -1266,7 +1266,7 @@
 				</div>
 			</li>
             <li>
-                <a href="#dataset-options" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start sidebar-separator-title">
+                <a href="#dataset-options" id="dataset-options-heading" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start sidebar-separator-title">
                     <div class="d-flex w-100 justify-content-start sidebar-menu-header align-items-center">
                         <span class="mr-2"><i class="fas fa-database"></i></span>
                         <span class="menu-collapsed"><b>Plant Dataset Sources</b></span>
