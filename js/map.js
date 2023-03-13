@@ -2723,6 +2723,39 @@ var ct_ready_mapjs = function() {
 		}
 	}
 
+	var xhr_progress = function () {
+		var xhr = new window.XMLHttpRequest();
+		//Download progress
+		xhr.addEventListener("progress", function (evt) {
+			if (evt.lengthComputable) {
+				var percentComplete = evt.loaded / evt.total;
+				console.log('percent complete:' + Math.round(percentComplete * 100));
+				var percentCompleteRevised = Math.round(percentComplete * 100);
+				if($('#map-dataset-loading').css('display') == "none") {
+					$('#map-dataset-loading').slideDown(0);
+					$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+
+					// Summary loading progress
+					$('#map-summary-loading').slideDown(0);
+					$('#map-summary-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+				}
+				else {
+					$('#map-dataset-loading-text-status').html('<img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" /> Downloading filtered data (' + percentCompleteRevised + '%)');
+					$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+					$('#map-dataset-loading-progressbar-progress-text').html(Math.round(evt.loaded / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB of ' + Math.round(evt.total / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB');
+
+					// Summary loading progress
+					$('#map-summary-loading-text-status').html('<img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" /> Map summary awaiting revised data... (' + percentCompleteRevised + '%)');
+					$('#map-summary-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+					$('#map-summary-loading-progressbar-progress-text').hide();
+					// $('#map-summary-loading-progressbar-progress-text').html(Math.round(evt.loaded / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB of ' + Math.round(evt.total / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB');									
+				}
+				// progressElem.html(Math.round(percentComplete * 100) + "%");
+			}
+		}, false);
+		return xhr;
+	}
+
 	/**
 	 * Makes an ajax call to the api to get all the tree ids associated with the dataset
 	 * @param {function} handler - The function which the tree data will be passed to, to be processed
@@ -2733,38 +2766,7 @@ var ct_ready_mapjs = function() {
 			url: Drupal.settings.ct_nodejs_api + "/v2/trees",
 			dataType: "json",		
 			async: true,
-			xhr: function () {
-				var xhr = new window.XMLHttpRequest();
-				//Download progress
-				xhr.addEventListener("progress", function (evt) {
-					if (evt.lengthComputable) {
-						var percentComplete = evt.loaded / evt.total;
-						console.log('percent complete:' + Math.round(percentComplete * 100));
-						var percentCompleteRevised = Math.round(percentComplete * 100);
-						if($('#map-dataset-loading').css('display') == "none") {
-							$('#map-dataset-loading').slideDown(0);
-							$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
-
-							// Summary loading progress
-							$('#map-summary-loading').slideDown(0);
-							$('#map-summary-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
-						}
-						else {
-							$('#map-dataset-loading-text-status').html('<img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" /> Downloading filtered data (' + percentCompleteRevised + '%)');
-							$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
-							$('#map-dataset-loading-progressbar-progress-text').html(Math.round(evt.loaded / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB of ' + Math.round(evt.total / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB');
-
-							// Summary loading progress
-							$('#map-summary-loading-text-status').html('<img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" /> Map summary awaiting revised data... (' + percentCompleteRevised + '%)');
-							$('#map-summary-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
-							$('#map-summary-loading-progressbar-progress-text').hide();
-							// $('#map-summary-loading-progressbar-progress-text').html(Math.round(evt.loaded / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB of ' + Math.round(evt.total / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB');									
-						}
-						// progressElem.html(Math.round(percentComplete * 100) + "%");
-					}
-				}, false);
-				return xhr;
-			},				
+			xhr: xhr_progress,				
 			success: function (data) {	
 				$('#map-dataset-loading').slideUp(1000);
 				$('#map-dataset-loading-progressbar-progress').css('width','100%');
@@ -2811,37 +2813,44 @@ var ct_ready_mapjs = function() {
 			url: Drupal.settings.ct_nodejs_api + "/v2/trees/wfid",
 			dataType: "json",
 			async: true,
-			xhr: function () {
-				var xhr = new window.XMLHttpRequest();
-				//Download progress
-				xhr.addEventListener("progress", function (evt) {
-					if (evt.lengthComputable) {
-						var percentComplete = evt.loaded / evt.total;
-						console.log('percent complete:' + Math.round(percentComplete * 100));
-						var percentCompleteRevised = Math.round(percentComplete * 100);
-						if(percentCompleteRevised == 0) {
-							$('#map-dataset-loading').slideDown(500);
-							$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+			xhr: xhr_progress,
+			// xhr: function () {
+			// 	var xhr = new window.XMLHttpRequest();
+			// 	//Download progress
+			// 	xhr.addEventListener("progress", function (evt) {
+			// 		if (evt.lengthComputable) {
+			// 			var percentComplete = evt.loaded / evt.total;
+			// 			console.log('percent complete:' + Math.round(percentComplete * 100));
+			// 			var percentCompleteRevised = Math.round(percentComplete * 100);
+			// 			if(percentCompleteRevised == 0) {
+			// 				$('#map-dataset-loading').slideDown(500);
+			// 				$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
 
-						}
-						else if (percentCompleteRevised == 100) {
-							$('#map-dataset-loading').slideUp(1000);
-							$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+			// 			}
+			// 			else if (percentCompleteRevised == 100) {
+			// 				$('#map-dataset-loading').slideUp(1000);
+			// 				$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
 
 							
-						}
-						else {
-							$('#map-dataset-loading-text-status').html('<img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" /> Downloading WFID filtered data (' + percentCompleteRevised + '%)');
-							$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
-							$('#map-dataset-loading-progressbar-progress-text').html(Math.round(evt.loaded / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB of ' + Math.round(evt.total / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB');
+			// 			}
+			// 			else {
+			// 				$('#map-dataset-loading-text-status').html('<img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" /> Downloading WFID filtered data (' + percentCompleteRevised + '%)');
+			// 				$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+			// 				$('#map-dataset-loading-progressbar-progress-text').html(Math.round(evt.loaded / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB of ' + Math.round(evt.total / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB');
 
-						}
-						// progressElem.html(Math.round(percentComplete * 100) + "%");
-					}
-				}, false);
-				return xhr;
-			},			
+			// 			}
+			// 			// progressElem.html(Math.round(percentComplete * 100) + "%");
+			// 		}
+			// 	}, false);
+			// 	return xhr;
+			// },			
 			success: function (data) {
+				$('#map-dataset-loading').slideUp(1000);
+				$('#map-dataset-loading-progressbar-progress').css('width','100%');
+
+				// Summary loading progress
+				$('#map-summary-loading').slideUp(1000);
+				$('#map-summary-loading-progressbar-progress').css('width', '100%');				
 				//current_dataset_data should get handled in the handler
 				handler(data);
 			},
@@ -2869,37 +2878,45 @@ var ct_ready_mapjs = function() {
 			url: Drupal.settings.ct_nodejs_api + "/v2/trees/popstruct?study_accession=" + study_accession,
 			dataType: "json",
 			async: true,
-			xhr: function () {
-				var xhr = new window.XMLHttpRequest();
-				//Download progress
-				xhr.addEventListener("progress", function (evt) {
-					if (evt.lengthComputable) {
-						var percentComplete = evt.loaded / evt.total;
-						console.log('percent complete:' + Math.round(percentComplete * 100));
-						var percentCompleteRevised = Math.round(percentComplete * 100);
-						if(percentCompleteRevised == 0) {
-							$('#map-dataset-loading').slideDown(500);
-							$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+			xhr: xhr_progress,
+			// xhr: function () {
+			// 	var xhr = new window.XMLHttpRequest();
+			// 	//Download progress
+			// 	xhr.addEventListener("progress", function (evt) {
+			// 		if (evt.lengthComputable) {
+			// 			var percentComplete = evt.loaded / evt.total;
+			// 			console.log('percent complete:' + Math.round(percentComplete * 100));
+			// 			var percentCompleteRevised = Math.round(percentComplete * 100);
+			// 			if(percentCompleteRevised == 0) {
+			// 				$('#map-dataset-loading').slideDown(500);
+			// 				$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
 
-						}
-						else if (percentCompleteRevised == 100) {
-							$('#map-dataset-loading').slideUp(1000);
-							$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+			// 			}
+			// 			else if (percentCompleteRevised == 100) {
+			// 				$('#map-dataset-loading').slideUp(1000);
+			// 				$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
 
 							
-						}
-						else {
-							$('#map-dataset-loading-text-status').html('<img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" /> Downloading WFID filtered data (' + percentCompleteRevised + '%)');
-							$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
-							$('#map-dataset-loading-progressbar-progress-text').html(Math.round(evt.loaded / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB of ' + Math.round(evt.total / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB');
+			// 			}
+			// 			else {
+			// 				$('#map-dataset-loading-text-status').html('<img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" /> Downloading WFID filtered data (' + percentCompleteRevised + '%)');
+			// 				$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+			// 				$('#map-dataset-loading-progressbar-progress-text').html(Math.round(evt.loaded / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB of ' + Math.round(evt.total / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB');
 
-						}
-						// progressElem.html(Math.round(percentComplete * 100) + "%");
-					}
-				}, false);
-				return xhr;
-			},			
+			// 			}
+			// 			// progressElem.html(Math.round(percentComplete * 100) + "%");
+			// 		}
+			// 	}, false);
+			// 	return xhr;
+			// },	
 			success: function (data) {
+				$('#map-dataset-loading').slideUp(1000);
+				$('#map-dataset-loading-progressbar-progress').css('width','100%');
+
+				// Summary loading progress
+				$('#map-summary-loading').slideUp(1000);
+				$('#map-summary-loading-progressbar-progress').css('width', '100%');
+
 				//current_dataset_data should get handled in the handler
 				console.log('Callback:' + study_accession);
 				handler(data, study_accession);
@@ -5417,42 +5434,42 @@ var ct_ready_mapjs = function() {
 						timeout: 120000,
 						//async: mapInit ? true : false,
 						async: true,
-						xhr: function () {
-							var xhr = new window.XMLHttpRequest();
-							//Download progress
-							xhr.addEventListener("progress", function (evt) {
-								if (evt.lengthComputable) {
-									var percentComplete = evt.loaded / evt.total;
-									console.log('percent complete:' + Math.round(percentComplete * 100));
-									var percentCompleteRevised = Math.round(percentComplete * 100);
-									if($('#map-dataset-loading').css('display') == "none") {
-										$('#map-dataset-loading').slideDown(0);
-										$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+						xhr: xhr_progress,
+						// xhr: function () {
+						// 	var xhr = new window.XMLHttpRequest();
+						// 	//Download progress
+						// 	xhr.addEventListener("progress", function (evt) {
+						// 		if (evt.lengthComputable) {
+						// 			var percentComplete = evt.loaded / evt.total;
+						// 			console.log('percent complete:' + Math.round(percentComplete * 100));
+						// 			var percentCompleteRevised = Math.round(percentComplete * 100);
+						// 			if($('#map-dataset-loading').css('display') == "none") {
+						// 				$('#map-dataset-loading').slideDown(0);
+						// 				$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
 
-										// Summary loading progress
-										$('#map-summary-loading').slideDown(0);
-										$('#map-summary-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
-									}
-									else {
-										$('#map-dataset-loading-text-status').html('<img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" /> Downloading filtered data (' + percentCompleteRevised + '%)');
-										$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
-										$('#map-dataset-loading-progressbar-progress-text').html(Math.round(evt.loaded / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB of ' + Math.round(evt.total / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB');
+						// 				// Summary loading progress
+						// 				$('#map-summary-loading').slideDown(0);
+						// 				$('#map-summary-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+						// 			}
+						// 			else {
+						// 				$('#map-dataset-loading-text-status').html('<img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" /> Downloading filtered data (' + percentCompleteRevised + '%)');
+						// 				$('#map-dataset-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+						// 				$('#map-dataset-loading-progressbar-progress-text').html(Math.round(evt.loaded / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB of ' + Math.round(evt.total / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB');
 
-										// Summary loading progress
-										$('#map-summary-loading-text-status').html('<img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" /> Map summary awaiting revised data... (' + percentCompleteRevised + '%)');
-										$('#map-summary-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
-										$('#map-summary-loading-progressbar-progress-text').hide();
-										// $('#map-summary-loading-progressbar-progress-text').html(Math.round(evt.loaded / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB of ' + Math.round(evt.total / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB');									
-									}
-									// progressElem.html(Math.round(percentComplete * 100) + "%");
-								}
-							}, false);
-							return xhr;
-						},		
+						// 				// Summary loading progress
+						// 				$('#map-summary-loading-text-status').html('<img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" /> Map summary awaiting revised data... (' + percentCompleteRevised + '%)');
+						// 				$('#map-summary-loading-progressbar-progress').css('width', percentCompleteRevised + '%');
+						// 				$('#map-summary-loading-progressbar-progress-text').hide();
+						// 				// $('#map-summary-loading-progressbar-progress-text').html(Math.round(evt.loaded / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB of ' + Math.round(evt.total / 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' KB');									
+						// 			}
+						// 			// progressElem.html(Math.round(percentComplete * 100) + "%");
+						// 		}
+						// 	}, false);
+						// 	return xhr;
+						// },		
 						contentType: "application/json", 
 						data: JSON.stringify(jsonData),
 						success: function(res) {
-							
 							$('#map-dataset-loading').slideUp(1000);
 							$('#map-dataset-loading-progressbar-progress').css('width','100%');
 
