@@ -2689,7 +2689,7 @@ var ct_ready_map_analysis = function() {
 	$(document).on('click','.analysis_category_checkbox',function () {
 		var this_id = $(this).attr("id");
 		var category_id = this_id.split("_", 3)[2];
-		console.log('category_id=' + category_id);
+		console.log('category_id=', category_id);
 		if($(this).is(':checked')) {
 			// get the groups
 			var url = Drupal.settings.base_url + "/cartogratree_uiapi/get_groups_by_analysis_category_id/" + category_id;
@@ -2700,10 +2700,26 @@ var ct_ready_map_analysis = function() {
 				success: function (data) {
 					console.log(data);
 					for(var i=0; i<data.length; i++) {
-						var item_html = "<div style='padding-left: 5px;'><div style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪ </div><input type='checkbox' class='analysis_category_group_checkbox' id='analysis_category_" + category_id + "_group_" + data[i]['group_id'] + "'><div style='display: inline-block; color:#FFFFFF; background-color: #814390; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>group</div>" + data[i]['group_name'] + "</div>";
-						item_html += "<div style='padding-left: 10px;' id='analysis_category_" + category_id + "_groups_" + data[i]['group_id'] + "_layers'></div>";
-						$('#analysis_category_groups_' + category_id).append(item_html);
+						var category_group_container_html = "<div class='category_group_container' style='padding-left: 5px;'>";
+            category_group_container_html += "</div>";
+            var category_group_container = $(category_group_container_html);
+
+            var item_html = "<div style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪ </div><input type='checkbox' class='analysis_category_group_checkbox' id='analysis_category_" + category_id + "_group_" + data[i]['group_id'] + "'><div style='display: inline-block; color:#FFFFFF; background-color: #dc6e00; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>group</div>" + data[i]['group_name'] + "</div>";
+			item_html += '<div style="padding-left: 20px;" class="search_box_container" id="analysis_category_' + category_id + '_groups_' + data[i]['group_id'] + '_search_box_container" data-category="' + category_id +  '" data-group="' + data[i]['group_id'] + '">';
+            item_html += '<div style="display: inline-block; color:#FFFFFF; background-color: #58a359; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; padding-left: 4px; padding-right: 4px; vertical-align: middle;"><i class="fa fa-search" aria-hidden="true"></i> Search properties</div>'
+            item_html += '<input class="properties_search_box" type="text" />';
+			item_html += '<div style="display: inline-block; margin-left: 5px;" class="results_summary_search_box"></div>'
+            item_html += '</div>';
+            item_html += "<div style='padding-left: 10px;' id='analysis_category_" + category_id + "_groups_" + data[i]['group_id'] + "_layers'>";
+            category_group_container.html(item_html);
+
+						$('#analysis_category_groups_' + category_id).append(category_group_container);
+
+            // Hide the search box container until the group checkbox has been clicked
+            $('#analysis_category_' + category_id + '_groups_' + data[i]['group_id'] + '_search_box_container').hide();
+
 					}
+
 				}
 			});				
 		}
@@ -2711,16 +2727,17 @@ var ct_ready_map_analysis = function() {
 			// clear the div
 			$('#analysis_category_groups_' + category_id).html("");
 		}
-		console.log(category_id);
+		console.log('category_id', category_id);
 	});
 
 	$(document).on('click','.analysis_category_group_checkbox',function () {
+		console.log('Source JS script: map_analysis.js');
 		var this_id = $(this).attr("id");
 		var this_id_parts = this_id.split("_", 5);
 		var category_id = this_id_parts[2];
 		var group_id = this_id_parts[4];
-		console.log('category_id=' + category_id);
-		console.log('group_id=' + group_id);
+		console.log('[map_analysis.js] category_id=' + category_id);
+		console.log('[map_analysis.js] group_id=' + group_id);
 		if($(this).is(':checked')) {
 			// get the groups
 			var url = Drupal.settings.base_url + "/cartogratree_uiapi/get_layers_by_analysis_category_id_and_group_id/" + category_id + '/' + group_id;
@@ -2729,7 +2746,11 @@ var ct_ready_map_analysis = function() {
 				url: url,
 				dataType: "json",
 				success: function (data) {
-					console.log(data);
+					console.log('map_analysis.js - group layers', data);
+
+          // Make search container visible
+          $('#analysis_category_' + category_id + '_groups_' + group_id + '_search_box_container').show();
+
 					for(var i=0; i<data.length; i++) {
 						// var item_html = "<div style='padding-left: 10px;'><input type='checkbox' class='analysis_category_group_checkbox' id='analysis_category_" + category_id + "_group_" + data[i]['group_id'] + "'> " + data[i]['group_name'] + "</div>";
 						// item_html += "<div style='padding-left: 20px;' id='analysis_category_" + category_id + "_group_" + data[i]['group_id'] + "_layers'></div>";
@@ -2737,7 +2758,7 @@ var ct_ready_map_analysis = function() {
 						
 						var layer_id_number = data[i]['layer_id'];
 						// Use layer_id_number to see whether this is a multilayer layer and try to expand out the layers
-						console.log(Drupal.settings['layers']['cartogratree_layer_' + layer_id_number]);
+						console.log('[map_analysis.js] layer info from uiapi endpoint', Drupal.settings['layers']['cartogratree_layer_' + layer_id_number]);
 						var isMultiLayeredYear = Drupal.settings['layers']['cartogratree_layer_' + layer_id_number]['layer_multilayer_rangeslider_year_option'];
 						var layer_list_ids = [];
 						var layer_list_names = [];
@@ -2749,7 +2770,7 @@ var ct_ready_map_analysis = function() {
 							// We need to go through each year
 							for(var j=start_year; j<=end_year; j++) {
 								var search_layer_name = (layer_name_with_wildcard + '').replace('%', j);
-								console.log(search_layer_name);
+								console.log('[map_analysis.js] search_layer_name',search_layer_name);
 
 								// We need to find these layers to get the layer_ids
 								var layer_keys = Object.keys(Drupal.settings['layers']);
@@ -2758,8 +2779,8 @@ var ct_ready_map_analysis = function() {
 									var tmp_layer_name = Drupal.settings['layers'][layer_keys[k]]['name'];
 									if(tmp_layer_name.includes(search_layer_name)) {
 										// add the id
-										console.log(tmp_layer_name);
-										console.log(tmp_layer_id)
+										console.log('[map_analysis.js] tmp_layer_name',tmp_layer_name);
+										console.log('[map_analysis.js] tmp_layer_name',tmp_layer_id)
 										layer_list_ids.push(tmp_layer_id);
 										layer_list_names.push(tmp_layer_name);
 										// break for statement
@@ -2773,12 +2794,13 @@ var ct_ready_map_analysis = function() {
 							layer_list_names.push(Drupal.settings['layers']['cartogratree_layer_' + layer_id_number]['name']);							
 						}
 
-						console.log(layer_list_ids);
-						console.log(layer_list_names);
+						console.log('[map_analysis.js] layer_list_ids',layer_list_ids);
+						console.log('[map_analysis.js] layer_list_names',layer_list_names);
+						console.log('[map_analysis.js] Creating all layers checkbox lists for this grouping');
 						for(var k=0; k<layer_list_ids.length; k++)  {
 							// var item_html = "<div style='padding-left: 5px;'><div style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪ </div><input id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + data[i]['layer_id'] + "_checkbox' class='analysis_category_groups_layer_checkbox' type='checkbox' /><div style='display: inline-block; color:#FFFFFF; background-color: #0984ec; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>layer</div>" + data[i]['title'] + "</div>";
 							// item_html += "<div style='padding-left: 10px;' id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + data[i]['layer_id'] + "'></div>";
-							var item_html = "<div style='padding-left: 5px;' layer_title='" + data[i]['title'] + "'>"
+							var item_html = "<div class='property_container' style='padding-left: 5px;' layer_title='" + data[i]['title'] + "'>"
 							item_html += "<div class='env_layer_meta' style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪ </div>";
 							item_html += "<input id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_list_ids[k] + "_checkbox' class='analysis_category_groups_layer_checkbox env_layer_meta' type='checkbox' />";
 							item_html += "<div class='env_layer_meta' style='display: inline-block; color:#FFFFFF; background-color: #0984ec; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>layer</div>";
@@ -2788,23 +2810,33 @@ var ct_ready_map_analysis = function() {
 							item_html += "</div>";							
 							$('#analysis_category_' + category_id + '_groups_' + group_id + '_layers').append(item_html);
 
-							// Click to open the layer to get the list of possible fieldss
+
+
+
+							// Click to open the layer to get the list of possible fields
+							console.log('[map_analysis.js] automated layer checkbox clicked');
 							$('#' + "analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_list_ids[k] + "_checkbox").click();
 						}
+
+
 						// $('#analysis_category_groups_' + category_id).fadeIn(500);
 					}
 				}
 			});				
 		}
 		else {
+      // hide search
+      $('#analysis_category_' + category_id + '_groups_' + group_id + '_search_box_container').hide();
+
 			// clear the div
 			$('#analysis_category_' + category_id + '_groups_' + group_id + '_layers').html("");			
 		}
-		console.log(category_id);
 	});	
 
 
-	
+
+	// Analysis Category Groups Layer Checkbox click
+	// This will CREATE the checkboxes for PROPERTIES
 	$(document).on('click', '.analysis_category_groups_layer_checkbox', function() {
 		var checkbox_element = $(this);
 		var layer_title = $(this).parent().attr('layer_title');
@@ -2813,15 +2845,14 @@ var ct_ready_map_analysis = function() {
 		var category_id = this_id_parts[2];
 		var group_id = this_id_parts[4];	
 		var layer_id = this_id_parts[6];
-		console.log(Drupal.settings);
-		console.log(layer_id);
+		console.log('[map_analysis.js] layer id autoclicked via checkbox', layer_id);
 		var layer_name = Drupal.settings.layers['cartogratree_layer_' + layer_id]['name'];
 		//var bbox = '0,0,256,256';
 		var bbox = '24.26795744042827,-89.80302970226862,24.467957440428272,-89.60302970226863';
 		//var url = Drupal.settings.cartogratree.gis + "/../wfs?service=WFS&version=1.0.0&request=GetFeature&typeName=" + layer_name + "&maxFeatures=1&outputFormat=json&BBOX=" + bbox;	
 		var url = Drupal.settings.cartogratree.gis + "/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&QUERY_LAYERS=" + layer_name + "&LAYERS=" + layer_name + "&INFO_FORMAT=application%2Fjson&I=128&J=128&WIDTH=256&HEIGHT=256&CRS=EPSG:4326&STYLES=&BBOX=" + bbox;
 		
-		console.log(url);
+		console.log('[map_analysis.js] url', url);
 		if($(this).is(':checked')) {
 			$.ajax({
 				method: "GET",
@@ -2833,7 +2864,7 @@ var ct_ready_map_analysis = function() {
 					// to determine if any are hidden or renamed
 					var url_field_details = Drupal.settings.base_url + "/cartogratree_uiapi/get_layer_fields_adjustments/" + layer_id;
 					console.log('Environmental layer get field details hidden and renamed');
-					console.log(url_field_details);
+					console.log('[map_analysis.js] url_field_details',url_field_details);
 					$.ajax({
 						url: url_field_details,
 						method: 'GET',
@@ -2864,11 +2895,8 @@ var ct_ready_map_analysis = function() {
 										checkbox_element.parent().find('.env_layer_meta').css('display', 'none');
 									}
 									for(var i = 0; i < keys.length; i++) {
-
 										var key_name = keys[i];
-
 										if (url_field_details_data['layer_embedded_fields_hide'].includes(key_name) == false) {	
-											
 											if(replacements[key_name] != undefined) {
 												key_name = replacements[key_name];
 											}
@@ -2879,19 +2907,190 @@ var ct_ready_map_analysis = function() {
 											}
 
 											// Create a checkbox element for this key / property
-											var item_html = "<div style='padding-left: 5px;'><div style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪</div><input id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id + "_property_" + i + "_checkbox' class='analysis_category_groups_layer_property_checkbox' type='checkbox' data-value='" + key_name + "' /><div style='display: inline-block; color:#FFFFFF; background-color: #0984ec; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>property</div>" + key_name +  "</div>";
+											var item_html = "<div style='padding-left: 5px;'><div style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪</div><input id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id + "_property_" + i + "_checkbox' class='analysis_category_groups_layer_property_checkbox' type='checkbox' data-value='" + key_name + "' /><div style='display: inline-block; color:#FFFFFF; background-color: #12ae68; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>property</div>" + key_name +  "</div>";
 											$("#analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id).append(item_html);
 
 											// Reorder the element to the top, the reason for this is because there may be layers which will show the subgroup
 											// which can be confusing
 											if (keys.length == 1) {
+
 												var element = $("#analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id);
 												var parent_container = element.parent().parent();
 												var parent = element.parent();
+
+                        // Manipulate the dom elements depending on if there is a classification or not
 												parent.remove();
-												parent_container.prepend(parent);
-												// element.remove();
-												// parent.prepend(element);
+
+                        // Setup a classification if one isn't created based on key_name (get lowercase value, search for strings)
+                        var key_name_lowercase = key_name.toLowerCase();
+                        var classification = undefined;
+						            var sub_classification = undefined;
+                        if (key_name_lowercase.includes('temp') || key_name_lowercase.includes('temperature')) {
+                          var classification = "temperature";
+                          if (key_name_lowercase.includes('maximum')) {
+                            sub_classification = 'maximum';
+                          }
+                          else if (key_name_lowercase.includes('minimum')) {
+                            sub_classification = 'minimum';
+                          }
+                          else if (key_name_lowercase.includes('mean')) {
+                            sub_classification = 'mean';
+                          }                          
+                          else if (key_name_lowercase.includes('average')) {
+                            sub_classification = 'average';
+                          }
+                        }
+                        else if (key_name_lowercase.includes('precipitation')) {
+                          var classification = "precipitation";
+                        }
+                        else if (key_name_lowercase.includes('moisture')) {
+                          var classification = "moisture";
+                        }
+                        else if (key_name_lowercase.includes('period')) {
+                          var classification = "period";
+                        }                          
+                        else if (key_name_lowercase.includes('day') && !key_name_lowercase.includes('days')) {
+                          var classification = "day";
+                        }                        
+                        else if (key_name_lowercase.includes('days')) {
+                          var classification = "days";
+                        }                        
+
+                        // Create a classification element once classification is defined
+                        var classification_id = undefined;
+                        var classification_container = undefined;
+                        if (classification != undefined) {
+                          // This is the potential classification id we would use. Use this to check if there is
+                          // already a classification element or to create a new one
+                          classification_id = "analysis_category_" + category_id + "_groups_" + group_id + '_classification_' + classification;
+                        
+                          // check if there's a container element created already, if not, create one
+                          if ($('#' + classification_id).length) {
+                            
+                          }
+                          else {
+                            // jQuery classification_container object
+                            classification_container = $('<div class="classification_container" id=' + classification_id + ' data-classification="' + classification + '"></div>');
+                            classification_container.css('margin-left', '20px');
+                            
+                            // *** Overall inner HTML for classification container (contents)
+                            var classification_html = '';
+
+                            // This is the L sub marker
+                            classification_html += '<div style="display: inline-block; font-size: 20px; position: relative;top: -5px;">˪</div>';
+
+                            // This is the checkbox for the classification grouping
+                            classification_html += '<input id="analysis_category_1_groups_27_classification_checkbox" class="analysis_category_groups_classification_checkbox" type="checkbox" data-value="' + classification + '">';
+
+                            classification_html += '<div style="display: inline-block; color:#FFFFFF; background-color: #dc6e00; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 0px; text-transform: uppercase; padding: 2px; vertical-align: middle;">';
+                            classification_html += 'CLASSIFICATION'
+                            classification_html += '</div>';
+
+                            // This is the category label div element
+                            classification_html += '<div style="display: inline-block; color:#FFFFFF; background-color: #008756; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 0px; text-transform: uppercase; padding: 2px; vertical-align: middle;">';
+                            classification_html += classification.toLocaleUpperCase()
+                            classification_html += '</div>';
+
+                            // This is the sub_classifications_container in case there are sub classifications
+                            classification_html += '<div style="margin-left: 20px;" class="sub_classifications_container"></div>';
+
+                            // This is the property container which will hold the parent which was removed before
+                            classification_html += '<div class="properties_container"></div>';
+
+                            classification_container.html(classification_html);
+
+                            
+                            // Attempt to order alphabetically
+                            console.log('parent_container', parent_container);
+                            var classification_elements = parent_container.find('.classification_container');
+                            console.log('classification_elements', classification_elements);
+                            var el = undefined;
+                            for (var i=0; i<classification_elements.size(); i++) {
+                              el = $(classification_elements[i]);
+                              console.log('el', el);
+                              var el_classification = el.attr('data-classification');
+                              console.log('el_classification', el_classification);
+                              var string_comparison = classification.localeCompare(el_classification);
+                              if(string_comparison <= 0) {
+                                break;
+                              } 
+                            }
+
+                            if (el == undefined) {
+                              // This will happen when it's the first element in the parent_container
+                              parent_container.prepend(classification_container);
+                            }
+                            else {
+                              classification_container.insertBefore($('#' + el.attr('id')));
+                            }
+
+
+                            // parent_container.prepend(classification_container);
+                          }
+                        }
+
+                        // Check if sub_classification is defined
+                        console.log('sub_classification', sub_classification);
+                        if (sub_classification != undefined) {
+                          // Check if there is already a container for this sub-classification
+                          if ($('#' + classification_id + ' .sub_classification_container[data-sub-classification="' + sub_classification + '"]').length) {
+                            // already exists, no need to create
+                          }
+                          else {
+                            // does not exist so create the sub-classification
+                            var sub_classifications_container = $('#' + classification_id + ' .sub_classifications_container');
+                            var sub_classification_html = '';
+                            sub_classification_html += '<div class="sub_classification_container" data-sub-classification="' + sub_classification + '">';
+                            
+                            // This is the L sub marker
+                            sub_classification_html += '<div style="display: inline-block; font-size: 20px; position: relative;top: -5px;">˪</div>';
+
+                            // This is the checkbox for the classification grouping
+                            sub_classification_html += '<input id="analysis_category_1_groups_27_sub_classification_checkbox" class="analysis_category_groups_sub_classification_checkbox" type="checkbox" data-classification="' + classification + '" data-sub-classification="' + sub_classification + '">';
+
+                            sub_classification_html += '<div style="display: inline-block; color:#FFFFFF; background-color: #dc6e00; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 0px; text-transform: uppercase; padding: 2px; vertical-align: middle;">';
+                            sub_classification_html += 'SUB CLASS'
+                            sub_classification_html += '</div>';
+
+                            // This is the category label div element
+                            sub_classification_html += '<div style="display: inline-block; color:#FFFFFF; background-color: #008756; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 0px; text-transform: uppercase; padding: 2px; vertical-align: middle;">';
+                            sub_classification_html += sub_classification.toLocaleUpperCase()
+                            sub_classification_html += '</div>';
+                            sub_classification_html += '<div class="properties_container"></div>';
+                            sub_classification_html += '</div>';
+                            sub_classifications_container.append(sub_classification_html);
+                          }
+                        }
+
+
+                        // We cannot assume the classification_container already exists, so get back the
+                        // the jquery object reference
+                        // if (classification != undefined) {
+                        //   var classification_container = $('#' + classification_id);
+                        //   classification_container.children('.properties_container').prepend(parent);
+                        // }
+                        // else {
+												//   parent_container.append(parent);
+                        // }
+
+                        console.log('classify_data', {
+                          'classification': classification,
+                          'sub_classification': sub_classification
+                        });
+                        if (classification != undefined && sub_classification != undefined) {
+                          var sub_classification_container = $('#' + classification_id + ' .sub_classification_container[data-sub-classification="' + sub_classification + '"]');
+                          console.log('example1', sub_classification_container);
+                          sub_classification_container.children('.properties_container').prepend(parent);
+                        }
+                        else if ((classification != undefined && sub_classification == undefined)) {
+                          var classification_container = $('#' + classification_id);
+                          console.log('example2', classification_container);
+                          classification_container.children('.properties_container').prepend(parent);
+                        }
+                        else {
+                          console.log('example3', parent_container);
+												  parent_container.append(parent);
+                        }
 											}
 										}
 									}
@@ -2921,7 +3120,6 @@ var ct_ready_map_analysis = function() {
 															if(replacements[key_name] != undefined) {
 																key_name = replacements[key_name];
 															}
-
 
 															var item_html = "<div style='padding-left: 5px;'><div style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪</div><input id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id + "_property_" + i + "_checkbox' class='analysis_category_groups_layer_property_checkbox' type='checkbox' data-value='" + key_name + "' /><div style='display: inline-block; color:#FFFFFF; background-color: #0984ec; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>property</div>" + key_name +  "</div>";
 															$("#analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id).append(item_html);
@@ -2971,11 +3169,119 @@ var ct_ready_map_analysis = function() {
 		}
 	});
 
+  // Layer search box for Environmental layers list
+  $(document).on('keyup', '#analysis-retrieve-envdata-section-layers-list .properties_search_box', function() {
+    // console.log('properties search box change detected');
+    var search_element = $(this);
+	var matches_count = 0;
+    var value = search_element.val();
+    if (value != undefined) {
+      value = value.toLowerCase();
+    }
+    // console.log('value', value);
+
+    // Only search if the text in the textbox is more than or equal to 3 characters long
+    if (value.length >= 0) {
+      // Find the parent group container by parent() which goes to the search container
+      // then another parent() which is the overall group container element
+      var group_container_element = search_element.parent().parent();
+      // console.log('group_container_element', group_container_element);
+      
+      // Find all properties containers that are nested children of the group_container
+      // This is because these properties containers can be in classifcation or sub-classification containers
+      var properties_containers = group_container_element.find('.properties_container');
+      // console.log('properties_containers', properties_containers);
+
+
+      for (var i=0; i<properties_containers.length; i++) {
+        var properties_container = $(properties_containers[i]);
+        properties_container.show();
+        var properties = properties_container.children();
+
+        // Keep track of all hidden properties and shown properties
+        // for this specific properties container (CLASSIFICATIONS and SUB-CLASSIFICATIONS)
+        var hidden_properties = 0;
+        var shown_properties = 0;
+        for (var j=0; j<properties.length; j++) {
+          
+          var property_container = $(properties[j]);
+          console.log('property_container', property_container);
+          var checkbox_element = property_container.find('.analysis_category_groups_layer_property_checkbox');
+          var property_value = checkbox_element.attr('data-value');
+          if  (property_value != undefined) {
+            property_value = property_value.toLowerCase();
+          }
+          console.log('property_value', property_value);
+          if (property_value.includes(value)) {
+			property_container.fadeIn(300).show();
+            shown_properties = shown_properties + 1;
+			matches_count = matches_count + 1;
+			search_element.parent().find('.results_summary_search_box').html(matches_count + ' matches found.')
+			.css('font-style', 'italic')
+			.css('font-size', '10px');
+            
+          }
+          else {
+            hidden_properties = hidden_properties + 1;
+            property_container.fadeOut(300).hide();
+          }
+
+
+
+          // Hide the properties container PARENT since no properties are viewable
+          console.log('hidden_properties', hidden_properties);
+          console.log('properties.length', properties.length);
+          if (hidden_properties == properties.length) {
+            // Check if this was from a sub classification
+            if (properties_container.parent().hasClass('sub_classification_container')) {
+              properties_container.parent().fadeOut(300).hide();
+            }
+			// Cater for classifications at the end of the code.
+          }
+          else {
+            if (properties_container.parent().hasClass('sub_classification_container')) {
+              properties_container.parent().show();
+            }
+			// Cater for classifications at the end of the code
+          }
+        }
+      }
+
+	  
+      // After all changes, check if there are empty classifications, remove those
+      var classifications = group_container_element.find('.classification_container');
+      for (var i=0; i<classifications.length; i++) {
+        var classification = $(classifications[i]);
+		// Default is to show the classification
+		classification.show();
+
+        // get all property_containers
+        var property_containers = classification.find('.property_container');
+		// Default is all_hidden true, but check if any element is visible it becomes false
+		// which is efficient to not go through entire for loop
+        var all_hidden = true;
+        for (var j=0; j<property_containers.length; j++) {
+          var property = $(property_containers[j]);
+		  console.log('property', property);
+          if ($(property).is(':visible') == true) {
+            all_hidden = false;
+            break;
+          }
+        }
+		// If all properties are hidden, hide the classification container
+        if (all_hidden == true) {
+          classification.hide();
+        }
+      }
+
+    }
+  });
+
 	var analysis_environmental_data_selected_properties = [];
-	// This is the on click event for an actual environment property found in layer
+	// This is the on click event for an actual environment PROPERTY found in layer
 	$(document).on('click','.analysis_category_groups_layer_property_checkbox', function() {
 
-		console.log($(this).is(":checked"));
+		console.log('[map_analysis.js]', $(this).is(":checked"));
 		if ($(this).is(":checked") == true) {
 			var this_id = $(this).attr("id");
 			var this_id_parts = this_id.split("_");
@@ -2994,7 +3300,7 @@ var ct_ready_map_analysis = function() {
 				'property_id': property_id, 
 				'property_value': property_value
 			};
-			console.log(object);
+			console.log('[map_analysis.js]', object);
 			analysis_environmental_data_selected_properties.push(object);
 		}
 		else {

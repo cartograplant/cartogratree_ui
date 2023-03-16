@@ -2766,7 +2766,7 @@ var ct_ready_mapjs = function() {
 			url: Drupal.settings.ct_nodejs_api + "/v2/trees",
 			dataType: "json",		
 			async: true,
-			xhr: xhr_progress,				
+			xhr: xhr_progress,
 			success: function (data) {	
 				$('#map-dataset-loading').slideUp(1000);
 				$('#map-dataset-loading-progressbar-progress').css('width','100%');
@@ -6841,8 +6841,93 @@ var ct_ready_mapjs = function() {
 	var afs_trees_current = 0;	
 	var afs_trees_total = 0;
 
+	// This function will check to see if analysis script is already loaded
+	// If not, it will load it in the background
+	function load_scripts_analysis() {
+		if(cartograplant['scripts']['analysis'] == undefined) {
+			var url = Drupal.settings.base_url + '/' + Drupal.settings.cartogratree.url_path + '/js/map_analysis.js';
+			console.log('Analysis script location: ' + url);
+			$.ajax({
+				url: url,
+				dataType: "script",
+				async: false,
+				success: function() {
+					console.log('[GOOD] Analysis scripts loaded');
+				},
+				error: function() {
+					alert("[FATAL] Please contact administration, analysis module could not be loaded");
+				}
+			});
+		}
+		else {
+			console.log('[GOOD] Analysis script already loaded');
+		}
+
+		// VENN Script
+		if(cartograplant['scripts']['venn'] == undefined) {
+			var url = Drupal.settings.base_url + '/' + Drupal.settings.cartogratree.url_path + '/js/venn/venn.js';
+			console.log('Venn script location: ' + url);
+			$.ajax({
+				url: url,
+				dataType: "script",
+				async: false,
+				success: function() {
+					console.log('[GOOD] Venn script loaded');
+				},
+				error: function() {
+					alert("[FATAL] Please contact administration, venn module could not be loaded");
+				}
+			});
+		}
+		else {
+			console.log('[GOOD] Venn script already loaded');
+		}
+
+		// Scatterplot script
+		if(cartograplant['scripts']['scatterplot_basic'] == undefined) {
+			var url = Drupal.settings.base_url + '/' + Drupal.settings.cartogratree.url_path + '/js/scatterplot/scatterplot_basic.js';
+			console.log('Scatterplot basic script location: ' + url);
+			$.ajax({
+				url: url,
+				dataType: "script",
+				async: false,
+				success: function() {
+					console.log('[GOOD] Scatterplot Basic script loaded');
+				},
+				error: function() {
+					alert("[FATAL] Please contact administration, scatterplot basic module could not be loaded");
+				}
+			});
+		}
+		else {
+			console.log('[GOOD] Scatterplot basic script already loaded');
+		}	
+		
+		// Scatterplot script
+		if(cartograplant['scripts']['interactivehistogramv5'] == undefined) {
+			var url = Drupal.settings.base_url + '/' + Drupal.settings.cartogratree.url_path + '/js/interactivehistogram/interactivehistogramv5.js';
+			console.log('Interactive Histogram V5 script location: ' + url);
+			$.ajax({
+				url: url,
+				dataType: "script",
+				async: false,
+				success: function() {
+					console.log('[GOOD] Interactive Histogram V5 script loaded');
+				},
+				error: function() {
+					alert("[FATAL] Please contact administration, Interactive Histogram V5 module could not be loaded");
+				}
+			});
+		}
+		else {
+			console.log('[GOOD] Scatterplot basic script already loaded');
+		}		
+	}
 
 	$("#analysis-btn").on("click", function () {
+
+		load_scripts_analysis();
+
 		if ($(this).hasClass("disabled")) {
 			alert("You must login to perform analysis");
 			return;

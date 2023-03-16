@@ -2,6 +2,7 @@
 var mapState;
 //var treeDataStore = {};
 var cartograplant = {};
+cartograplant['scripts'] = {};
 var ct_ready_mainjs = function () {
 	console.log(Drupal.settings);
 	//query builder set up

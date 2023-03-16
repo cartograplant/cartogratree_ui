@@ -27,24 +27,36 @@ function cartogratree_uiapi_get_pop_struct_icon($population_group_id) {
     $color_selected_parts = explode(',', $color_selected_string);
 
     $images_path = __DIR__ . '/../theme/templates/trees_imgs';
-    // echo $images_path;
-    $imgname = $images_path . "/popstruct_exact.png";
-    // echo file_get_contents($imgname);
-    $im = imagecreatefrompng($imgname);
 
-    imagefilter($im, IMG_FILTER_NEGATE); 
-    imagefilter($im, IMG_FILTER_COLORIZE, $color_selected_parts[0], $color_selected_parts[1], $color_selected_parts[2]); 
-    // imagefilter($im, IMG_FILTER_NEGATE); 
-    
-    imagealphablending( $im, false );
-    imagesavealpha( $im, true );
+    $image_file_path = $images_path . "/popstruct_exact_" . $population_group_id . ".png";
+
+    if(file_exists($image_file_path)) {
+        // do nothing
+    }
+    else {
+        // echo $images_path;
+        $imgname = $images_path . "/popstruct_exact.png";
+        // echo file_get_contents($imgname);
+        $im = imagecreatefrompng($imgname);
+
+        imagefilter($im, IMG_FILTER_NEGATE); 
+        imagefilter($im, IMG_FILTER_COLORIZE, $color_selected_parts[0], $color_selected_parts[1], $color_selected_parts[2]); 
+        // imagefilter($im, IMG_FILTER_NEGATE); 
+        
+        imagealphablending( $im, false );
+        imagesavealpha( $im, true );
+
+        // header('Content-type: image/png');
+        // imagepng($im);
+        // imagedestroy($im);
+        
+        imagepng($im, $image_file_path);
+        // imagedestroy($im);
+    }
 
     header('Content-type: image/png');
-    imagepng($im);
-    imagedestroy($im);
-    // $imgname = "result.gif";
-    // imagegif($im, $imgname ); // save image as gif
-    // imagedestroy($im);
+    echo file_get_contents($image_file_path);
+
 }
 
 /**

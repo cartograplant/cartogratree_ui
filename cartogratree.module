@@ -944,6 +944,8 @@ function cartogratree_preprocess_page(&$variables)
             $variables['token'] = cartogratree_get_user_key($user->uid);
         }
 
+        cartogratree_add_external_files();
+
         $settings = array(
             'cartogratree' => array(
                 'url_path' => drupal_get_path('module', 'cartogratree'),
@@ -1032,21 +1034,24 @@ function cartogratree_preprocess_page(&$variables)
             $settings['job_boot'] = $job_details;
         }
 
-
         $geoserver_datasets = unserialize(variable_get('ct_geoserver_datasets', serialize(array())));
         $settings['geoserver_datasets'] = $geoserver_datasets;
         $settings['ct_nodejs_api'] = variable_get('ct_nodejs_api');
 
-        cartogratree_add_external_files();
+
+
+
+        
         drupal_add_js($settings, 'setting');
         //custom files 
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/main.js');
-
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map.js');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_controls.js');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_onload_event.js');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_click_events.js');
-        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_analysis.js');
+
+        // We use dynamic code to load this instead by clicking the analysis button
+        // drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_analysis.js');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_realtime.js');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_jobs.js');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/select2c.min.js');
@@ -1056,22 +1061,111 @@ function cartogratree_preprocess_page(&$variables)
         drupal_add_css(drupal_get_path('module', 'cartogratree') . '/styling/sel_all_btn.css');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/overlap_grid.js');
         drupal_add_css(drupal_get_path('module', 'cartogratree') . '/styling/overlap_grid.css');
-        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/venn/venn.js');
-        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/scatterplot/scatterplot_basic.js');
+        // drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/venn/venn.js');
+        // drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/scatterplot/scatterplot_basic.js');
+        // drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/interactivehistogram/interactivehistogramv5.js');
+        
+        // OLD D3S code that doesn't work properly
         // drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/d3multi.js');
-        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/interactivehistogram/interactivehistogramv5.js');
         // drupal_add_css(drupal_get_path('module', 'tripald3') . '/css/tripald3.css');
         // drupal_add_js(drupal_get_path('module', 'tripald3') . '/js/tripalD3.js');
         // drupal_add_js(drupal_get_path('module', 'tripald3') . '/js/tripalD3.histo.js');
         // drupal_add_js(drupal_get_path('module', 'tripald3') . '/js/tripalD3.simpleHisto.js');
         // $library = libraries_load('d3');
         //tripald3_load_libraries();
+
         tripald3_register_colorschemes();
+
     }
+}
+
+// This is Cartogratree specific for performance by removing unnecessary JS
+function cartogratree_js_alter(&$scripts) {
+    // // This code manually removes unnecessary JS scripts from Cartraplant on LIVE
+    unset($scripts['sites/all/modules/chado_search/theme/js/chado_search.js']);
+    unset($scripts['sites/all/modules/tripal/tripal/theme/js/tripal.js']);
+    unset($scripts['sites/all/modules/tripal/legacy/tripal_core/theme/js/tripal_core.js']);
+    unset($scripts['sites/all/libraries/colorbox/jquery.colorbox-min.js']);
+    unset($scripts['sites/all/modules/colorbox/js/colorbox.js']);
+    unset($scripts['sites/all/modules/colorbox_node/js/colorbox_node.js']);
+    unset($scripts['sites/all/modules/colorbox/styles/default/colorbox_style.js']);
+    unset($scripts['sites/all/modules/colorbox/js/colorbox_load.js']);
+    unset($scripts['sites/all/modules/colorbox/js/colorbox_inline.js']);
+    unset($scripts['sites/all/modules/tripal/legacy/tripal_feature/theme/js/tripal_feature.js']);
+    unset($scripts['sites/all/modules/tripal_galaxy/theme/js/tripal_galaxy.js']);
+    unset($scripts['sites/all/modules/tripal/tripal_ds/theme/js/tripal_ds.js']);
+}
+
+// This is Cartogratree specific for performance by removing unnecessary CSS
+function cartogratree_css_alter(&$css) {
+    $path = current_path();
+    if (stripos($path, 'cartogratree') !== FALSE) {
+        foreach ($css as $css_location => $css_array) {
+            if (stripos($css_location, 'injector') !== FALSE) {
+                unset($css[$css_location]);
+            }
+            else if (stripos($css_location, 'colorbox') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'ctools') !== FALSE) {
+                unset ($css[$css_location]);
+            } 
+            else if (stripos($css_location, 'panels') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'simplenews') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'calendar') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'directory') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'tseq') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'sequence') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'tripal') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'field') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'node') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'organism_pages') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'poll.css') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'chado_search.css') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'spotlight.css') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'spotlight.css') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'ionicons.css') !== FALSE) {
+                unset ($css[$css_location]);
+            }
+            else if (stripos($css_location, 'dawn.icons.css') !== FALSE) {
+                unset ($css[$css_location]);
+            }                                                                                                                                                                                          
+        }
+    }
+    // dpm($css);
 }
 
 function cartogratree_add_external_files($bootstrap_latest = TRUE, $jquery_latest = TRUE, $mapbox = TRUE, $d3s = TRUE)
 {
+    drupal_add_js('//cdnjs.cloudflare.com/ajax/libs/vanilla-lazyload/17.8.3/lazyload.min.js', 'external');
     //toastr notifications
     drupal_add_js('//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js', 'external');
     drupal_add_css('//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css', 'external');
