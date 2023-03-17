@@ -3169,6 +3169,93 @@ var ct_ready_map_analysis = function() {
 		}
 	});
 
+  // When a classification is checked
+  $(document).on('click', '.analysis_category_groups_classification_checkbox', function() {
+    console.log('Classification checkbox clicked');
+    // Find sub classification items and select corresponding checkbox
+    var classification_element = $(this);
+    var classification_container = classification_element.parent();
+    console.log('checkbox is checked:', classification_element.is(':checked'));
+    if (classification_element.is(':checked') == true) {
+      // find all property elements within the classification only
+      var classification_container_id = classification_container.attr('id');
+      var property_checkboxes_under_classification_only = $('#' + classification_container_id + ' > ' + '.properties_container' + ' > .property_container .analysis_category_groups_layer_property_checkbox');
+      console.log(property_checkboxes_under_classification_only);
+      for (var i=0; i<property_checkboxes_under_classification_only.length; i++) {
+        var property_checkbox = $(property_checkboxes_under_classification_only[i]);
+        if (property_checkbox.is(':checked') == false) {
+          property_checkbox.click();
+        }
+      }
+
+      // find all sub_classification elements
+      var sub_class_checkboxes = classification_container.find('.sub_classification_container .analysis_category_groups_sub_classification_checkbox');
+      for (var i=0; i<sub_class_checkboxes.length; i++) {
+        var sub_class_checkbox = $(sub_class_checkboxes[i]);
+        if (sub_class_checkbox.is(':checked') == false) {
+          sub_class_checkbox.click();
+        }
+      }
+    }
+    else {
+      // find all property elements within the classification only
+      var classification_container_id = classification_container.attr('id');
+      var property_checkboxes_under_classification_only = $('#' + classification_container_id + ' > ' + '.properties_container' + ' > .property_container .analysis_category_groups_layer_property_checkbox');
+      console.log(property_checkboxes_under_classification_only);
+      for (var i=0; i<property_checkboxes_under_classification_only.length; i++) {
+        var property_checkbox = $(property_checkboxes_under_classification_only[i]);
+        if (property_checkbox.is(':checked') == true) {
+          property_checkbox.click();
+        }
+      }
+
+      // find all sub_classification elements
+      var sub_class_checkboxes = classification_container.find('.sub_classification_container .analysis_category_groups_sub_classification_checkbox');
+      for (var i=0; i<sub_class_checkboxes.length; i++) {
+        var sub_class_checkbox = $(sub_class_checkboxes[i]);
+        if (sub_class_checkbox.is(':checked') == true) {
+          sub_class_checkbox.click();
+        }
+      }      
+    }
+
+  });
+  
+  // When sub-class checkbox is clicked
+  $(document).on('click', '.analysis_category_groups_sub_classification_checkbox', function() {
+    console.log('Classification checkbox clicked');
+    // Find sub classification items and select corresponding checkbox
+    var sub_classification_element = $(this);
+    var sub_classification_container = sub_classification_element.parent();
+    console.log('checkbox is checked:', sub_classification_element.is(':checked'));
+    if (sub_classification_element.is(':checked') == true) {
+      // find all property elements within the classification only
+      var sub_classification_container_id = sub_classification_container.attr('id');
+      var property_checkboxes_under_sub_classification_only = sub_classification_container.find('.properties_container' + ' > .property_container .analysis_category_groups_layer_property_checkbox');
+      console.log(property_checkboxes_under_sub_classification_only);
+      for (var i=0; i<property_checkboxes_under_sub_classification_only.length; i++) {
+        var property_checkbox = $(property_checkboxes_under_sub_classification_only[i]);
+        if (property_checkbox.is(':checked') == false) {
+          property_checkbox.click();
+        }
+      }
+    }
+    else {
+      // find all property elements within the classification only
+      var sub_classification_container_id = sub_classification_container.attr('id');
+      var property_checkboxes_under_sub_classification_only = sub_classification_container.find('.properties_container' + ' > .property_container .analysis_category_groups_layer_property_checkbox');
+      console.log(property_checkboxes_under_sub_classification_only);
+      for (var i=0; i<property_checkboxes_under_sub_classification_only.length; i++) {
+        var property_checkbox = $(property_checkboxes_under_sub_classification_only[i]);
+        if (property_checkbox.is(':checked') == true) {
+          property_checkbox.click();
+        }
+      }      
+    } 
+  });
+
+
+
   // Layer search box for Environmental layers list
   $(document).on('keyup', '#analysis-retrieve-envdata-section-layers-list .properties_search_box', function() {
     // console.log('properties search box change detected');
