@@ -2701,23 +2701,25 @@ var ct_ready_map_analysis = function() {
 					console.log(data);
 					for(var i=0; i<data.length; i++) {
 						var category_group_container_html = "<div class='category_group_container' style='padding-left: 5px;'>";
-            category_group_container_html += "</div>";
-            var category_group_container = $(category_group_container_html);
+						category_group_container_html += "</div>";
+						var category_group_container = $(category_group_container_html);
 
-            var item_html = "<div style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪ </div><input type='checkbox' class='analysis_category_group_checkbox' id='analysis_category_" + category_id + "_group_" + data[i]['group_id'] + "'><div style='display: inline-block; color:#FFFFFF; background-color: #dc6e00; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>group</div>" + data[i]['group_name'] + "</div>";
-			item_html += '<div style="padding-left: 20px;" class="search_box_container" id="analysis_category_' + category_id + '_groups_' + data[i]['group_id'] + '_search_box_container" data-category="' + category_id +  '" data-group="' + data[i]['group_id'] + '">';
-            item_html += '<div style="display: inline-block; color:#FFFFFF; background-color: #58a359; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; padding-left: 4px; padding-right: 4px; vertical-align: middle;"><i class="fa fa-search" aria-hidden="true"></i> Search properties</div>'
-            item_html += '<input class="properties_search_box" type="text" />';
-			item_html += '<div style="display: inline-block; margin-left: 5px;" class="results_summary_search_box"></div>'
-            item_html += '</div>';
-            item_html += "<div style='padding-left: 10px;' id='analysis_category_" + category_id + "_groups_" + data[i]['group_id'] + "_layers'>";
-            category_group_container.html(item_html);
+						var item_html = "<div style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪ </div><input type='checkbox' class='analysis_category_group_checkbox' id='analysis_category_" + category_id + "_group_" + data[i]['group_id'] + "'><div style='display: inline-block; color:#FFFFFF; background-color: #dc6e00; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>group</div>" + data[i]['group_name'] + "</div>";
+						item_html += '<div style="padding-left: 20px;" class="search_box_container" id="analysis_category_' + category_id + '_groups_' + data[i]['group_id'] + '_search_box_container" data-category="' + category_id +  '" data-group="' + data[i]['group_id'] + '">';
+						item_html += '<div data-toggle="tooltip" title="Search group properties" style="display: inline-block; color:#FFFFFF; background-color: #ae46ef; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; padding-left: 4px; padding-right: 4px; vertical-align: middle;"><i class="fa fa-search" aria-hidden="true"></i> Search</div>'
+						item_html += '<input style="text-align: center;" data-toggle="tooltip" title="contains" class="properties_search_box" type="text" />';
+            item_html += '<i style="margin-left: 3px; cursor: pointer;" data-toggle="tooltip" title="Clear search" class="fa fa-times-circle properties_search_clear" aria-hidden="true"></i>'
+						item_html += '<div style="display: inline-block; margin-left: 5px;" class="results_summary_search_box"></div>'
+						item_html += '</div>';
+						item_html += '<div class="properties_select_all" data-state="unchecked" style="cursor: pointer; display: inline-block; color:#FFFFFF; background-color: #007bff; border-radius: 2px; font-size: 10px; margin-left: 25px; margin-right: 5px; text-transform: uppercase; padding: 2px; padding-left: 4px; padding-right: 4px; vertical-align: middle;" id="analysis_category_' + category_id + "_groups_" + data[i]['group_id'] + '_select_all"><span class="icon"><i class="fa fa-check-square" aria-hidden="true"></i></span> <span class="text">SELECT ALL</span></div>';
+						item_html += "<div style='padding-left: 10px;' id='analysis_category_" + category_id + "_groups_" + data[i]['group_id'] + "_layers'>";
+						category_group_container.html(item_html);
 
 						$('#analysis_category_groups_' + category_id).append(category_group_container);
 
-            // Hide the search box container until the group checkbox has been clicked
-            $('#analysis_category_' + category_id + '_groups_' + data[i]['group_id'] + '_search_box_container').hide();
-
+						// Hide the search box container until the group checkbox has been clicked
+						$('#analysis_category_' + category_id + '_groups_' + data[i]['group_id'] + '_search_box_container').hide();
+						$('#analysis_category_' + category_id + '_groups_' + data[i]['group_id'] + '_select_all').hide();
 					}
 
 				}
@@ -2750,6 +2752,7 @@ var ct_ready_map_analysis = function() {
 
           // Make search container visible
           $('#analysis_category_' + category_id + '_groups_' + group_id + '_search_box_container').show();
+		      $('#analysis_category_' + category_id + '_groups_' + group_id + '_select_all').show();
 
 					for(var i=0; i<data.length; i++) {
 						// var item_html = "<div style='padding-left: 10px;'><input type='checkbox' class='analysis_category_group_checkbox' id='analysis_category_" + category_id + "_group_" + data[i]['group_id'] + "'> " + data[i]['group_name'] + "</div>";
@@ -2821,12 +2824,15 @@ var ct_ready_map_analysis = function() {
 
 						// $('#analysis_category_groups_' + category_id).fadeIn(500);
 					}
+          
 				}
-			});				
+			});
+      			
 		}
 		else {
       // hide search
       $('#analysis_category_' + category_id + '_groups_' + group_id + '_search_box_container').hide();
+      $('#analysis_category_' + category_id + '_groups_' + group_id + '_select_all').hide();
 
 			// clear the div
 			$('#analysis_category_' + category_id + '_groups_' + group_id + '_layers').html("");			
@@ -2983,12 +2989,12 @@ var ct_ready_map_analysis = function() {
                             classification_html += '<input id="analysis_category_1_groups_27_classification_checkbox" class="analysis_category_groups_classification_checkbox" type="checkbox" data-value="' + classification + '">';
 
                             classification_html += '<div style="display: inline-block; color:#FFFFFF; background-color: #dc6e00; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 0px; text-transform: uppercase; padding: 2px; vertical-align: middle;">';
-                            classification_html += 'CLASSIFICATION'
+                            classification_html += '<i class="fa fa-star" aria-hidden="true"></i> ' + 'CLASSIFICATION'
                             classification_html += '</div>';
 
                             // This is the category label div element
                             classification_html += '<div style="display: inline-block; color:#FFFFFF; background-color: #008756; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 0px; text-transform: uppercase; padding: 2px; vertical-align: middle;">';
-                            classification_html += classification.toLocaleUpperCase()
+                            classification_html += '<b>' + classification.toLocaleUpperCase() + '</b>';
                             classification_html += '</div>';
 
                             // This is the sub_classifications_container in case there are sub classifications
@@ -3048,13 +3054,15 @@ var ct_ready_map_analysis = function() {
                             // This is the checkbox for the classification grouping
                             sub_classification_html += '<input id="analysis_category_1_groups_27_sub_classification_checkbox" class="analysis_category_groups_sub_classification_checkbox" type="checkbox" data-classification="' + classification + '" data-sub-classification="' + sub_classification + '">';
 
-                            sub_classification_html += '<div style="display: inline-block; color:#FFFFFF; background-color: #dc6e00; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 0px; text-transform: uppercase; padding: 2px; vertical-align: middle;">';
-                            sub_classification_html += 'SUB CLASS'
+                            sub_classification_html += '<div style="display: inline-block; color:#FFFFFF; background-color: #dc6e00; border-radius: 2px; font-size: 10px; margin-left: 5px; padding-right: 5px !important; text-transform: uppercase; padding: 2px; vertical-align: middle;">';
+                            sub_classification_html += '<i style="margin-left: 3px; margin-right: 3px;" class="fa fa-tag" aria-hidden="true"></i> ';
+                            sub_classification_html += 'SUB CLASS ';
+                            // sub_classification_html += ' TAG ';
                             sub_classification_html += '</div>';
 
                             // This is the category label div element
                             sub_classification_html += '<div style="display: inline-block; color:#FFFFFF; background-color: #008756; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 0px; text-transform: uppercase; padding: 2px; vertical-align: middle;">';
-                            sub_classification_html += sub_classification.toLocaleUpperCase()
+                            sub_classification_html += '<b>'  + sub_classification.toLocaleUpperCase() + '</b>';
                             sub_classification_html += '</div>';
                             sub_classification_html += '<div class="properties_container"></div>';
                             sub_classification_html += '</div>';
@@ -3169,6 +3177,46 @@ var ct_ready_map_analysis = function() {
 		}
 	});
 
+  $(document).on('click', '.properties_select_all', function() {
+    // Get each classification container
+    var group_container = $(this).parent();
+    var classification_containers_checkboxes = group_container.find('.analysis_category_groups_classification_checkbox');
+    var data_state = $(this).attr('data-state');
+    // If select_all is unchecked (unclicked), check all classification containers
+    if (data_state == 'unchecked') {
+      // Perform clicks on all classifications
+      for (var i=0; i<classification_containers_checkboxes.length; i++) {
+        var classification_containers_checkbox = $(classification_containers_checkboxes[i]);
+        // If already check, reset it by unchecking
+        if (classification_containers_checkbox.is(':checked') == true) {
+          classification_containers_checkbox.click(); // uncheck it first
+        }
+        // Then forcing back a check
+        classification_containers_checkbox.click();
+      }
+      $(this).css('background-color','#d9534f');
+      $(this).find('.icon').html('<i class="fa fa-times-circle" aria-hidden="true"></i>');
+      $(this).find('.text').html('Unselect all');
+      $(this).attr('data-state', 'checked');
+    }
+    // If select_all was already checked (clicked), unclear
+    else {
+      for (var i=0; i<classification_containers_checkboxes.length; i++) {
+        var classification_containers_checkbox = $(classification_containers_checkboxes[i]);
+        // If uncheck, reset it by checking
+        if (classification_containers_checkbox.is(':checked') == false) {
+          classification_containers_checkbox.click(); // uncheck it first
+        }
+        // Then forcing back a click to uncheck
+        classification_containers_checkbox.click(); 
+      }
+      $(this).css('background-color','#007bff');
+      $(this).find('.icon').html('<i class="fa fa-check-square" aria-hidden="true"></i>');
+      $(this).find('.text').html('Select all');
+      $(this).attr('data-state', 'unchecked');    
+    }
+  });
+
   // When a classification is checked
   $(document).on('click', '.analysis_category_groups_classification_checkbox', function() {
     console.log('Classification checkbox clicked');
@@ -3214,7 +3262,7 @@ var ct_ready_map_analysis = function() {
       for (var i=0; i<sub_class_checkboxes.length; i++) {
         var sub_class_checkbox = $(sub_class_checkboxes[i]);
         if (sub_class_checkbox.is(':checked') == true) {
-          sub_class_checkbox.click();
+            sub_class_checkbox.click();
         }
       }      
     }
@@ -3236,7 +3284,9 @@ var ct_ready_map_analysis = function() {
       for (var i=0; i<property_checkboxes_under_sub_classification_only.length; i++) {
         var property_checkbox = $(property_checkboxes_under_sub_classification_only[i]);
         if (property_checkbox.is(':checked') == false) {
-          property_checkbox.click();
+          if (property_checkbox.is(':visible') == true) {
+            property_checkbox.click();
+          }
         }
       }
     }
@@ -3248,19 +3298,21 @@ var ct_ready_map_analysis = function() {
       for (var i=0; i<property_checkboxes_under_sub_classification_only.length; i++) {
         var property_checkbox = $(property_checkboxes_under_sub_classification_only[i]);
         if (property_checkbox.is(':checked') == true) {
-          property_checkbox.click();
+        	property_checkbox.click();    
         }
       }      
     } 
   });
 
-
+  $(document).on('click', '.properties_search_clear', function() {
+    $(this).parent().find('.properties_search_box').val('').keyup();
+  });
 
   // Layer search box for Environmental layers list
   $(document).on('keyup', '#analysis-retrieve-envdata-section-layers-list .properties_search_box', function() {
     // console.log('properties search box change detected');
     var search_element = $(this);
-	var matches_count = 0;
+	  var matches_count = 0;
     var value = search_element.val();
     if (value != undefined) {
       value = value.toLowerCase();
@@ -3300,12 +3352,12 @@ var ct_ready_map_analysis = function() {
           }
           console.log('property_value', property_value);
           if (property_value.includes(value)) {
-			property_container.fadeIn(300).show();
+            property_container.fadeIn(300).show();
             shown_properties = shown_properties + 1;
-			matches_count = matches_count + 1;
-			search_element.parent().find('.results_summary_search_box').html(matches_count + ' matches found.')
-			.css('font-style', 'italic')
-			.css('font-size', '10px');
+            matches_count = matches_count + 1;
+            search_element.parent().find('.results_summary_search_box').html(matches_count + ' matches found.')
+            .css('font-style', 'italic')
+            .css('font-size', '10px');
             
           }
           else {
@@ -3323,13 +3375,13 @@ var ct_ready_map_analysis = function() {
             if (properties_container.parent().hasClass('sub_classification_container')) {
               properties_container.parent().fadeOut(300).hide();
             }
-			// Cater for classifications at the end of the code.
+			      // Cater for classifications at the end of the code.
           }
           else {
             if (properties_container.parent().hasClass('sub_classification_container')) {
               properties_container.parent().show();
             }
-			// Cater for classifications at the end of the code
+			      // Cater for classifications at the end of the code
           }
         }
       }
@@ -3339,23 +3391,23 @@ var ct_ready_map_analysis = function() {
       var classifications = group_container_element.find('.classification_container');
       for (var i=0; i<classifications.length; i++) {
         var classification = $(classifications[i]);
-		// Default is to show the classification
-		classification.show();
+		    // Default is to show the classification
+		    classification.show();
 
         // get all property_containers
         var property_containers = classification.find('.property_container');
-		// Default is all_hidden true, but check if any element is visible it becomes false
-		// which is efficient to not go through entire for loop
+        // Default is all_hidden true, but check if any element is visible it becomes false
+        // which is efficient to not go through entire for loop
         var all_hidden = true;
         for (var j=0; j<property_containers.length; j++) {
           var property = $(property_containers[j]);
-		  console.log('property', property);
+		      console.log('property', property);
           if ($(property).is(':visible') == true) {
             all_hidden = false;
             break;
           }
         }
-		// If all properties are hidden, hide the classification container
+		    // If all properties are hidden, hide the classification container
         if (all_hidden == true) {
           classification.hide();
         }
