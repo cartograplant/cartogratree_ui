@@ -252,6 +252,145 @@ var ct_ready_map_click_events = function() {
 
     $(".carousel-control-next-icon").click(function() {
         $("#tree-img-carousel").carousel("next");
-    });    
+    });  
+	
+	$(document).on('click', 'i[id*="layer_info_icon_"]', function() {
+		// Get layer id
+		console.log('click detected...');
+		var layer_id_number = $(this).attr("id").replace('layer_info_icon_','');
+		console.log('tried to get the layer id from the tag id from info icon:' + layer_id_number)
+
+		if($('#layer_info_' + layer_id_number).length) {
+			// exists
+			console.log('Info container already exists');
+			/*
+			if($(element).is(":visible")) {
+				$('layer_info_' + layer_id_number).hide();
+			}
+			else {
+				$('layer_info_' + layer_id_number).show();
+			}
+			*/
+			$('#layer_info_' + layer_id_number).toggle();
+			
+		}
+		else {
+			console.log('Info container does not exist... creating and populating');
+			var layer_info_container = '<div style="margin-left: 20px; width: 100%; font-size: 10px;" id="layer_info_' + layer_id_number + '">This layer does not have additional information.</div>';
+			$("#ct-layer-title-" + layer_id_number).parent().parent().append(layer_info_container);	
+			var url_uiapi_get_layer_info = Drupal.settings.base_url + "/cartogratree_uiapi/get_layer_info/" + Drupal.settings.layers['cartogratree_layer_' + layer_id_number]['layer_id'];
+			$.ajax({
+				method: "GET",
+				url: url_uiapi_get_layer_info,
+				dataType: "json",
+				success: function (data) {
+					console.log(data);
+					try {
+						console.log(data['layer_legend_html']);
+						if(data['layer_legend_html'] != null && data['layer_legend_html'] != undefined && data['layer_legend_html'] != "") {
+							$('#layer_info_' + layer_id_number).html(data['layer_legend_html']);
+						}
+						else {
+							
+						}
+					}
+					catch(err) {
+						console.log('ERROR:' + err);
+					}									
+				},
+				error: function (xhr, textStatus, errorThrown) {
+					if(debug) {
+						console.log({
+							textStatus
+						});
+						console.log({
+							errorThrown
+						});
+						console.log(eval("(" + xhr.responseText + ")"));
+					}
+				}
+			}).done(function() {
+	
+			});				
+		}
+	});	
+
+
+
+	$(document).on('change', '.query-builder input.selectized', function() {
+		console.log('DETECTED selectize change in value');
+		$(this).each(function () {
+			var filter_value = $(this).val();
+			// console.log('VALUE CHANGED TO:' + filter_value);
+
+			// Get the overall rule container
+			var rule_container = $(this).parent().parent();
+
+			// Find whether the filter was study / accession
+			var filter_type = rule_container.find('.rule-filter-container select').val();
+			// console.log(filter_type);
+			if (filter_type == 'accession') {
+				// Check CP API for list of phenotypes for this study accession
+				var study = filter_value;
+				var url = Drupal.settings.ct_nodejs_api + "/v2/phenotypes/phenotype_names_per_study"
+				$.ajax({
+					url: url,
+					method: 'POST',
+					data: {
+						study: filter_value
+					},
+					success: function(data) {
+						// data = JSON.parse(data);
+						console.log(data);
+						var phenotype_list_container = undefined;
+						rule_container.find('.phenotypes_list').each(function () {
+							phenotype_list_container = $(this);
+						});
+						if (phenotype_list_container == undefined) {
+							// create a sub container to put this phenotype list
+							var phenotype_list_container_html = '';
+							phenotype_list_container_html += '<div class="phenotypes_list" style="font-size: 13px; margin: 10px;"></div>';
+							phenotype_list_container = $(phenotype_list_container_html);
+							rule_container.append(phenotype_list_container);
+						}
+
+						// Now go through each data row and add it to the container
+						var phenotype_list_html = '';
+						phenotype_list_html += '🅿 <b>' + data.length + ' phenotypes found in study</b>';
+						if (data.length > 0) {
+							phenotype_list_html += ': ';
+						}
+						for(var i = 0; i<data.length; i++) {
+							var row = data[i];
+							phenotype_list_html += row['phenotype'] + ', ';
+						}
+
+						// Remove the last comma if it exists
+						if (phenotype_list_html.endsWith(", "))   {
+							phenotype_list_html = phenotype_list_html.slice(0, -2); 
+						}
+						phenotype_list_container.html(phenotype_list_html);
+					}
+				});
+			}
+			else {
+
+			}
+		});
+	});
+
+	$(document).on('change', '.query-builder .rule-filter-container select', function() {
+		var filter_type = $(this).val();
+		if (filter_type != 'accession') {
+			// remove .phenotypes_list since the filter is not of type 'accession'
+			var rule_container = $(this).parent().parent();
+			// remove phenotype_list_container since it means the user changed the filter type
+			rule_container.find('.phenotypes_list').each(function() {
+				$(this).remove();
+			});
+
+		}
+	});
+
 }
 $(ct_ready_map_click_events);

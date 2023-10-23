@@ -33,6 +33,9 @@ var ct_ready_mapjs = function() {
 	const defaultTreeImgs = ["https://via.placeholder.com/150/e7e7e7/000000/?text=Image%201", "https://via.placeholder.com/150/e7e7e7/000000/?text=Image%202", "https://via.placeholder.com/150/e7e7e7/000000/?text=Image%203"];	
 	const geoserver_tileset_styles = ['point','stack'];
 
+	var loading_icon_src = Drupal.settings.base_url + '/' + Drupal.settings.cartogratree.url_path + '/theme/templates/resources_imgs/loader-ring.gif';
+	cartograplant['loading_icon_src'] = loading_icon_src;
+
 	// This variable stores unique species per layer
 	var unique_species = {};
 	cartograplant.unique_species = unique_species;
@@ -1292,10 +1295,11 @@ var ct_ready_mapjs = function() {
 					$("#ct-layer-title-" + layer_id_number).parent().parent().append(legend_container);
 					
 					
-					var legend_container_title = '<div style="font-size: 18px; padding-left: 10px; margin-top: 5px;" id="legend_container_title_' + layer_id_number + '"></div>';
-					//if(this.html != undefined && this.html != '') {
-					legend_container_title = '<div style="font-size: 18px; padding-left: 10px; margin-top: 5px;" id="legend_container_title_' + layer_id_number + '"><i title="Legend details" id="legend_legend_icon_' + layer_id_number + '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 10px;" class="fas fa-chart-bar"></i></div>';
-					//}
+					// var legend_container_title = '<div style="font-size: 18px; padding-left: 10px; margin-top: 5px;" id="legend_container_title_' + layer_id_number + '"></div>';
+					var legend_container_title = '<div style="font-size: 18px; padding-left: 10px; margin-top: 5px;" id="legend_container_title_' + layer_id_number + '">'
+					// legend_container_title += '<i title="Legend details" id="legend_legend_icon_' + layer_id_number + '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 10px;" class="fas fa-chart-bar"></i>'
+					legend_container_title += '</div>';
+
 					$("#legend_container_" + layer_id_number).append(legend_container_title);
 
 					// Geoserver Legend
@@ -1724,7 +1728,7 @@ var ct_ready_mapjs = function() {
 	
 	const queryString = window.location.search;
 	console.log('Query string from URL:');
-	console.log(queryString);
+	console.log('queryString', queryString);
 	const urlParams = new URLSearchParams(queryString);
 	//var selectedSession = Drupal.settings.user["sessions"][selectedConfig.attr("href").split("-")[1]];
 	/*
@@ -2282,7 +2286,7 @@ var ct_ready_mapjs = function() {
 			mapStatusNotification('Map is ready for further interaction', 'success', true, 4000, 0);
 		}
 
-	 });
+	});
 	 
 	 function mapStatusNotification(text = '', type = 'info', clear = false, timeout = 0, ext_timeout = 0) {
 		if(clear == true) {
@@ -2471,8 +2475,22 @@ var ct_ready_mapjs = function() {
 			console.log('initMapTrees() function');
 		}
 		if (Object.keys(filterQuery).length == 0 && getActiveDatasets().length == 3) {
+			console.log('MAP', map);
 			getAllTrees(function(data) {
+
+				// TEMPORARY PATCH - TEST NEW FILTERING MECHANISM UNTIL EMILY FIXES VIEWS
+				// var data_tmp = [];
+				// for (var d_index = 0; d_index < data.length; d_index++) {
+				// 	var item = data[d_index];
+				// 	var item_dot_parts = item["geometry"]["coordinates"][0].split('.');
+				// 	if (item_dot_parts.length <= 2) {
+				// 		data_tmp.push(item);
+				// 	}
+				// }
+				// data = data_tmp;
+
 				addDatasetLayer(data);
+				console.log('initMapSummary');
 				initMapSummary(data.length);
 				
 
@@ -2492,8 +2510,9 @@ var ct_ready_mapjs = function() {
 
 
 				dataDatasets[0] = data;
+				console.log('dataDatasets', dataDatasets);
 				setCurrentDatasetData(0, data);
-				
+
 				//This stores the unique species count per dataset layer enabled
 				for(var i=0; i<3; i++) {
 					updateUniqueSpeciesCount(i, ""); // "" is an empty filter
@@ -2517,85 +2536,92 @@ var ct_ready_mapjs = function() {
 	*/
 	function addDatasetLayer(trees) {
 		console.log('DatasetSourceID: '  + datasetSourceId);
-		map.addSource(datasetSourceId, {
-			"type": "geojson",
-			"data": {
-				"type": "FeatureCollection",
-				"features": trees
-			},
-			"cluster": true,
-			"clusterMaxZoom": 9, // Max zoom to cluster points on
-			"clusterRadius": 50 // Radius of each cluster when clustering points (defaults to 50)
-		});
+		console.log('Actual data', trees);
+		try {
+			map.addSource(datasetSourceId, {
+				"type": "geojson",
+				"data": {
+					"type": "FeatureCollection",
+					"features": trees
+				},
+				"cluster": true,
+				"clusterMaxZoom": 9, // Max zoom to cluster points on
+				"clusterRadius": 50 // Radius of each cluster when clustering points (defaults to 50)
+			});
 
-		console.log('DatasetLayerID: ' + datasetLayerId);
-		map.addLayer({
-			"id": datasetLayerId,
-			"type": "symbol",
-			"source": datasetSourceId,
-			"filter": ["!", ["has", "point_count"]],
-			"layout": {
-				"icon-image": getTreeIconsV2(),
-				"icon-allow-overlap": true,
-				// "text-allow-overlap": true
-			}, 
-			}, "state-label", //set below text labels of states
-		);
+			console.log('DatasetLayerID: ' + datasetLayerId);
+			map.addLayer({
+				"id": datasetLayerId,
+				"type": "symbol",
+				"source": datasetSourceId,
+				"filter": ["!", ["has", "point_count"]],
+				"layout": {
+					"icon-image": getTreeIconsV2(),
+					"icon-allow-overlap": true,
+					// "text-allow-overlap": true
+				}, 
+				}, "state-label", //set below text labels of states
+			);
 
-		//the cluster circles which will represent grouped up trees
-		//color and size of the circle depends on cluster size, in arbitrary 0->250, 250->1000, 1000+ intervals
-		console.log('DatasetClusterID: ' + datasetClusterId);
-		map.addLayer({
-			"id": datasetClusterId,
-			"type": "circle",
-			"source": datasetSourceId,
-			"filter": ["has", "point_count"],
-			"paint": {
-				"circle-color": [
-					"step",
-					["get", "point_count"],
-					clusterProps[0][1],
-					clusterProps[1][0],	
-					clusterProps[1][1],
-					clusterProps[2][0],
-					clusterProps[2][1],
-				],
-				"circle-radius": [
-					"step",
-					["get", "point_count"],
-					25,
-					clusterProps[1][0],
-					35,
-					clusterProps[2][0],
-					45,
-				],
-				// "circle-radius": [
-				// 	"step",
-				// 	["get", "point_count"],
-				// 	5,
-				// 	clusterProps[1][0],
-				// 	10,
-				// 	clusterProps[2][0],
-				// 	25,
-				// ],				
-			}
-		});
+			//the cluster circles which will represent grouped up trees
+			//color and size of the circle depends on cluster size, in arbitrary 0->250, 250->1000, 1000+ intervals
+			console.log('DatasetClusterID: ' + datasetClusterId);
+			map.addLayer({
+				"id": datasetClusterId,
+				"type": "circle",
+				"source": datasetSourceId,
+				"filter": ["has", "point_count"],
+				"paint": {
+					"circle-color": [
+						"step",
+						["get", "point_count"],
+						clusterProps[0][1],
+						clusterProps[1][0],	
+						clusterProps[1][1],
+						clusterProps[2][0],
+						clusterProps[2][1],
+					],
+					"circle-radius": [
+						"step",
+						["get", "point_count"],
+						25,
+						clusterProps[1][0],
+						35,
+						clusterProps[2][0],
+						45,
+					],
+					// "circle-radius": [
+					// 	"step",
+					// 	["get", "point_count"],
+					// 	5,
+					// 	clusterProps[1][0],
+					// 	10,
+					// 	clusterProps[2][0],
+					// 	25,
+					// ],				
+				}
+			});
 
-		//the text displayed on top of the circles that give additional information like tree count in this cluster
-		console.log('DatasetClusterCountID: ' + datasetClusterId + "-count");
-		map.addLayer({
-			"id": datasetClusterId + "-count",
-			"type": "symbol",
-			"source": datasetSourceId,
-			"filter": ["has", "point_count"],
-			"layout": {
-				"text-field": "{point_count_abbreviated}" + " Plants",
-				"text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-				"text-size": 12,
-				// "text-allow-overlap": true
-			}
-		});
-		addDatasetClickEvents(datasetSourceId, datasetLayerId, datasetClusterId);
+			//the text displayed on top of the circles that give additional information like tree count in this cluster
+			console.log('DatasetClusterCountID: ' + datasetClusterId + "-count");
+			map.addLayer({
+				"id": datasetClusterId + "-count",
+				"type": "symbol",
+				"source": datasetSourceId,
+				"filter": ["has", "point_count"],
+				"layout": {
+					"text-field": "{point_count_abbreviated}" + " Plants",
+					"text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+					"text-size": 12,
+					// "text-allow-overlap": true
+				}
+			});
+			addDatasetClickEvents(datasetSourceId, datasetLayerId, datasetClusterId);
+			console.log('Dataset click events added');
+		}
+		catch (err) {
+			console.log(err);
+		}
 	}
 
 
@@ -2963,7 +2989,8 @@ var ct_ready_mapjs = function() {
 		];
 	}
 
-	function getTreeIconsV2() {		
+	function getTreeIconsV2() {	
+		console.log('getTreeIconsV2 was called');	
 		return [
 			// "match", ["get", "is_tree"], "true", "gymnosperm_ex", "false", "plant", "angiosperm_ex"   
 			"match", ["get", "is_tree"], 
@@ -3821,7 +3848,12 @@ var ct_ready_mapjs = function() {
 						console.log('treesnap-data', tsData);
 						$("#tree-submitter").text("Taken by: " + tsData.submitter);
 						$("#tree-collection-date").text("Collection date: " + tsData.collection_date);
-						updateTreeImgs(tsData.images.images, data.species);
+						try {
+						updateTreeImgs(tsData.data.images.images, data.species);
+						}
+						catch (err) {
+							console.log('ERROR FOR TREESNAP IMAGES:' + err);
+						}
 						treeImgsStore[treeId] = {"submitter": tsData.submitter, "collection_data": tsData.collection_date, "images": tsData.images.images};
 						
 
@@ -3949,6 +3981,8 @@ var ct_ready_mapjs = function() {
 
 		//perform phenotypes lookup
 		$('#tree-specific-unique-phenotypes-container').hide();
+		$('#tree-more-info-phenotype-container').html('Looking up phenotype data for ' + treeId + '... <img style="height: 16px;" src="' + loading_icon_src + '" />');
+		$('#tree-more-info-phenotype-container').show();
 		$.ajax({
 			url: Drupal.settings.ct_nodejs_api + "/v2/phenotypes?api_key=" + Drupal.settings.ct_api + "&tree_id=" + treeId,
 			dataType: "json",
@@ -4077,6 +4111,7 @@ var ct_ready_mapjs = function() {
 					});
 					console.log(xhr.responseText);
 				}
+				$('#tree-more-info-phenotype-container').hide();
 			}
 		});
 		
@@ -4110,6 +4145,8 @@ var ct_ready_mapjs = function() {
 		// $('#tree-more-info-genotype-container').hide();
 		// $('#tree-specific-unique-genotypes-count-label').hide();
 		// $('#tree-specific-unique-genotypes-count').hide();
+		$('#tree-more-info-genotype-container').html('Looking up genotype data for ' + treeId + '... <img style="height: 16px;" src="' + loading_icon_src + '" />');
+		$('#tree-more-info-genotype-container').show();
 		$.ajax({
 			url: Drupal.settings.ct_nodejs_api + "/v2/genotypes?api_key=" + Drupal.settings.ct_api + "&tree_id=" + genotype_treeId,
 			dataType: "json",
@@ -4118,9 +4155,9 @@ var ct_ready_mapjs = function() {
 				console.log(data);				
 				var tpps_study = '';
 				var genotype_html = '';
-				genotype_html = genotype_html + "<h3 style='padding-top: 0px;padding-bottom: 5px;margin-left: -3px; margin-bottom: 10px;'>Plant Genotypic Data</h3>";
-				genotype_html = genotype_html + "<table id='more_info_genotype_table' style='width: 100%;'>";
-				genotype_html = genotype_html + "<tr><th>Plant ID</th><th>Marker Name</th><th>Genotype</th><th>Marker Type</th></tr>";				
+				genotype_html += "<h3 style='padding-top: 0px;padding-bottom: 5px;margin-left: -3px; margin-bottom: 10px;'>Plant Genotypic Data</h3>";
+				genotype_html += "<table id='more_info_genotype_table' style='width: 100%;'>";
+				genotype_html += "<tr><th>Plant ID</th><th>Marker Name</th><th>Genotype</th><th>Marker Type</th></tr>";				
 				if(data.length > 0) {
 
 					$('#tree-specific-unique-genotypes-container').show();
@@ -4165,7 +4202,7 @@ var ct_ready_mapjs = function() {
 						if(i==0 && data[i].tree_acc.includes('TGDR')) {
 							tpps_study = data[i].tree_acc.split('-')[0];
 						}
-						genotype_html = genotype_html + "<tr><td>" + data[i].tree_acc + "</td><td>" + data[i].marker_name + "</td><td>" + data[i].description + "</td><td>" + data[i].marker_type + "</td></tr>";
+						genotype_html +=  "<tr><td>" + data[i].tree_acc + "</td><td>" + data[i].marker_name + "</td><td>" + data[i].description + "</td><td>" + data[i].marker_type + "</td></tr>";
 						//genotype_html = genotype_html + "<tr><td>" + data[i].uniquename.replace('-' + data[i].description, '') + "</td><td>" + data[i].description + "</td><td>" + data[i].marker_type + "</td></tr>";
 					}
 				}
@@ -4176,18 +4213,26 @@ var ct_ready_mapjs = function() {
 					// $('#tree-specific-unique-genotypes-container').show();
 					// $('#tree-specific-unique-genotypes-count').html(data.length);					
 				}
-				genotype_html = genotype_html + "</table>";
+				genotype_html += "</table>";
 				
 				if(data.length > 15) {
 					if(tpps_study != '') {
-						genotype_html = genotype_html + "More markers are available for this plant, <a target='_blank' href='/tpps/details/" + tpps_study + "'>click here to view all</a>";
+						genotype_html += "More markers are available for this plant, <a target='_blank' href='/tpps/details/" + tpps_study + "'>click here to view all</a>";
 					}
 					else {
-						genotype_html = genotype_html + "More markers are available for this plant.<br />";
+						genotype_html += "More markers are available for this plant.<br />";
 					}
 				}
+
+				if (data.length <= 0) {
+					genotype_html += "<p style='padding: 5px;'>No genotypes were found for this specific plant</p>";
+				}
 				
-				$('#tree-more-info-genotype-container').html(genotype_html);				
+				$('#tree-more-info-genotype-container').html(genotype_html);
+				$('#tree-more-info-genotype-container').show();				
+			},
+			error: function(err) {
+				$('#tree-more-info-genotype-container').hide();
 			}
 		});
 
@@ -5338,7 +5383,7 @@ var ct_ready_mapjs = function() {
 					console.log('-- jsonData:' + JSON.stringify(jsonData, null, 2));
 				}
 
-				//We need to check to see if any of the layers are geoserver_tileset layers (like BIEN for example)
+				// We need to check to see if any of the layers are geoserver_tileset layers (like BIEN for example)
 				if(debug) {
 					console.log('-- active (dataset indexes):');
 					console.log(active);
@@ -5348,7 +5393,7 @@ var ct_ready_mapjs = function() {
 				$('#num-trees').text('0');
 				
 				for(var i=0; i<active.length; i++) {
-					var dataset_index = active[i];//you cannot just use i as the main index because this could vary
+					var dataset_index = active[i]; //you cannot just use i as the main index because this could vary
 					
 					// This updates the unique species count per enabled layer
 					updateUniqueSpeciesCount(dataset_index, ''); // "" is an empty filter
@@ -5844,11 +5889,16 @@ var ct_ready_mapjs = function() {
 					if(res["features"].length > 0) {
 						// check if points are far apart (like different continents)
 						var lng_start = res["features"][0]["geometry"]["coordinates"][0];
-						var lat_start = res["features"][0]["geometry"]["coordinates"][1];												
+						var lat_start = res["features"][0]["geometry"]["coordinates"][1];							
 						for (var i=1; i<res["features"].length; i++) {
+							var feature = res["features"][i];
 							try {
 								var lng_compare = res["features"][i]["geometry"]["coordinates"][0];
 								var lat_compare = res["features"][i]["geometry"]["coordinates"][1];
+								// console.log('Far point detection', lng_compare, lat_compare);
+								if (lng_compare == null || lat_compare == null) {
+									console.log('Null point feature detected', res["features"][i]);
+								}
 								if(Math.abs(lng_start - lng_compare) > 100) {
 									far_points += 1;
 								}
@@ -5865,6 +5915,7 @@ var ct_ready_mapjs = function() {
 								res['center'][1] = midpoint['geometry']['coordinates'][1];
 							}
 							catch (err) {
+								console.log('far_point feature with error', feature);
 								console.log('far_points error', err);
 							}
 						}
@@ -6215,8 +6266,18 @@ var ct_ready_mapjs = function() {
 					layerObj.setDatasetId(datasetId);
 					layerObj.updateFilterSourceId(datasetKey[datasetId]);
 				//}
-				layerObj.setSourceMode('geoserver_tileset');				
+				layerObj.setSourceMode('geoserver_tileset');
+
+				// Add CQL Filtering
+				var jsonData = {"query": filterQuery, "active_sources": active};
+				
+				var cqlfilter = parse_json_query(jsonData.query,'');
+				console.log('CQL Filter: ' + cqlfilter);
+
+				layerObj.setCQLFilter(cqlfilter);			
 				layerObj.addSource();
+
+
 				layersList.addToMap(layerObj);
 				layersList.activateLayer(layer);
 				console.log(activeDatasets[datasetKey[datasetId]]);
@@ -6605,16 +6666,16 @@ var ct_ready_mapjs = function() {
 		*/
 
 		//check for _tileset layers in activelayers
-		$('#dataset-options .tree-dataset-btn').each(function() {
-			var element_id = $(this).attr('id');
-			//console.log('Tree Dataset');
-			//console.log(element_id);
-			if(element_id.includes('geoserver_tileset') && element_id.includes('-data')) {
-				setTimeout(function() {
-					$("#" + element_id).trigger('click');
-				},2000);				
-			}
-		});
+		// $('#dataset-options .tree-dataset-btn').each(function() {
+		// 	var element_id = $(this).attr('id');
+		// 	//console.log('Tree Dataset');
+		// 	//console.log(element_id);
+		// 	if(element_id.includes('geoserver_tileset') && element_id.includes('-data')) {
+		// 		setTimeout(function() {
+		// 			$("#" + element_id).trigger('click');
+		// 		},2000);				
+		// 	}
+		// });
 		
 	});
 	
@@ -6927,6 +6988,7 @@ var ct_ready_mapjs = function() {
 	$("#analysis-btn").on("click", function () {
 
 		load_scripts_analysis();
+		cartograplant['analysis_boot_function']();
 
 		if ($(this).hasClass("disabled")) {
 			alert("You must login to perform analysis");
@@ -7056,6 +7118,7 @@ var ct_ready_mapjs = function() {
 		
 		html += '<div class="status">Detecting if VCF data exists for SNPs...</div>';
 		html += '<div class="detected_vcf_information"></div>';
+		html += '<div class="detected_vcf_overlaps" style="padding: 20px;"></div>';
 		html += '<div class="none_detected_vcf_information"></div><hr />';
 		html += '<div class="vcf_snps_quality_filtering_ui">';
 		// html += '	<div style="margin-bottom: 5px;" class="vcf_filtered_snp_files_select_div"><div style="display: inline-block; width: 15%;">Filter SNP Files</div><select></select></div>';
@@ -7140,7 +7203,39 @@ var ct_ready_mapjs = function() {
 					$('#analysis-filter-snp-vcf-detection .status').css('padding', '20px');
 					$('#analysis-filter-snp-vcf-detection .status').html('Filtering VCF files by genotype subsets selected... <br />Please wait, workflow interface will appear once files have finished uploading... <img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" />');
 					if(vcf_found_count > 0) {
-						
+							// Check if any of them match
+							var studies_tmp = Object.keys(vcf_info);
+							var studies_values_tmp = Object.values(vcf_info);
+							var detected_vcf_overlaps_html = "";
+							var unique_combinations = {};
+							for (var studies_tmp_i = 0; studies_tmp_i < studies_tmp.length; studies_tmp_i++) {
+								var study_tmp_i = studies_tmp[studies_tmp_i];
+								console.log('study_tmp_i', study_tmp_i);
+								var vcf_location_tmp_i = vcf_info[study_tmp_i];
+								console.log('vcf_location_tmp_i', vcf_location_tmp_i);
+								for(var studies_tmp_j = 0; studies_tmp_j < studies_tmp.length; studies_tmp_j++) {
+									var study_tmp_j = studies_tmp[studies_tmp_j];
+									console.log('study_tmp_j', study_tmp_j);
+									var vcf_location_tmp_j = vcf_info[study_tmp_j];
+									console.log('vcf_location_tmp_j', vcf_location_tmp_j);
+									if (studies_tmp_i != studies_tmp_j) {
+										if (vcf_location_tmp_i == vcf_location_tmp_j) {
+											// If this is a new unique combination
+											if (unique_combinations[study_tmp_i + ',' + study_tmp_j] == undefined && unique_combinations[study_tmp_j + ',' + study_tmp_i] == undefined) { 
+												detected_vcf_overlaps_html += '<div>';
+												detected_vcf_overlaps_html += '🔀 ' + study_tmp_i + " and " + study_tmp_j + " have shared datasets<br />";
+												detected_vcf_overlaps_html += '</div>';
+												console.log('unique combination found:' + study_tmp_i + ' and ' + study_tmp_j);
+												unique_combinations[study_tmp_i + ',' + study_tmp_j] = true; // record this new combination
+											}
+										}
+									}
+									else {
+										// don't record a match if i == j (same study)
+									}
+								}
+							}
+							$('#analysis-filter-snp-vcf-detection .detected_vcf_overlaps').html(detected_vcf_overlaps_html);
 							$.ajax({
 								method: 'POST',
 								url: Drupal.settings.ct_nodejs_api + "/v2/genotypes/snp_vcf_filtering",
@@ -7157,6 +7252,9 @@ var ct_ready_mapjs = function() {
 									$('#analysis-filter-snp-vcf-detection .status').html('🌟 VCF files successfully uploaded to workspace');
 									
 									// Update the file drop down list
+									if (cartograplant.galaxy_id == null) {
+										alert('Missing Galaxy ID - please reload Cartoplant, select studies and click the Analysis button');
+									}
 									var url_history_contents = Drupal.settings.base_url + '/cartogratree_uianalysis/get_history_details/' + cartograplant.galaxy_id + '/' + cartograplant.history_id;
 									console.log(url_history_contents);
 									// Empty the select list
@@ -7197,6 +7295,7 @@ var ct_ready_mapjs = function() {
 						$('#analysis-filter-snp-vcf-detection .none_detected_vcf_information').html('');
 						$('#analysis-filter-snp-vcf-detection .status').html('No VCF files detected<br />To continue, select studies that contain VCF files.');
 						$('#analysis-filter-snp-vcf-detection .detected_vcf_information').html('');
+						$('#analysis-filter-snp-vcf-detection .detected_vcf_overlaps').html('');
 					}
 				}
 				else {
@@ -8084,6 +8183,7 @@ var ct_ready_mapjs = function() {
 		console.log($(this).hasClass("active"));
 		//if layer has already been added and is active, then deactivate it
 		if (!$(this).hasClass("active")) {
+			$('#legend_legend_icon_' + layerNum).hide();
 			if(isMultiLayeredYear > 0) {
 				// Remove the progress container
 				try {
@@ -8139,6 +8239,7 @@ var ct_ready_mapjs = function() {
 
 		}	
 		else {
+			$('#legend_legend_icon_' + layerNum).show();
 			var currentOpacity = parseInt($("#slider-" + layerNum + "-" + layerHost).val(), 10) / 100;
 
 			if(isMultiLayeredYear > 0) {

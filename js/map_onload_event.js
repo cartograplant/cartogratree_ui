@@ -33,9 +33,10 @@ var ct_ready_map_onload_events = function() {
 				console.log(err);
 			}
 			
-
+			console.log('LoadSession');
 			cartograplant.loadSession();	
 
+			console.log('PositionMap');
 			cartograplant.positionMap();
 	
 			//navigation controls
@@ -48,6 +49,7 @@ var ct_ready_map_onload_events = function() {
             });
 
 			//load the tree images
+			console.log('load the tree images');
 			cartograplant.loadImageWrapper(Drupal.settings.tree_img["exact"]["gymnosperm"], "gymnosperm_ex");
 			cartograplant.loadImageWrapper(Drupal.settings.tree_img["exact"]["angiosperm"], "angiosperm_ex");
 			cartograplant.loadImageWrapper(Drupal.settings.tree_img["exact"]["plant"], "plant");
@@ -69,6 +71,7 @@ var ct_ready_map_onload_events = function() {
 			
 
 			//load all the tree datasets from treegenes, dryad, treesnap
+			console.log('initMapTrees called');
 			cartograplant.initMapTrees();
 
 

@@ -35,6 +35,7 @@ function cartogratree_preprocess_page(&$variables) {
 		drupal_add_js($settings, 'setting');	
 		drupal_add_js(drupal_get_path('module', 'cartogratree') . '/cartogratree_mb.js');
         drupal_add_css(drupal_get_path('module', 'cartogratree') . '/main.css');
+		drupal_add_css(drupal_get_path('module', 'cartogratree') . '/mobile.css');
         drupal_add_css(drupal_get_path('module', 'cartogratree') . '/toggle_btn.css');
     }
 }

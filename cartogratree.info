@@ -8,6 +8,7 @@ files[] = js/main.js
 files[] = js/map.js
 files[] = js/select2c.min.js
 files[] = styling/main.css
+files[] = styling/mobile.css
 files[] = styling/select2.min.css
 files[] = styling/toggle_btn.css
 files[] = includes/cartogratree.admin.inc

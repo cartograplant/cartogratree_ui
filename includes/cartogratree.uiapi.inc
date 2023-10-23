@@ -144,10 +144,16 @@ function cartogratree_uiapi_get_vcf_studies($tgdr_numbers_csv) {
             // An empty vcf field will hold 0 in it, so in theory it always 
             // should pass this IF condition. But as a good side effect, we want
             // the null record for the UI to show a VCF file was not found.
-            if(isset($data[4]['organism-1']['genotype']['files']['vcf'])) {
+            if($data[4]['organism-1']['genotype']['files']['vcf'] > 0) {
                 $file = file_load($data[4]['organism-1']['genotype']['files']['vcf']);
                 // print_r($file);
                 $uri = $file->uri;
+                $return_results[$tgdr_number] = $uri;
+            }
+            else if(isset($data[4]['organism-1']['genotype']['files']['local_vcf'])) {
+                $file_location = $data[4]['organism-1']['genotype']['files']['local_vcf'];
+                // print_r($file);
+                $uri = $file_location;
                 $return_results[$tgdr_number] = $uri;
             }
         }

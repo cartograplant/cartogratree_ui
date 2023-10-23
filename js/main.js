@@ -45,7 +45,7 @@ var ct_ready_mainjs = function () {
 				valueField: 'id',
 				labelField: 'name',
 				searchField: 'name',
-				sortField: 'name',
+				sortField: 'tgdr_number',
 				create: true,
 				maxItems: 1,
 				plugins: ['remove_button'],
@@ -56,7 +56,7 @@ var ct_ready_mainjs = function () {
 					var options = [];
 					for(var i=0; i<optionOps.length;i++) {
 						console.log(optionOps[i]);
-						that.addOption({id: optionOps[i],name:optionOps[i]});
+						that.addOption({id: optionOps[i],name:optionOps[i],tgdr_number:parseInt(optionOps[i].substr(4))});
 					}
 		  
 				  
@@ -112,10 +112,12 @@ var ct_ready_mainjs = function () {
 			cartograplant.buildSelectOption("species", "Species", "string", ["equal", "not_equal"]),
 			cartograplant.buildSelectOption("marker_type", "Markers", "string", ["equal", "not_equal"]),
 			cartograplant.buildSelectOption("structure_name", "Plant Structure", "string", ["equal", "not_equal"]),
-			cartograplant.buildSelectOption("cvterm_name", "Phenotype Attribute", "string", ["equal", "not_equal"]),
+			cartograplant.buildSelectOption("phenotype_name", "Phenotype Attribute", "string", ["equal", "not_equal"]),
 			cartograplant.buildSelectOption("title", "Study Title", "string", ["equal", "not_equal"]),
+
 			cartograplant.buildAutocompleteOption("author", "Study First Author", "string", Drupal.settings.options_tgdr["pub_author"].sort()),
-			cartograplant.buildAutocompleteOption("accession", "Study Accession", "string", Drupal.settings.options_tgdr["pub_tgdr"].sort()),
+			
+			cartograplant.buildAutocompleteOption("accession", "Study Accession", "string", Drupal.settings.options_tgdr["pub_tgdr"]),
 			// buildSelectOption("study_accession", "Study Accession", "string", ["equal", "not_equal"]),
 		];
 

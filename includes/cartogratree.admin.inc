@@ -30,6 +30,7 @@ function cartogratree_admin_list() {
         $output .= ' GIS and API servers.</p>';
     }
     $output .= '<p><a target="_blank" href="settings/debug/cpapi">Cartograplant NodeJS API realtime console output</a></p>';
+    $output .= '<p><a target="_blank" href="settings/debug/checks">Cartograplant Diagnostics (boot) tool</a></p>';
 
     $output .= '<h1>Additional Geoserver Datasets</h1>';
     $output .= '<p>In order to make additional datasets available, you must add them here</p>';
@@ -156,6 +157,138 @@ function cartogratree_admin_list() {
 //    $output .= theme('pager');
 
     return $output;
+}
+
+
+/**
+ * CPIAPI DEBUG CHECKS OUTPUT
+ */
+function cartogratree_admin_debug_checks($form, &$form_state) {
+    global $base_url; 
+    drupal_add_js('https://cdn.jsdelivr.net/npm/zlibjs@0.3.1/bin/zlib.min.js', 'external');
+    drupal_add_js('https://cdn.jsdelivr.net/npm/text-encoding@0.6.4/lib/encoding.min.js', 'external');
+    $ct_nodejs_api = variable_get('ct_nodejs_api');
+    $trees_url = $ct_nodejs_api . '/v2/trees';
+    $html = "";
+    $html .= '<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.min.js" integrity="sha512-uXal8CICQ52UxoF9A3yBP6GUXGu5N2IoTZf/YXGMW4M0AvNyViA0ZjpGf9uqRpkN4kyx41Y5I0DmTQNOS6G05A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>';
+    $html .= '<style>.debug-line { background-color: #a8ffc8;padding: 5px; margin-bottom: 2px; }</style>';
+    $html .= '<script>';
+    $html .= 'jQuery(document).ready(function() {';
+    $html .= '  console.log("Debug Checks Ready");';
+    $html .= "
+        function check_for_invalid_gps_coordinates() {
+            jQuery('#debug').append('<p>Attempting to retrieve boot trees from API trees URL...</p>');
+            jQuery.ajax({
+                url: '$trees_url',
+                success: function(data) {
+                    console.log(data);
+                    jQuery('#debug').append('<p>Received data, attempting to decode Base64 data containing Zlib compressed data...</p>');
+                    var compressData = atob(data['zlib_deflated_base64']);
+                    var compressData = compressData.split('').map(function(e) {
+                        return e.charCodeAt(0);
+                    });				
+                    var inflate = new Zlib.Inflate(compressData);
+                    jQuery('#debug').append('<p>Decompressing Zlib compressed data...</p>');
+                    var output = inflate.decompress(); // UINT8Arra
+                    output = new TextDecoder().decode(output);
+                    // console.log('ungzipped output', output);
+                    var data = JSON.parse(output);
+                    console.log(data);
+                    jQuery('#debug').append('<p>We should now have an array of tree objects that is Javascript readable</p>');
+                    jQuery('#debug').append('<p>Detected ' + data.length + ' trees</p>');
+
+                    // Check for NULLS
+                    jQuery('#debug').append('<p>Checking for any trees that contain GPS coordinates that contain NULLs</p>');
+                    var found_invalid_nulls = false;
+                    var found_invalid_nulls_example = null;
+                    for (var i=0; i<data.length; i++) {
+                        var tree_obj = data[i];
+                        var lng = tree_obj['geometry']['coordinates'][0]; // easting (lng)
+                        var lat = tree_obj['geometry']['coordinates'][1]; // northing (lat)
+                        if ( lat == null || lng == null ) {
+                            jQuery('#debug').append('<p>😟 WARNING: Found at least 1 tree with null latitude or longitude coordinate that is incompatible with Mapbox</p>');
+                            found_invalid_nulls = true;
+                            found_invalid_nulls_example = JSON.stringify(tree_obj);
+                            break;
+                        }
+                    }
+                    if (found_invalid_nulls == true) {
+                        jQuery('#debug').append('Example tree object with invalid null coordinate: ' + found_invalid_nulls_example);
+                    }
+                    else {
+                        jQuery('#debug').append('😁 GOOD: No invalid null coordinates were found!');
+                    }                    
+
+                    // Check N,S,W,E formats
+                    jQuery('#debug').append('<p>Checking for any trees that contain GPS coordinates that contain N,S,W,E ...</p>');
+                    var found_invalid_letters = false;
+                    var found_invalid_letters_example = null;
+                    for (var i=0; i<data.length; i++) {
+                        var tree_obj = data[i];
+                        var lng = tree_obj['geometry']['coordinates'][0]; // easting (lng)
+                        var lat = tree_obj['geometry']['coordinates'][1]; // northing (lat)
+                        if ( lat.includes('N') || lat.includes('S') ) {
+                            jQuery('#debug').append('<p>😟 WARNING: Found at least 1 tree with N,S latitude coordinate format that is incompatible with Mapbox</p>');
+                            found_invalid_letters = true;
+                            found_invalid_letters_example = JSON.stringify(tree_obj);
+                            break;
+                        }
+                        if ( lng.includes('W') || lng.includes('E') ) {
+                            jQuery('#debug').append('<p>😟 WARNING: Found at least 1 tree with W,E longitude coordinate format that is incompatible with Mapbox</p>');
+                            found_invalid_letters = true;
+                            found_invalid_letters_example = JSON.stringify(tree_obj);
+                            break;
+                        }
+                    }
+                    if (found_invalid_letters == true) {
+                        jQuery('#debug').append('Example tree object with invalid letters: ' + found_invalid_letters_example);
+                    }
+                    else {
+                        jQuery('#debug').append('😁 GOOD: No invalid letter coordinates were found!');
+                    }
+
+                    // Check for multiple periods example aaa.bbb.ccc formatted coordinates
+                    jQuery('#debug').append('<p>Checking for any trees that contain GPS coordinates that contain more than 1 periods ...</p>');
+                    var found_invalid_periods = false;
+                    var found_invalid_periods_example = null;
+                    for (var i=0; i<data.length; i++) {
+                        var tree_obj = data[i];
+                        var lng = tree_obj['geometry']['coordinates'][0]; // easting (lng)
+                        var lat = tree_obj['geometry']['coordinates'][1]; // northing (lat)
+                        var lng_parts = lng.split('.');
+                        var lat_parts = lat.split('.');
+                        if ( lat_parts.length >= 3 || lng_parts.length >= 3 ) {
+                            jQuery('#debug').append('<p>😟 WARNING: Found at least 1 tree with more than 1 period in coordinate format that is incompatible with Mapbox</p>');
+                            found_invalid_periods = true;
+                            found_invalid_periods_example = JSON.stringify(tree_obj);
+                            break;
+                        }
+                    }
+                    if (found_invalid_periods == true) {
+                        jQuery('#debug').append('Example tree object with more than 1 period in coordinate: ' + found_invalid_periods_example);
+                    }
+                    else {
+                        jQuery('#debug').append('😁 GOOD: No invalid period coordinates were found!');
+                    }                    
+                    
+                },
+                error: function (err) {
+                    jQuery('#debug').append('<p>Error retrieving trees, boot will fail because of this</p>');
+                }
+            });
+        }
+        check_for_invalid_gps_coordinates();
+    ";
+    $html .= '});';
+    $html .= '</script>';
+    $html .= '<p>Cartograplant NodeJS API URL: ' . $ct_nodejs_api . '</p>';
+    $html .= '<p>TREES NodeJS API URL: ' . $trees_url . '</p>';
+    $html .= '<div id="debug"></div>';
+
+    $form['console'] = array(
+        '#prefix' => $html
+    );
+    return $form;
 }
 
 /**

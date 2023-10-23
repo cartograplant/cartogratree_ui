@@ -1090,7 +1090,8 @@
 <!-- Bootstrap row -->
 <div class="row" id="body-row">
     <!-- Main Sidebar -->
-    <div id="main-menu" class="sidebar-expanded d-none d-md-block col-3 sidebar-container">
+	<div id="main-menu" class="sidebar-expanded md-block col-3 sidebar-container">
+    	<!-- <div id="main-menu" class="sidebar-expanded d-none d-md-block col-3 sidebar-container"> REMOVED mobile hiding -->
         <!-- d-* hides the Sidebar in smaller devices. Its items can be kept on the Navbar 'Menu' -->
         <ul class="list-group">
 			<li>
@@ -1530,7 +1531,8 @@
         </ul>
     </div>
     <!-- LAYERS SIDEBAR -->
-    <div id="layers-menu" class="sidebar-expanded d-none d-md-block col-2 sidebar-container bg-secondary hidden">
+	<div id="layers-menu" class="sidebar-expanded md-block col-2 sidebar-container bg-secondary hidden">
+    <!-- <div id="layers-menu" class="sidebar-expanded d-none d-md-block col-2 sidebar-container bg-secondary hidden"> -->
         <!-- d-* hiddens the Sidebar in smaller devices. Its items can be kept on the Navbar 'Menu' -->
         <ul class="list-group" id="layers-fields-container">
             <li class="list-group-item text-muted menu-collapsed">
@@ -1561,15 +1563,23 @@
 						if(count($group['subgroups']) == 1){
 							foreach($group['subgroups'] as $key => $subgroup){
 								foreach($subgroup['layers'] as $layer){
-									echo '<li class="justify-content-center container layers-items-header"><div class="row inner-layer-header row-100"><div class="col-6"><h7 id="ct-layer-title-' . $layer['layer_id'] . '">';
+									echo '<li class="justify-content-center container layers-items-header"><div class="row inner-layer-header row-100">';
+									echo '<div class="col-6"><h7 id="ct-layer-title-' . $layer['layer_id'] . '">';
 									
 									//Clean up code for Species Ranges
 									if(stripos($layer['layer_title'],'range') !== FALSE) {
 										$layer['layer_title'] = str_ireplace(' range','', $layer['layer_title']);
 									}
 
-									echo $layer['layer_title'] . '</h7></div><div class="col-6"><button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button><center><i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 45px;" class="fas fa-info-circle"></i></center></div></div>';
-									echo '<div id="opacity-ctrl-' . $layer['layer_id'] . '" class="row inner-layer-op row-100 hidden"><div class="col-5"><label>Opacity <span id="opacity-value-' . $layer['layer_id'] . '">100%</span></label></div><div class="col-7"><input class="opacity" id="slider-' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" type="range" min="5" max="100" step="0" value="100"/></div></div></li>';	
+									echo $layer['layer_title'] . '</h7>';
+									echo '</div><div class="col-6">';
+									echo '<button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button>';
+									echo '<center><i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 45px;" class="fas fa-info-circle"></i></center>';
+									echo '</div></div>';
+									echo '<div id="opacity-ctrl-' . $layer['layer_id'] . '" class="row inner-layer-op row-100 hidden">';
+									echo '<div class="col-5"><label>Opacity <span id="opacity-value-' . $layer['layer_id'] . '">100%</span></label></div>';
+									echo '<div class="col-7"><input class="opacity" id="slider-' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" type="range" min="5" max="100" step="0" value="100"/></div>';
+									echo '</div></li>';	
 								}
 							}
 						}
@@ -1578,14 +1588,24 @@
 								echo '<li class="justify-content-center layers-items-header"><h6><a href="#layer-group-' . $key . $group['group_rank'] . '" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">';
 								echo preg_replace('/\sv\d+/', '', $subgroup['subgroup_name']) . '</a></h6><div class="collapse container-fluid" id="layer-group-' . $key . $group['group_rank'] . '"><ul class="list-unstyled components layers-container">';
 								foreach($subgroup['layers'] as $layer){
-									echo '<li class="justify-content-center container layers-items"><div class="row inner-layer-header" style="margin-left: -2.0rem;"><div class="col-6"><h7 id="ct-layer-title-' . $layer['layer_id'] . '">';
+									echo '<li class="justify-content-center container layers-items">';
+									echo '<div class="row inner-layer-header" style="margin-left: -2.0rem;">';
+									echo '<div class="col-6"><h7 id="ct-layer-title-' . $layer['layer_id'] . '">';
 									
 									//Clean up code for Precipitation layers
-									if(stripos($layer['layer_title'],'precipitation') !== FALSE) {
-										$layer['layer_title'] = str_ireplace('precipitation ','', $layer['layer_title']);
-									}
+									// if(stripos($layer['layer_title'],'precipitation') !== FALSE) {
+									// 	$layer['layer_title'] = str_ireplace('precipitation ','', $layer['layer_title']);
+									// }
 
-									echo $layer['layer_title'] . '</h7></div><div class="col-6"><button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button><center><i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 45px;" class="fas fa-info-circle"></i></center></div></div>';
+									echo $layer['layer_title'] . '</h7></div>';
+									echo '<div class="col-6">';
+									echo '<div><button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button></div>';
+									echo '<div style="position: relative; left: 35px;">';
+									echo '<i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 0px;" class="fas fa-info-circle"></i>';
+									echo '<i title="Legend details" id="legend_legend_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 0px; display: none; font-size:18px;" class="fas fa-chart-bar"></i>';
+									echo '</div>';
+									echo '</div>';
+									echo '</div>'; // end row
 									echo '<div id="opacity-ctrl-' . $layer['layer_id'] . '" class="row inner-layer-op hidden"><div class="col-5"><label>Opacity <span id="opacity-value-' . $layer['layer_id'] . '">100%</span></label></div><div class="col-7"><input class="opacity" id="slider-' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" type="range" min="5" max="100" step="0" value="100"/></div></div></li>';
 								}
 								echo '</ul></div></li>';

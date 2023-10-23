@@ -554,6 +554,17 @@ function cartogratree_menu()
         'file' => 'includes/cartogratree.admin.inc',
     );
 
+    $items['admin/cartogratree/settings/debug/checks'] = array(
+        'title' => 'CartograTree Admin - Debug Checks',
+        'description' => 'Provides a form page for debugging boot issues etc',
+        'page callback' => 'cartogratree_admin_debug_checks',
+        'page arguments' => array(),
+        'access arguments' => array('administer cartogratree'),
+        'access arguments' => array('use cartogratree'),
+        //'access callback' => TRUE,
+        'file' => 'includes/cartogratree.admin.inc',
+    );    
+
     // ==============================================================================================================
     // -- Add servers.
     $items['admin/cartogratree/settings/servers/add'] = array(
@@ -908,6 +919,8 @@ function cartogratree_preprocess_page(&$variables)
         $fields_data = cartogratree_get_tree_options($api_key);
         //store queried and processed values to Drupal.settings to be accessed by the front-end
         $tgdr = cartogratree_get_publications_info();
+
+
         $popstruct_studies = cartogratree_get_popstruct_studies_list();
         //$variables['total_publications'] = count($tgdr);	
 
@@ -915,15 +928,18 @@ function cartogratree_preprocess_page(&$variables)
         //aggregate data for trees/publications/genotype/phenotype
         //Genotypes
         $fields_data['marker_type'] = cartogratree_get_marker_options($api_key);
-        if (($key = array_search('indel', $fields_data['marker_type'])) !== false) {
-            unset($fields_data['marker_type'][$key]);
-        }
+        // if (($key = array_search('indel', $fields_data['marker_type'])) !== false) {
+        //     unset($fields_data['marker_type'][$key]);
+        // }
         if (($key = array_search('genetic_marker', $fields_data['marker_type'])) !== false) {
             unset($fields_data['marker_type'][$key]);
         }
         if (($key = array_search('microsatellite', $fields_data['marker_type'])) !== false) {
             unset($fields_data['marker_type'][$key]);
         }
+        // if (($key = array_search('Indel Mutation', $fields_data['marker_type'])) !== false) {
+        //     unset($fields_data['marker_type'][$key]);
+        // }
         $fields_data['marker_type'] = array_values($fields_data['marker_type']);
 
         $fields_data = cartogratree_get_phenotype_options($fields_data);
@@ -1047,8 +1063,9 @@ function cartogratree_preprocess_page(&$variables)
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/main.js');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map.js');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_controls.js');
-        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_onload_event.js');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_click_events.js');
+        drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_onload_event.js');
+        
 
         // We use dynamic code to load this instead by clicking the analysis button
         // drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/map_analysis.js');
@@ -1057,6 +1074,7 @@ function cartogratree_preprocess_page(&$variables)
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/select2c.min.js');
         drupal_add_css(drupal_get_path('module', 'cartogratree') . '/styling/select2.min.css');
         drupal_add_css(drupal_get_path('module', 'cartogratree') . '/styling/main.css');
+        drupal_add_css(drupal_get_path('module', 'cartogratree') . '/styling/mobile.css');
         drupal_add_css(drupal_get_path('module', 'cartogratree') . '/styling/toggle_btn.css');
         drupal_add_css(drupal_get_path('module', 'cartogratree') . '/styling/sel_all_btn.css');
         drupal_add_js(drupal_get_path('module', 'cartogratree') . '/js/overlap_grid.js');
@@ -1449,21 +1467,69 @@ function cartogratree_get_publications_info()
 
 function cartogratree_get_phenotype_options($fields_data)
 {
+    // --- PHENOTYPE ATTRIBUTE FILTER OPTIIONS ---
     //pato_name
     //$results = chado_query('SELECT cvterm_name FROM chado.new_pheno_view pv JOIN chado.coordinates_view cv ON cv.uniquename = pv.tree_acc GROUP BY cvterm_name ORDER BY cvterm_name;');
-    $results = chado_query('SELECT cvterm_name FROM chado.new_pheno_view pv GROUP BY cvterm_name ORDER BY cvterm_name;');
-    foreach ($results as $row) {
-        $fields_data['cvterm'][] = $row->cvterm_name;
+    // @DEPRECATED ON 3/31/2023
+    // $results = chado_query('SELECT cvterm_name FROM chado.new_pheno_view pv GROUP BY cvterm_name ORDER BY cvterm_name;');
+    // foreach ($results as $row) {
+    //     $fields_data['cvterm'][] = $row->cvterm_name;
+    // }
+
+    // @NEW 3/31/2023 We changed the cvterm_name column to observable_name 3/31/2023 in ct_trees_all_view
+    // So we want to use observable_name oclumn instead. Since this is slow (>2 seconds), we cache it
+    // variable_del('ct_observable_names_options');
+    $cache_observable_names_options = variable_get('ct_observable_names_options', array('expire_time' => 0, 'observable_names' => [])); 
+    $current_time = time();
+    $observable_names_options = $cache_observable_names_options['observable_names']; // assume from cache
+    // $observable_names_options = [];
+    if (($current_time > $cache_observable_names_options['expire_time']) || count($observable_names_options) <= 0) {
+        $observable_names_options = []; // empty since cache expired
+        // perform query and save var
+        $results = chado_query('SELECT distinct(phenotype_name) FROM public.ct_trees_all_view;');
+        foreach ($results as $row) {
+            $observable_names_options[] = $row->phenotype_name;
+        }
+        variable_set('ct_observable_names_options', array(
+            'expire_time' => $current_time + (60*60*24), 
+            'observable_names' => $observable_names_options
+        ));
     }
+    // Put values into the fields_data options
+    $fields_data['cvterm'] = $observable_names_options; // set this key as observable_names array
+
 
     //po_name
     //$results = chado_query('SELECT po_name FROM chado.new_pheno_view pv JOIN chado.coordinates_view cv ON cv.uniquename = pv.tree_acc GROUP BY po_name ORDER BY po_name;');
     //$results = chado_query('SELECT po_name FROM chado.new_pheno_view pv JOIN chado.ct_view cv ON cv.uniquename = pv.tree_acc GROUP BY po_name ORDER BY po_name;');
-    $results = chado_query('SELECT distinct(structure_name) FROM chado.new_pheno_view pv ORDER BY structure_name ASC;');
-    foreach ($results as $row) {
-        $fields_data['plant_ontology'][] = $row->structure_name;
+    
+    // --- PLANT STRUCTURE FILTER OPTIONS --- 
+    // @DEPRECATED ON 3/31/2023
+    // $results = chado_query('SELECT distinct(structure_name) FROM chado.new_pheno_view pv ORDER BY structure_name ASC;');
+    // foreach ($results as $row) {
+    //     $fields_data['plant_ontology'][] = $row->structure_name;
+    // }
+    // variable_del('ct_plant_structure_options');
+    $cache_plant_structure_options = variable_get('ct_plant_structure_options', array('expire_time' => 0, 'plant_structure_options' => []));
+    $current_time = time();
+    $plant_structure_options = $cache_plant_structure_options['plant_structure_options']; // assume from cache
+    variable_set('ct_plant_structure_options', array('expire_time' => 0, 'plant_structure_options' => []));
+    if (($current_time > $cache_plant_structure_options['expire_time']) || count($plant_structure_options) <= 0) {
+        $plant_structure_options = []; // empty since cache expired
+        // perform query and save var
+        $results = chado_query('SELECT distinct(structure_name) FROM public.ct_trees_all_view;');
+        foreach ($results as $row) {
+            $plant_structure_options[] = $row->structure_name;
+        }
+        variable_set('ct_plant_structure_options', array(
+            'expire_time' => $current_time + (60*60*24), 
+            'observable_names' => $plant_structure_options
+            )
+        );
     }
-
+    // Put values into the fields_data options
+    // $plant_structure_options = [];
+    $fields_data['plant_ontology'] = $plant_structure_options; // set this key as plant_structure_options array    
     return $fields_data;
 }
 
