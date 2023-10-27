@@ -1585,12 +1585,14 @@
         <!-- body-row END -->
         <div id="map"></div>
 		<div id="map-top-buttons">
+			<!--
 			<div class="map-top-buttons-parent-container" style="">
 				<div id="map-top-map-options" class="map-top-container map-top-hidden">
 					OK
 				</div>
 				<button class="map-top-button" data-state="closed">Map Options <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span></button>
 			</div>
+			-->
 			<div class="map-top-buttons-parent-container" style="">
 				<div id="map-top-plant-data-sources" class="map-top-container map-top-hidden">
 					<!-- <div class="filter-options sidebar-submenu" id="dataset-options" aria-expanded="false"> -->
@@ -1632,12 +1634,12 @@
 										<!-- justify-content-center was removed from the classes to keep alignments with above list the same too -->
 										<li class="list-group-item list-group-item-action d-flex ">
 											<div class="" style="width: 100%;">
-												<div class="d-inline-block" style="width: 60%;">
+												<div class="" style="display: inline-block; width: 60%;">
 													<h6 class="" style="line-height: 20px;">
 														<div style="display: inline-block; width: 20%;"><i class="fas fa-tree" style="position: relative; top: -5px;"></i></div><div style="display: inline-block; width: 70%;">Internal submissions</div><!-- TreeGenes -->
 													</h6>
 												</div>
-												<div class="d-inline-block" style="width: 20%;">
+												<div class="" style="display: inline-block; width: 20%;">
 													<button type="button" data-toggle="button" class="tree-dataset-btn btn btn-toggle" id="treegenes-data" aria-pressed="true" autocomplete="off">
 														<div class="handle"></div>
 													</button>
@@ -1651,7 +1653,7 @@
 														<i class="fas fa-mobile-alt" style="margin-right: 5px;"></i> TreeSnap
 													</h6>
 												</div>
-												<div class="d-inline-block" style="width: 20%;">
+												<div class="" style="display: inline-block; width: 20%;">
 													<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="treesnap-data" aria-pressed="true" autocomplete="off">
 														<div class="handle"></div>
 													</button>
@@ -1660,12 +1662,12 @@
 										</li>
 										<li class="list-group-item list-group-item-action d-flex">
 											<div class="" style="width: 100%;">
-												<div class="d-inline-block" style="width: 60%;">
+												<div class="" style="display: inline-block; width: 60%;">
 													<h6 class="" style="line-height: 20px;">
 														<div style="display: inline-block; width: 20%;"><i class="fas fa-database" style="position:relative; top:-5px;"></i></div><div style="display: inline-block; width: 70%;">Direct submissions</div> <!-- DRYAD -->
 													</h6>
 												</div>
-												<div class="d-inline-block" style="width: 20%;">
+												<div class="" style="display: inline-block; width: 20%;">
 													<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="datadryad-data" aria-pressed="true" autocomplete="off">
 														<div class="handle"></div>
 													</button>
@@ -1713,12 +1715,12 @@
 										?>
 											<li class="list-group-item list-group-item-action d-flex">
 												<div class="" style="width: 100%;">
-													<div class="d-inline-block" style="width: 60%;">
+													<div class="" style="display: inline-block; width: 60%;">
 														<h6 class="">
 															<i class="fas fa-table" style="margin-right: 5px;"></i> <?php echo $r['geoserver_dataset_name']; ?>
 														</h6>
 													</div>
-													<div class="d-inline-block" style="width: 20%;">
+													<div class="" style="display: inline-block; width: 20%;">
 														<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="<?php echo $element_name; ?>" aria-pressed="false" autocomplete="off">
 															<div class="handle"></div>
 														</button>
@@ -1733,12 +1735,12 @@
 										
 										<li class="list-group-item list-group-item-action d-flex">
 											<div class="" style="width: 100%;">
-												<div class="d-inline-block" style="width: 60%;">
+												<div class="" style="display: inline-block; width: 60%;">
 													<h6 class="">
 														<i class="fas fa-database" style="margin-right: 5px;"></i> WFID
 													</h6>
 												</div>
-												<div class="d-inline-block" style="width: 20%;">
+												<div class="" style="display: inline-block; width: 20%;">
 													<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="wfid_geojson-data" aria-pressed="false" autocomplete="off">
 														<div class="handle"></div>
 													</button>
@@ -1807,22 +1809,24 @@
 				</div>
 				<button class="map-top-button" data-state="closed">Plant Data Sources <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span></button>
 			</div>
+			<!--
 			<div class="map-top-buttons-parent-container" style="">
 				<div id="map-top-filters" class="map-top-container map-top-hidden">
 					OK
 				</div>
 				<button class="map-top-button" data-state="closed">Filters <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span></button>
 			</div>
+			-->
 			<div class="map-top-buttons-parent-container" style="">
 				<div id="map-top-coordinate-search" class="map-top-container map-top-hidden">
 					<div style="padding: 5px;" class="">					
-						<div class="d-inline-block text-center" style='width: 30%;'>
+						<div class=" text-center" style='display: inline-block; width: 30%;'>
 							<input style="width: 100%; text-align: center; font-size: 10px;" type="text" id="nav-coordinate-lat-go" placeholder="Lat" />
 						</div>
-						<div class="d-inline-block text-center" style='width: 30%;'>
+						<div class="text-center" style='display: inline-block; width: 30%;'>
 							<input style="width: 100%; text-align: center; font-size: 10px;" type="text" id="nav-coordinate-lon-go"  placeholder="Lon"/>
 						</div>
-						<div class="d-inline-block text-center" style='width: 30%;'>
+						<div class="text-center" style='display: inline-block; width: 30%;'>
 							<button style="width: 100%; font-size: 10px; padding: 3px 2px;" id="nav-coordinate-go" type="button" class="btn btn-success">Go</button>
 						</div>
 					</div>

@@ -30,6 +30,44 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   border-radius: 0px 0px 10px 0px;
+  scrollbar-width: thin;
+}
+
+/* Firefox */
+.map-top-container {
+  scrollbar-width: thin;
+  scrollbar-color: #545454 #DFE9EB;
+}
+
+/* Chrome, Edge and Safari */
+.map-top-container::-webkit-scrollbar {
+  height: 10px;
+  width: 5px;
+}
+.map-top-container::-webkit-scrollbar-track {
+  border-radius: 5px;
+  background-color: #DFE9EB;
+}
+
+.map-top-container::-webkit-scrollbar-track:hover {
+  background-color: #B8C0C2;
+}
+
+.map-top-container::-webkit-scrollbar-track:active {
+  background-color: #B8C0C2;
+}
+
+.map-top-container::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  background-color: #545454;
+}
+
+.map-top-container::-webkit-scrollbar-thumb:hover {
+  background-color: #545454;
+}
+
+.map-top-container::-webkit-scrollbar-thumb:active {
+  background-color: #545454;
 }
 
 .map-top-hidden {
