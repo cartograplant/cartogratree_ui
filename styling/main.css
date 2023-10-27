@@ -11,6 +11,67 @@ body {
   border: 1px solid gray !important;
 }
 
+#map-top-buttons {
+  z-index: 2;
+  position: absolute;
+  top: -2px;
+  padding-left: 25px;
+}
+
+.map-top-buttons-parent-container {
+  display: inline-block; 
+  width: 200px;
+  vertical-align: top;
+}
+
+.map-top-container {
+  background-color: #383c42;
+  max-height: 50vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 0px 0px 10px 0px;
+}
+
+.map-top-hidden {
+  display: none;
+}
+
+#map-top-buttons .map-top-button {
+  background-color: #3f626ebf;
+  color: #FFFFFF;
+  border-radius: 0px 0px 10px 10px;
+  border: 2px solid #3f626ebf;
+  font-size: 12px;
+  font-style: italic;
+  padding-bottom: 5px;
+  padding-left: 10px;
+  padding-right: 10px;  
+}
+
+#map-top-buttons .map-top-button .arrow {
+  font-size: 8px;
+}
+
+#map-top-buttons #map-top-plant-data-sources .btn-toggle {
+  transform: scale(0.5);
+  border-radius: 30px;
+  margin: unset;
+}
+
+#map-top-buttons #map-top-plant-data-sources h6 {
+  transform: scale(0.8);
+}
+
+#map-top-buttons #map-top-plant-data-sources .list-group-item {
+  padding: 0px;
+  background-color: unset;
+  color: #FFFFFF;
+}
+
+#map-top-buttons .map-top-button:focus {
+  outline: unset;
+}
+
 /* loading dots */
 
 .loading:after {

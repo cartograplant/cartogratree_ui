@@ -1094,6 +1094,7 @@
     	<!-- <div id="main-menu" class="sidebar-expanded d-none d-md-block col-3 sidebar-container"> REMOVED mobile hiding -->
         <!-- d-* hides the Sidebar in smaller devices. Its items can be kept on the Navbar 'Menu' -->
         <ul class="list-group">
+			<!-- 
 			<li>
                 <a href="#map-navigation" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start sidebar-separator-title">
                     <div class="d-flex w-100 justify-content-start sidebar-menu-header align-items-center">
@@ -1119,7 +1120,8 @@
                         </li>
                     </ul>
                 </div>
-            </li>		
+            </li>
+			-->		
             <li>
                 <a href="#map-options" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start sidebar-separator-title">
                     <div class="d-flex w-100 justify-content-start sidebar-menu-header align-items-center">
@@ -1266,6 +1268,7 @@
 					</ul>
 				</div>
 			</li>
+			<!--
             <li>
                 <a href="#dataset-options" id="dataset-options-heading" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start sidebar-separator-title">
                     <div class="d-flex w-100 justify-content-start sidebar-menu-header align-items-center">
@@ -1298,12 +1301,12 @@
 								</ul>
 							</div>
 						</li>						
-						<!-- justify-content-center was removed from the classes to keep alignments with above list the same too -->
+						
                         <li class="list-group-item list-group-item-action d-flex ">
                             <div class="row row-100">
                                 <div class="col-7">
                                     <h6 class="text-muted" style="line-height: 20px;">
-                                        <div style="display: inline-block; width: 20%;"><i class="fas fa-tree" style="position: relative; top: -5px;"></i></div><div style="display: inline-block; width: 70%;">Internal submissions</div><!-- TreeGenes -->
+                                        <div style="display: inline-block; width: 20%;"><i class="fas fa-tree" style="position: relative; top: -5px;"></i></div><div style="display: inline-block; width: 70%;">Internal submissions</div>
                                     </h6>
                                 </div>
                                 <div class="col-4">
@@ -1331,7 +1334,7 @@
                             <div class="row row-100">
                                 <div class="col-7">
                                     <h6 class="text-muted" style="line-height: 20px;">
-                                        <div style="display: inline-block; width: 20%;"><i class="fas fa-database" style="position:relative; top:-5px;"></i></div><div style="display: inline-block; width: 70%;">Direct submissions</div> <!-- DRYAD -->
+                                        <div style="display: inline-block; width: 20%;"><i class="fas fa-database" style="position:relative; top:-5px;"></i></div><div style="display: inline-block; width: 70%;">Direct submissions</div>
                                     </h6>
                                 </div>
                                 <div class="col-4">
@@ -1341,37 +1344,6 @@
                                 </div>
                             </div>
                         </li>
-                        <!-- <li class="list-group-item list-group-item-action d-flex">
-                            <div class="row row-100">
-                                <div class="col-7">
-                                    <h6 class="text-muted">
-                                        <i class="fas fa-table"></i> BIEN
-                                    </h6>
-                                </div>
-                                <div class="col-4">
-                                    <button type="button" data-toggle="button" class="btn btn-toggle bien-dataset-btn" id="bien-data" aria-pressed="true" autocomplete="off">
-                                        <div class="handle"></div>
-                                    </button>
-                                </div>
-                            </div>
-                        </li> -->
-
-						<!--
-                        <li class="list-group-item list-group-item-action d-flex">
-                            <div class="row row-100">
-                                <div class="col-7">
-                                    <h6 class="text-muted">
-                                        <i class="fas fa-table"></i> BIEN vs (TG & DA) Tiles
-                                    </h6>
-                                </div>
-                                <div class="col-4">
-                                    <button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="bien_geoserver_tileset-data" aria-pressed="true" autocomplete="off">
-                                        <div class="handle"></div>
-                                    </button>
-                                </div>
-                            </div>							
-                        </li>
-						-->
 						<?php
 							$results = unserialize(variable_get('ct_geoserver_datasets', serialize(array())));
 							foreach ($results as $r) {
@@ -1397,7 +1369,7 @@
 						<?php		
 							}
 						?>
-						<!-- WFID TODO -->
+						
 						<?php if( user_access("access cartogratree wfid") ) { ?>
 						
                         <li class="list-group-item list-group-item-action d-flex">
@@ -1415,22 +1387,6 @@
                             </div>
                         </li>
 						<?php } ?>											
-						<!--
-                        <li class="list-group-item list-group-item-action d-flex">
-                            <div class="row row-100">
-                                <div class="col-7">
-                                    <h6 class="text-muted">
-                                        <i class="fas fa-table"></i> BIEN vs (TG & DA)
-                                    </h6>
-                                </div>
-                                <div class="col-4">
-                                    <button type="button" data-toggle="button" class="btn btn-toggle bien-vs-tgda-dataset-btn" id="bien-data" aria-pressed="true" autocomplete="off">
-                                        <div class="handle"></div>
-                                    </button>
-                                </div>
-                            </div>							
-                        </li>
-						-->
                         <li id='trees-by-source-id-import-status' class="list-group-item list-group-item-action d-flex hidden">
                             <div class="row row-100">
                                 <div class="col-8">
@@ -1471,6 +1427,7 @@
                     </ul>
                 </div>
             </li>
+			-->
 	
 			<li>			
 				<a href="#tree-filter-options" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">
@@ -1627,6 +1584,252 @@
     <div class="col py-3" id="map-container">
         <!-- body-row END -->
         <div id="map"></div>
+		<div id="map-top-buttons">
+			<div class="map-top-buttons-parent-container" style="">
+				<div id="map-top-map-options" class="map-top-container map-top-hidden">
+					OK
+				</div>
+				<button class="map-top-button" data-state="closed">Map Options <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span></button>
+			</div>
+			<div class="map-top-buttons-parent-container" style="">
+				<div id="map-top-plant-data-sources" class="map-top-container map-top-hidden">
+					<!-- <div class="filter-options sidebar-submenu" id="dataset-options" aria-expanded="false"> -->
+						<ul class="list-group">
+							<li>
+								<!-- 
+								<a href="#dataset-options" id="dataset-options-heading" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start sidebar-separator-title">
+									<div class="d-flex w-100 justify-content-start sidebar-menu-header align-items-center">
+										<span class="mr-2"><i class="fas fa-database"></i></span>
+										<span class="menu-collapsed"><b>Plant Dataset Sources</b></span>
+										<span class="submenu-icon ml-auto"></span>
+									</div>
+								</a>
+								-->
+								<div class="filter-options sidebar-submenu" id="dataset-options" aria-expanded="false">					
+									<ul class="list-group">
+										<li id="map-dataset-loading">
+											<div class="map-dataset-loading-class sidebar-submenu"  aria-expanded="false">
+												<ul class="list-group">
+													<li style="background-color: #006fab !important; color: #FFFFFF;" class="list-group-item list-group-item-action d-flex justify-content-center">
+														<div class="row row-100">					
+															<div id="map-dataset-loading-text-status" class="text-center" style='margin-bottom: 5px;'>
+																...
+															</div>							
+														</div>
+													
+													</li>
+													<li style="background-color: #555 !important; color: #FFFFFF;" class="list-group-item list-group-item-action d-flex justify-content-center">
+														<div class="row row-100">					
+															<div id="map-dataset-loading-progressbar" class="text-center" style='width: 100%; margin-bottom: 5px;'>
+																<div id="map-dataset-loading-progressbar-progress" class="text-center" style="border-radius: 3px; background-color: #d4942c; height: 5px; width: 1%;">&nbsp;</div>
+															</div>
+															<div id="map-dataset-loading-progressbar-progress-text" class="text-center" style="width: 100%; color: #FFFFFF;">&nbsp;</div>						
+														</div>								
+													</li>
+												</ul>
+											</div>
+										</li>						
+										<!-- justify-content-center was removed from the classes to keep alignments with above list the same too -->
+										<li class="list-group-item list-group-item-action d-flex ">
+											<div class="" style="width: 100%;">
+												<div class="d-inline-block" style="width: 60%;">
+													<h6 class="" style="line-height: 20px;">
+														<div style="display: inline-block; width: 20%;"><i class="fas fa-tree" style="position: relative; top: -5px;"></i></div><div style="display: inline-block; width: 70%;">Internal submissions</div><!-- TreeGenes -->
+													</h6>
+												</div>
+												<div class="d-inline-block" style="width: 20%;">
+													<button type="button" data-toggle="button" class="tree-dataset-btn btn btn-toggle" id="treegenes-data" aria-pressed="true" autocomplete="off">
+														<div class="handle"></div>
+													</button>
+												</div>
+											</div>
+										</li>
+										<li class="list-group-item list-group-item-action d-flex">
+											<div class="" style="width: 100%;">
+												<div class="d-inline-block" style="width: 60%;">
+													<h6 class="">
+														<i class="fas fa-mobile-alt" style="margin-right: 5px;"></i> TreeSnap
+													</h6>
+												</div>
+												<div class="d-inline-block" style="width: 20%;">
+													<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="treesnap-data" aria-pressed="true" autocomplete="off">
+														<div class="handle"></div>
+													</button>
+												</div>
+											</div>
+										</li>
+										<li class="list-group-item list-group-item-action d-flex">
+											<div class="" style="width: 100%;">
+												<div class="d-inline-block" style="width: 60%;">
+													<h6 class="" style="line-height: 20px;">
+														<div style="display: inline-block; width: 20%;"><i class="fas fa-database" style="position:relative; top:-5px;"></i></div><div style="display: inline-block; width: 70%;">Direct submissions</div> <!-- DRYAD -->
+													</h6>
+												</div>
+												<div class="d-inline-block" style="width: 20%;">
+													<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="datadryad-data" aria-pressed="true" autocomplete="off">
+														<div class="handle"></div>
+													</button>
+												</div>
+											</div>
+										</li>
+										<!-- <li class="list-group-item list-group-item-action d-flex">
+											<div class="row row-100">
+												<div class="col-7">
+													<h6 class="text-muted">
+														<i class="fas fa-table"></i> BIEN
+													</h6>
+												</div>
+												<div class="col-4">
+													<button type="button" data-toggle="button" class="btn btn-toggle bien-dataset-btn" id="bien-data" aria-pressed="true" autocomplete="off">
+														<div class="handle"></div>
+													</button>
+												</div>
+											</div>
+										</li> -->
+
+										<!--
+										<li class="list-group-item list-group-item-action d-flex">
+											<div class="row row-100">
+												<div class="col-7">
+													<h6 class="text-muted">
+														<i class="fas fa-table"></i> BIEN vs (TG & DA) Tiles
+													</h6>
+												</div>
+												<div class="col-4">
+													<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="bien_geoserver_tileset-data" aria-pressed="true" autocomplete="off">
+														<div class="handle"></div>
+													</button>
+												</div>
+											</div>							
+										</li>
+										-->
+										<?php
+											$results = unserialize(variable_get('ct_geoserver_datasets', serialize(array())));
+											foreach ($results as $r) {
+												$element_name = $r['geoserver_dataset_name'];
+												$element_name = strtolower($element_name);
+												$element_name = str_ireplace(' ', '_', $element_name);
+												$element_name = $element_name . '_geoserver_tileset-data';
+										?>
+											<li class="list-group-item list-group-item-action d-flex">
+												<div class="" style="width: 100%;">
+													<div class="d-inline-block" style="width: 60%;">
+														<h6 class="">
+															<i class="fas fa-table" style="margin-right: 5px;"></i> <?php echo $r['geoserver_dataset_name']; ?>
+														</h6>
+													</div>
+													<div class="d-inline-block" style="width: 20%;">
+														<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="<?php echo $element_name; ?>" aria-pressed="false" autocomplete="off">
+															<div class="handle"></div>
+														</button>
+													</div>
+												</div>							
+											</li>						
+										<?php		
+											}
+										?>
+										<!-- WFID TODO -->
+										<?php if( user_access("access cartogratree wfid") ) { ?>
+										
+										<li class="list-group-item list-group-item-action d-flex">
+											<div class="" style="width: 100%;">
+												<div class="d-inline-block" style="width: 60%;">
+													<h6 class="">
+														<i class="fas fa-database" style="margin-right: 5px;"></i> WFID
+													</h6>
+												</div>
+												<div class="d-inline-block" style="width: 20%;">
+													<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="wfid_geojson-data" aria-pressed="false" autocomplete="off">
+														<div class="handle"></div>
+													</button>
+												</div>
+											</div>
+										</li>
+										<?php } ?>											
+										<!--
+										<li class="list-group-item list-group-item-action d-flex">
+											<div class="row row-100">
+												<div class="col-7">
+													<h6 class="text-muted">
+														<i class="fas fa-table"></i> BIEN vs (TG & DA)
+													</h6>
+												</div>
+												<div class="col-4">
+													<button type="button" data-toggle="button" class="btn btn-toggle bien-vs-tgda-dataset-btn" id="bien-data" aria-pressed="true" autocomplete="off">
+														<div class="handle"></div>
+													</button>
+												</div>
+											</div>							
+										</li>
+										-->
+										<li id='trees-by-source-id-import-status' class="list-group-item list-group-item-action d-flex hidden">
+											<div class="row row-100">
+												<div class="col-8">
+													<h6 class="text-muted">
+														<i class="fas fa-hourglass-half"></i> Retrieving...
+													</h6>
+												</div>
+												<div class="col-3">
+													<h6 id='trees-by-source-id-import-status-text'>0</h6>
+												</div>
+											</div>
+											
+										</li>
+										<li id='trees-by-source-id-import-time-status' class="list-group-item list-group-item-action d-flex hidden">	
+											<div class="row row-100">
+												<div class="col-8">
+													<h6 class="text-muted">
+														<i class="fas fa-stopwatch"></i> Time Elapsed
+													</h6>
+												</div>
+												<div class="col-3">
+													<h6 id='trees-by-source-id-import-time-elapsed-text'>0</h6>
+												</div>
+											</div>						
+										</li>
+										<li id='trees-by-source-id-import-datasize-status' class="list-group-item list-group-item-action d-flex hidden">	
+											<div class="row row-100">
+												<div class="col-8">
+													<h6 class="text-muted">
+														<i class="fas fa-download"></i> Size (bytes)
+													</h6>
+												</div>
+												<div class="col-3">
+													<h6 id='trees-by-source-id-import-datasize-text'>0</h6>
+												</div>
+											</div>						
+										</li>						
+									</ul>
+								</div>
+							</li>
+						</ul>
+					<!-- </div> -->
+				</div>
+				<button class="map-top-button" data-state="closed">Plant Data Sources <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span></button>
+			</div>
+			<div class="map-top-buttons-parent-container" style="">
+				<div id="map-top-filters" class="map-top-container map-top-hidden">
+					OK
+				</div>
+				<button class="map-top-button" data-state="closed">Filters <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span></button>
+			</div>
+			<div class="map-top-buttons-parent-container" style="">
+				<div id="map-top-coordinate-search" class="map-top-container map-top-hidden">
+					<div style="padding: 5px;" class="">					
+						<div class="d-inline-block text-center" style='width: 30%;'>
+							<input style="width: 100%; text-align: center; font-size: 10px;" type="text" id="nav-coordinate-lat-go" placeholder="Lat" />
+						</div>
+						<div class="d-inline-block text-center" style='width: 30%;'>
+							<input style="width: 100%; text-align: center; font-size: 10px;" type="text" id="nav-coordinate-lon-go"  placeholder="Lon"/>
+						</div>
+						<div class="d-inline-block text-center" style='width: 30%;'>
+							<button style="width: 100%; font-size: 10px; padding: 3px 2px;" id="nav-coordinate-go" type="button" class="btn btn-success">Go</button>
+						</div>
+					</div>
+				</div>
+				<button class="map-top-button" data-state="closed">Coordinate Search <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span></button>
+			</div>
+		</div>
         <div id="legend" style="overflow-y: scroll; max-height: 50%;" class="w240 round shadow-darken10 px12 py12 txt-s"></div>
 
 		<div class="hidden map-overlay" id="tree-details">

@@ -9108,6 +9108,24 @@ var ct_ready_mapjs = function() {
 	function isInteger(n) {
 		return n === +n && n === (n|0);
 	}
+
+	$(document).on('click', '.map-top-button', function() {
+		console.log('map-top-button clicked');
+		// check if data-state is closed, then open it
+		var button_state = $(this).attr('data-state');
+		if (button_state == "closed") {
+			$(this).parent().find('.map-top-container').removeClass('map-top-hidden');
+			$(this).find('.arrow i').removeClass('fa-chevron-down');
+			$(this).find('.arrow i').addClass('fa-chevron-up');
+			$(this).attr('data-state', 'opened');
+		}
+		else {
+			$(this).parent().find('.map-top-container').addClass('map-top-hidden');
+			$(this).find('.arrow i').removeClass('fa-chevron-up');
+			$(this).find('.arrow i').addClass('fa-chevron-down');
+			$(this).attr('data-state', 'closed');
+		}
+	});
 	
 	$(document).on('click', '#nav-coordinate-go', function() {
 		var lat = $('#nav-coordinate-lat-go').val();
