@@ -1,5 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&family=Roboto:wght@100;300;400;500;700;900&display=swap');
+
 body {
   max-height: 100vh;
+  font-family: 'Roboto', sans-serif !important;
+}
+
+select {
+  max-width: 100%;
 }
 
 #body-row {
@@ -11,17 +18,145 @@ body {
   border: 1px solid gray !important;
 }
 
-#map-top-buttons {
+#map-right-buttons {
   z-index: 2;
   position: absolute;
+  top: 50%;
+  right: 0px;
+  padding-bottom: 25px;
+}
+
+#map-right-buttons .map-right-button {
+
+  display: inline-block; vertical-align: top;
+
+  /* This does the rotation of the button */
+  transform: rotate(-90deg);
+  transform-origin: top right;
+  min-height: 30px;
+  position: relative;
+  right: 30px; /* Min height is used to shift the button - super important for alignment */
+
+  /* UI look */
+  background-color: #3f626eF2;
+  color: #FFFFFF;
+  border-radius: 10px 10px 0px 0px;
+  border: 2px solid #3f626eF2;
+  font-size: 12px;
+  font-style: italic;
+  padding-bottom: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+
+
+}
+
+#map-right-buttons .map-right-button[data-state="opened"] {
+  right: 26px;
+}
+
+
+#map-right-buttons .map-right-container {
+  display: inline-block; 
+  background-color: #383c42F2;
+  height: 33%; 
+  vertical-align: top;
+  width: 200px;
+  max-height: 30vh;
+  overflow-y: scroll;
+}
+
+#map-right-buttons .map-right-buttons-parent-container {
+  display: inline-block;
+}
+
+#map-right-buttons .map-right-hidden {
+  display: none;
+}
+
+#map-right-buttons .map-right-button:focus {
+  outline: unset;
+}
+
+/* Firefox */
+.map-right-container {
+  scrollbar-width: thin;
+  scrollbar-color: #545454 #DFE9EB;
+}
+
+/* Chrome, Edge and Safari */
+.map-right-container::-webkit-scrollbar {
+  height: 10px;
+  width: 5px;
+}
+.map-right-container::-webkit-scrollbar-track {
+  border-radius: 5px;
+  background-color: #DFE9EB;
+}
+
+.map-right-container::-webkit-scrollbar-track:hover {
+  background-color: #B8C0C2;
+}
+
+.map-right-container::-webkit-scrollbar-track:active {
+  background-color: #B8C0C2;
+}
+
+.map-right-container::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  background-color: #545454;
+}
+
+.map-right-container::-webkit-scrollbar-thumb:hover {
+  background-color: #545454;
+}
+
+.map-right-container::-webkit-scrollbar-thumb:active {
+  background-color: #545454;
+}
+
+.map-right-container .list-group h6 {
+  font-size: 11px !important;
+}
+
+.map-right-container .list-group h7 {
+  font-size: 10px !important;
+}
+
+.map-right-container .list-group .list-group-item {
+  margin: 0px;
+  padding: 0px;
+  padding-left: 10px;
+  padding-right: 10px;
+  background-color: unset;
+  color: #FFFFFF;
+}
+
+
+
+
+#map-top-buttons {
+  /* This causes blocking of the map clicking */
+  /* z-index: 2;
+  position: absolute;
   top: -2px;
-  padding-left: 25px;
+  padding-left: 25px; */
 }
 
 .map-top-buttons-parent-container {
   display: inline-block; 
   width: 200px;
   vertical-align: top;
+  z-index: 2;
+  position: relative;
+  top: -16px;
+  padding-left: 25px;
+
+}
+
+.map-top-button {
+  min-width: 140px;
+  text-align: left;
 }
 
 .map-top-container {
@@ -31,6 +166,130 @@ body {
   overflow-x: hidden;
   border-radius: 0px 0px 10px 0px;
   scrollbar-width: thin;
+}
+
+.map-top-container #layers-menu a {
+  padding: 10px !important;
+}
+
+.map-top-container #layers-menu h6 {
+  font-size: 11px !important;
+}
+
+.map-top-container #layers-menu h7 {
+  font-size: 10px !important;
+}
+
+.map-top-container #layers-menu .btn-toggle {
+  transform: scale(0.60);
+  border-radius: 30px;
+}
+
+.map-top-container #layers-menu .layer_group_title {
+  padding-left: 0px !important;
+}
+
+.map-top-container #tree-filter-options * {
+  font-size: 10px;
+}
+
+.map-top-container #tree-filter-options .query-builder, 
+.map-top-container #tree-filter-options .query-builder .rules-group-container,
+.map-top-container #tree-filter-options .query-builder .rule-container {
+  background-color: #383c42 !important; 
+}
+
+.map-top-container #tree-filter-options .query-builder .rules-group-container {
+  border: 0px !important;
+  padding: 5px;
+}
+
+.map-top-container #tree-filter-options .query-builder .rule-container {
+  border: 1px solid #4d4d4d;
+}
+
+.map-top-container #tree-filter-options .query-builder .rules-list .phenotypes_list {
+  color: #FFFFFF; 
+}
+
+.map-top-container #tree-filter-options .query-builder .rule-value-container {
+  border: 0px !important;
+}
+
+.map-top-container #tree-filter-options .group-conditions .btn {
+  padding: 5px;
+  margin-right: 0px;
+  font-size: 8px !important;
+}
+
+
+.map-top-container #tree-filter-options .group-actions .btn {
+  padding: 2px !important;
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+  margin-right: 2px;
+  border-radius: 2px;
+  font-size: 6px !important;
+
+}
+
+.map-top-container #tree-filter-options .rules-group-container .rules-group-container {
+  margin-left: 1px;
+}
+
+
+
+.map-top-container #tree-filter-options .btn[data-delete="rule"],  .map-top-container #tree-filter-options .btn[data-delete="group"]{
+  font-size: 6px !important;
+  padding: 2px !important;
+  line-height: 0;
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+  margin-right: 4px;
+  float: right;
+}
+
+.query-builder .drag-handle, .query-builder .error-container, .query-builder .rule-container .rule-filter-container, .query-builder .rule-container .rule-operator-container, .query-builder .rule-container .rule-value-container {
+  display: block !important;
+}
+
+.map-top-container #tree-filter-options .filter-operation-buttons {
+  /* 
+  margin-bottom: 20px;
+  position: relative;
+  bottom: 0;
+  */
+
+  position: sticky;
+  top: -2px;
+  background-color: #383c42;
+  padding-top: 5px;
+  /* padding-bottom: 5px; */
+  z-index: 1000;
+}
+
+.map-top-container #tree-filter-options .filter-operation-buttons button{
+  font-size: 8px !important;
+  padding: 5px !important;
+  margin-right: unset;
+}
+
+
+
+.map-top-container #tree-filter-options select.form-control {
+  height: unset;
+  /* padding: unset; */
+  padding: 5px;
+  width: 100%;
+}
+
+.rule-operator-container {
+  width: 96%;
+}
+
+.map-top-container #tree-filter-options .rule-value-container > select {
+  min-width: 100px !important;
+  max-width: 140px !important;
 }
 
 /* Firefox */
@@ -75,10 +334,10 @@ body {
 }
 
 #map-top-buttons .map-top-button {
-  background-color: #3f626ebf;
+  background-color: #3f626eF2;
   color: #FFFFFF;
   border-radius: 0px 0px 10px 10px;
-  border: 2px solid #3f626ebf;
+  border: 2px solid #3f626eF2;
   font-size: 12px;
   font-style: italic;
   padding-bottom: 5px;
@@ -168,7 +427,6 @@ body {
 }
 
 #layers-menu .list-group a {
-  height: 70px !important;
   color: white;
 }
 
@@ -258,6 +516,7 @@ body {
 #map-container {
   padding-left: 0 !important;
   padding-right: 0 !important;
+  height: 90vh;
 }
 
 .map-overlay {
@@ -909,6 +1168,18 @@ line {
 	}
 }
 
+.selectize-dropdown {
+  padding: 0px !important;
+}
+
+.selectize-input {
+  padding: 5px !important;
+}
+
+.selectize-control.single .selectize-input:after {
+  right: 5px !important;
+}
+
 #more_info_phenotype_table th,  #more_info_genotype_table th{
     background-color: #589a60;
     color: #FFFFFF;
@@ -942,4 +1213,30 @@ line {
 /* Handle on hover */
 #legend::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+#tree-filter-options .rules-group-container .rules-group-header {
+  position: sticky;
+  top: 26px;
+  z-index: 1001;
+  background-color: #383c42;
+  padding-top: 5px;
+  /* padding-bottom: 10px; */
+}
+
+.tag {
+  display: inline-block; 
+  padding: 2px; 
+  border-radius: 2px; 
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#analysis_detections_study_summary table, #analysis_detections_study_summary th, #analysis_detections_study_summary tr, #analysis_detections_study_summary td {
+  border: 1px solid #f3f3f3;
+  border-collapse: collapse;
+}
+
+#analysis_detections_study_summary td,  #analysis_detections_study_summary th{
+  padding: 4px;
 }

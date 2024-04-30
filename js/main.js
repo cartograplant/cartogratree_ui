@@ -3,6 +3,7 @@ var mapState;
 //var treeDataStore = {};
 var cartograplant = {};
 cartograplant['scripts'] = {};
+cartograplant['ajax_calls'] = {}; // this contains ajax handles used for control/aborts if necessary
 var ct_ready_mainjs = function () {
 	console.log(Drupal.settings);
 	//query builder set up
@@ -107,17 +108,20 @@ var ct_ready_mainjs = function () {
 	function reload_filter_system() {
 
 		cartograplant.filtersList = [
-			cartograplant.buildSelectOption("family", "Family", "string", ["equal", "not_equal"]),	
-			cartograplant.buildSelectOption("genus", "Genus", "string", ["equal", "not_equal"]),
-			cartograplant.buildSelectOption("species", "Species", "string", ["equal", "not_equal"]),
-			cartograplant.buildSelectOption("marker_type", "Markers", "string", ["equal", "not_equal"]),
-			cartograplant.buildSelectOption("structure_name", "Plant Structure", "string", ["equal", "not_equal"]),
-			cartograplant.buildSelectOption("phenotype_name", "Phenotype Attribute", "string", ["equal", "not_equal"]),
-			cartograplant.buildSelectOption("title", "Study Title", "string", ["equal", "not_equal"]),
+			cartograplant.buildSelectOption("family", "Family", "string", ["equal", "not_equal"]),	 // 0
+			cartograplant.buildSelectOption("genus", "Genus", "string", ["equal", "not_equal"]), // 1
+			cartograplant.buildSelectOption("species", "Species", "string", ["equal", "not_equal"]), // 2
+			// cartograplant.buildSelectOption("marker_type", "Markers", "string", ["equal", "not_equal"]),
+			cartograplant.buildSelectOption("markers", "Markers", "string", ["equal", "not_equal"]), // 3
+			cartograplant.buildSelectOption("category", "Category", "string", ["equal", "not_equal"]), // 4
+			cartograplant.buildSelectOption("structure_name", "Plant Structure", "string", ["equal", "not_equal"]), //5
+			// cartograplant.buildSelectOption("phenotype_name", "Phenotype Attribute", "string", ["equal", "not_equal"]), // 6
+			cartograplant.buildAutocompleteOption("phenotype_name", "Phenotype Attribute", "string", Drupal.settings.options_data["cvterm"]), // 6
+			cartograplant.buildSelectOption("title", "Study Title", "string", ["equal", "not_equal"]), // 7
 
-			cartograplant.buildAutocompleteOption("author", "Study First Author", "string", Drupal.settings.options_tgdr["pub_author"].sort()),
+			cartograplant.buildAutocompleteOption("author", "Study First Author", "string", Drupal.settings.options_tgdr["pub_author"].sort()), // 8
 			
-			cartograplant.buildAutocompleteOption("accession", "Study Accession", "string", Drupal.settings.options_tgdr["pub_tgdr"]),
+			cartograplant.buildAutocompleteOption("accession", "Study Accession", "string", Drupal.settings.options_tgdr["pub_tgdr"]), // 9
 			// buildSelectOption("study_accession", "Study Accession", "string", ["equal", "not_equal"]),
 		];
 
@@ -125,11 +129,13 @@ var ct_ready_mainjs = function () {
 		cartograplant.populateOptions(0, Object.keys(Drupal.settings.options_data.organism_data["family"]).sort());
 		cartograplant.populateOptions(1, Object.keys(Drupal.settings.options_data.organism_data["genus"]).sort());
 		cartograplant.populateOptions(2, Drupal.settings.options_data.organism_data["species"].sort());
-		cartograplant.populateOptions(3, Drupal.settings.options_data.marker_type, {'SSR':'nSSR'});
-		cartograplant.populateOptions(4, Drupal.settings.options_data.plant_ontology);
-		cartograplant.populateOptions(5, Drupal.settings.options_data.cvterm);
-		//populateOptions(5, Drupal.settings.options_data.phenotype);
-		cartograplant.populateOptions(6, Drupal.settings.options_tgdr["pub_title"].sort());
+		// cartograplant.populateOptions(3, Drupal.settings.options_data.marker_type, {'SSR':'nSSR'});
+		cartograplant.populateOptions(3, Drupal.settings.options_data.markers, {'SSR':'nSSR'});
+		cartograplant.populateOptions(4, Drupal.settings.options_data.categories);
+		cartograplant.populateOptions(5, Drupal.settings.options_data.plant_ontology);
+		// cartograplant.populateOptions(6, Drupal.settings.options_data["cvterm"]);
+		// populateOptions(5, Drupal.settings.options_data.phenotype);
+		cartograplant.populateOptions(7, Drupal.settings.options_tgdr["pub_title"].sort());
 		// cartograplant.populateOptions(7, Drupal.settings.options_tgdr["pub_author"].sort());
 		// cartograplant.populateOptions(8, Drupal.settings.options_tgdr["pub_tgdr"].sort());
 
@@ -177,13 +183,25 @@ var ct_ready_mainjs = function () {
 			filters: cartograplant.filtersList,
 			rules: cartograplant.rulesBasic,
 			default_filter: 'family'
-		});		
+		});
+		$('#builder').on('afterAddRule.queryBuilder', function() {
+			querybuilder_change_delete();
+		});
+		querybuilder_change_delete();
+
 		console.log('reload filter system executed');
 	}
 	reload_filter_system();
 	cartograplant['reload_filter_system'] = reload_filter_system;
 
-
+	function querybuilder_change_delete() {
+		$('.rule-actions').each(function () {
+			$(this).find('button').html('<i class="fa-solid fa-xmark"></i>');
+		});
+		$('.group-actions').each(function () {
+			$(this).find('button[data-delete="group"]').html('<i class="fa-solid fa-xmark"></i>');
+		});
+	}
 	
 	$("#body-row .collapse").collapse("hide");
 	$("#collapse-icon").addClass("fa-angle-double-left");

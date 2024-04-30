@@ -182,9 +182,9 @@ var ct_ready_map_controls = function() {
     // This code comes from https://docs.mapbox.com/mapbox-gl-js/example/mapbox-gl-draw/
     function updateArea(e) {
 
-        console.log(e);
+        console.log('updateArea',e);
         var data = draw.getAll();
-        console.log(data);
+        console.log('data', data);
 
         if(e.features[0].geometry.type == "LineString") {
             if(e.type == "draw.create") {
@@ -218,7 +218,55 @@ var ct_ready_map_controls = function() {
         else {
             var answer = document.getElementById('calculated-area');
             var featuresJoined = null;
+
+            try {
+                // Reset the included trees
+                // mapState.includedTrees = [];
+                var polygon_ids = Object.keys(cartograplant.map_polygons);
+                // Remove all polygon related trees first
+                for (var j=0; j<polygon_ids.length; j++) {
+                    var polygon_id = polygon_ids[j];
+                    for (var i=0; i<cartograplant.map_polygons[polygon_id].features.features.length; i++) {
+                        // remove the trees
+                        var tree_id = cartograplant.map_polygons[polygon_id].features.features[i].properties.id;
+                        cartograplant.activeTrees[tree_id] = false;
+                        var index = mapState.includedTrees.indexOf(tree_id);
+                        console.log('Index of ' + tree_id + ' - ' + index);
+                        mapState.includedTrees.splice(index,1);
+                    } 
+                }      
+
+                var relatedFeatures = cartograplant.current_dataset_data;
+                console.log('relatedFeatures', relatedFeatures);
+                featuresJoined = turf.pointsWithinPolygon(relatedFeatures, data);
+                console.log('featuresJoined', featuresJoined);
+                for(var i=0; i<featuresJoined.features.length; i++) {
+                    var treeId = featuresJoined.features[i].properties.id;
+                    cartograplant.activeTrees[treeId] = true;
+                    if(!mapState.includedTrees.includes(treeId)) {
+                        mapState.includedTrees.push(treeId);
+                    }
+                }
+                cartograplant.notifyNumSelectedTrees();
+
+
+                // Keep track of the polygon name and the features in this polygon
+                if(cartograplant.map_polygons[e.features[0].id] == "undefined" || cartograplant.map_polygons[e.features[0].id] == null) {
+                    cartograplant.map_polygons[e.features[0].id] = {};
+                    cartograplant.map_polygons[e.features[0].id].features = featuresJoined;
+                }
+                else {
+                    cartograplant.map_polygons[e.features[0].id].features = featuresJoined;
+                }
+                
+            }
+            catch (err) {
+                console.log(err);
+            }
+
             if (data.features.length > 0) {
+                console.log('Features seems to be more than 0');
+                console.log(e);
                 var area = turf.area(data);
                 // restrict to area to 2 decimal points
                 // var rounded_area = Math.round(area * 100) / 100;
@@ -228,53 +276,33 @@ var ct_ready_map_controls = function() {
                 //var centroid = turf.centroid(data);
                 //var rounded_area = Math.round(area*100)/100;
                 
-
-                try {
-                    var relatedFeatures = cartograplant.current_dataset_data;
-                    console.log(relatedFeatures);
-                    featuresJoined = turf.pointsWithinPolygon(relatedFeatures, data);
-                    console.log(featuresJoined);
-                    for(var i=0; i<featuresJoined.features.length; i++) {
-                        var treeId = featuresJoined.features[i].properties.id;
-                        cartograplant.activeTrees[treeId] = true;
-                        if(!mapState.includedTrees.includes(treeId)) {
-                            mapState.includedTrees.push(treeId);
-                        }
-                    }
-                    cartograplant.notifyNumSelectedTrees();
-
-
-                    // Keep track of the polygon name and the features in this polygon
-                    if(cartograplant.map_polygons[e.features[0].id] == "undefined" || cartograplant.map_polygons[e.features[0].id] == null) {
-                        cartograplant.map_polygons[e.features[0].id] = {};
-                        cartograplant.map_polygons[e.features[0].id].features = featuresJoined;
-                    }
-                    else {
-                        cartograplant.map_polygons[e.features[0].id].features = featuresJoined;
-                    }
-                    
-                }
-                catch (err) {
-                    console.log(err);
-                }
             } else {
                 console.log('Features seems to be 0');
                 console.log(e);
                 console.log(cartograplant.map_polygons);
                 if (e.type == 'draw.delete') {
-                    for (var i=0; i<cartograplant.map_polygons[e.features[0].id].features.features.length; i++) {
-                        // remove the trees
-                        var tree_id = cartograplant.map_polygons[e.features[0].id].features.features[i].properties.id;
-                        cartograplant.activeTrees[tree_id] = false;
-                        var index = mapState.includedTrees.indexOf(treeId);
-                        mapState.includedTrees.splice(index,1);
-                    }
+                    console.log('polygons data', cartograplant.map_polygons);
+                    console.log('map_polygons ids', Object.keys(cartograplant.map_polygons));
+                    var polygon_id = e.features[0].id;
+                    console.log('polygon id', polygon_id);
+                    // console.log('polygon data', cartograplant.map_polygons[e.features[0].id])
+                    // for (var i=0; i<cartograplant.map_polygons[e.features[0].id].features.features.length; i++) {
+                    //     // remove the trees
+                    //     var tree_id = cartograplant.map_polygons[e.features[0].id].features.features[i].properties.id;
+                    //     cartograplant.activeTrees[tree_id] = false;
+                    //     var index = mapState.includedTrees.indexOf(tree_id);
+                    //     console.log('Index of ' + tree_id + ' - ' + index);
+                    //     mapState.includedTrees.splice(index,1);
+                    // }
+                    delete cartograplant.map_polygons[polygon_id];
                 
                     cartograplant.notifyNumSelectedTrees();
-                    cartograplant.map_polygons[e.features[0].id] = null;
+                    // cartograplant.map_polygons[e.features[0].id] = null;
                 }			
                 //	alert('Use the draw tools to draw a polygon!');
             }
+
+
         }
     }	
 }

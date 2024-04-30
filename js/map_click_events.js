@@ -75,6 +75,8 @@ var ct_ready_map_click_events = function() {
 
 	// });
 
+
+
 	$('#btn-find-unique-species').on("click", function() {
 		console.log(mapState.includedTrees);
 		$('#modal-unique-species .modal-status').html('');

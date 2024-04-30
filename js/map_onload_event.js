@@ -107,8 +107,22 @@ var ct_ready_map_onload_events = function() {
 
 			});
 
+			/**
+			 * This function will close all opened map_top_button containers
+			 * allow the map to then be zoomable (without closing, you cannot zoom on the map)
+			 */
+			function map_top_buttons_close_all() {
+				$('.map-top-button[data-state="opened"]').each(function() {
+					$(this).click();// this will close the opened container
+				})
+			}
+
+
 			cartograplant.performSingleClickOnMap = performSingleClickOnMap;
 			function performSingleClickOnMap(e) {
+				map_top_buttons_close_all();
+
+
 				//create a bounding box around the clicked point, to be used to query for features/trees around the bbox
 				var treesBbox = [
 					[e.point.x, e.point.y],

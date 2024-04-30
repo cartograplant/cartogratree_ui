@@ -18,7 +18,6 @@
 <!--```010........010101010..0101010.......101.....101..101..101..10101..1010101....010101010............101.....0101010....0101010..1010101```````-->
 <!--```010...010..010...010..010...010.....101.....101..101..101....101..101...010..010...010............101.....010...010..010......101....```````-->
 <!--````01010101..010...010..010...010.....101......101010...1010101010..101...010..010...010............101.....010...010..0101010..1010101```````-->
-
 <?php print render($page['content_top']); ?>
 
 <!-- Bootstrap Top Navbar -->
@@ -236,24 +235,20 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-				<div style="display: inline-block;">
-					<!-- <h3 style="padding: 0px;" class="modal-title" id="cartogratreeTitle">
+				<div class="row" style="width: 100%;">
+					<div class="col-2">
+						<!-- <h3 style="padding: 0px;" class="modal-title" id="cartogratreeTitle">
 
-					</h3> -->
-					<img class="lazy" style="width: 175px;" id="ct-logo" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/cp_logo.png">
+						</h3> -->
+						<img style="width: 175px;" id="ct-logo" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/cp_logo.png">
+					</div>
+					<div class="col-10" style="padding-top: 10px;">
+						<div id="analysis_summary_html"></div>	
+					</div>
 				</div>
-				<div style="display: inline-block; width: 20%;">
-					&nbsp;
-				</div>
-				<div style="display: inline-block; width: 20%;">
-					&nbsp;
-				</div>	
-				<div style="display: inline-block;" id="analysis_summary_html">
-					&nbsp;
-				</div>						
 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
+                	<span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
@@ -295,59 +290,81 @@
 					<div id="analysis-initial-configuration" class="tab-pane fade in active">	
 						<div class="analysis-tab-content">
 							<div style="margin-bottom: 10px;">
-								<div>Welcome!</div>
-								<fieldset>
-									<div id="analysis_id" value="-1"></div>
-									<div>
-										<div style="display: inline-block; margin-right: 10px;">Analysis name: <input id="analysis_name" type="text" value="Untitled" /></div>
-										<div style="display: inline-block; margin-right: 10px;">Analysis type: <select id="analysis_type">
-											<option value="GxPxE" selected>Genotype x Phenotype x Environmental</option>
-											<option value="GxP">Genotype x Phenotype</option>
-											<option value="GxE">Genotype x Environmental</option>
-										</select>
+								<h4 class="mb-2">Welcome to the Analysis Panel</h4>
+								<div id="analysis_detections" class="mb-2">
+
+								</div>
+								<hr />
+								<div>
+									<div class="row">
+										<div class="col-sm-1">
+											<div class="tag" style="background-color: #036e63; color: #FFFFFF;">Step 1</div>
 										</div>
-										<div style="display: inline-block; margin-right: 10px;">
-										<button class="btn btn-info" id="btn_update_analysis_name">Update</button>
+										<div class="col-sm-11">
+											<div class="mb-2">Update the details for this analysis</div>
+											<fieldset>
+												<div id="analysis_id" class="mb-2" value="-1"></div>
+												<div>
+													<div style="display: inline-block; margin-right: 10px;">Analysis name: <input id="analysis_name" type="text" value="Untitled" /></div>
+													<div style="display: inline-block; margin-right: 10px;">Analysis type: <select id="analysis_type">
+														<option value="GxPxE" selected>Genotype x Phenotype x Environmental</option>
+														<option value="GxP">Genotype x Phenotype</option>
+														<option value="GxE">Genotype x Environmental</option>
+													</select>
+													</div>
+													<div class="mt-2" style="margin-right: 10px;">
+													<button class="btn btn-info" id="btn_update_analysis_name">Update</button>
+													</div>
+												</div>
+											</fieldset>
 										</div>
 									</div>
-								</fieldset>
+								</div>
+
 								<hr />
 							</div>
 							<div style="margin-bottom: 10px;">
-								<div>To begin analyzing data, we strongly recommend creating a workspace.</div>
-								<div>A workspace stores all your uploaded files so you can use (or reuse) them when running workflow analyses. Without a workspace, you can't select data files to be used when running analyses.</div>
-							</div>
-							<div style="margin-bottom: 10px;">
-								<div style="display: flex; margin-bottom: 10px;" id="create-analysis-select-galaxy-account-container">
-									<div style="width: 25%;" id="create-analysis-select-galaxy-account-caption">Select analysis account</div>
-									<div style="width: 75%;"><select id="create-analysis-select-galaxy-account"></select></div>
-								</div>
-								<div style="display: flex; margin-bottom: 10px;">
-									<div style="width: 25%;" id="create-analysis-select-history-caption">Select workspace</div>
-									<div style="width: 50%;"><select id="create-analysis-select-history"></select></div>
-									<div style="width: 25%;"><button class="btn btn-info" id="create-analysis-new-history-button">Create new workspace</button></div>
-								</div>
-								<div id="create-analysis-new-history-configuration" style="display: none; margin-bottom: 10px;">
-									<div style="width: 25%; padding-left: 10px;">Workspace name</div>
-									<div style="width: 75%">
-										<input type="text" id="create-analysis-new-history-name" />
-										<button id="create-analysis-new-history-name-button">Create</button>
+								<div class="row">
+									<div class="col-1">
+										<div class="tag" style="background-color: #036e63; color: #FFFFFF;">Step 2</div>
+									</div>
+									<div class="col-11">
+										<div class="d-inline-block">To begin analyzing data, we strongly recommend creating a workspace.</div>
+										<div class="mb-2">A workspace stores all your uploaded files so you can use (or reuse) them when running workflow analyses. Without a workspace, you can't select data files to be used when running analyses.</div>
+										<div style="display: flex; margin-bottom: 10px;" id="create-analysis-select-galaxy-account-container">
+											<div style="width: 25%;" id="create-analysis-select-galaxy-account-caption">Select analysis account</div>
+											<div style="width: 75%;"><select id="create-analysis-select-galaxy-account"></select></div>
+										</div>
+										<div style="display: flex; margin-bottom: 10px;">
+											<div style="width: 25%;" id="create-analysis-select-history-caption">Select workspace</div>
+											<div style="width: 50%;"><select id="create-analysis-select-history"></select></div>
+											<div style="width: 25%;"><button class="btn btn-info" id="create-analysis-new-history-button">Create new workspace</button></div>
+										</div>
+										<div id="create-analysis-new-history-configuration" style="display: none; margin-bottom: 10px;">
+											<div style="width: 25%; padding-left: 10px;">Workspace name</div>
+											<div style="width: 75%">
+												<input type="text" id="create-analysis-new-history-name" />
+												<button id="create-analysis-new-history-name-button">Create</button>
+											</div>
+										</div>
+										<div style="margin-bottom: 10px;">
+											<div>
+												<div style="display: inline-block;"><h2>Manage workspace files</h2></div>
+												<div style="display: inline-block;"><button  class="manage-workspace-files-refresh btn btn-success"><i class="fa fa-refresh" aria-hidden="true"></i></button></div>
+												<div class="workspace-files-loader" style="margin-left:5px; display: inline-block;"></div>
+											</div>
+											<div id="manage-history-contents">
+											</div>							
+										</div>	
 									</div>
 								</div>
-								<div>
-									<div style="display: inline-block;"><h2>Manage workspace files</h2></div><div id="manage-workspace-files-loader" style="margin-left:5px; display: inline-block;"></div>
-								</div>
-								<div id="manage-history-contents">
-								</div>							
-							</div>																
+							</div>
+															
 						</div>
 						<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
 					</div>				
 					<div id="analysis-overlapping-traits" class="tab-pane fade in inactive">	
 						<div class="analysis-tab-content">
-							<div style="margin-bottom: 10px;">
-								<div>Filter By Traits</div>
-							</div>
 							<div style="margin-bottom: 10px;">
 								<div id="analysis-overlapping-traits-studies"></div>
 							</div>
@@ -404,7 +421,7 @@
 					<div id="analysis-overlapping-genotypes" class="tab-pane fade in inactive">	
 						<div class="analysis-tab-content">
 							<div style="margin-bottom: 10px;">
-								<div><span>Filter By Genotypes</span><span style="float: right;" id="analysis_genotypes_overall_status"></span></div>
+								<div><span style="float: right;" id="analysis_genotypes_overall_status"></span></div>
 								<table style="width: 100%;">
 									<tr>
 										<td style="width: 60%; vertical-align: top;">
@@ -479,7 +496,7 @@
 							<div style="text-align: center;">
 								Number of populations<br />
 								<input id="analysis-popstruct-section-k-value" type="text" value="2" style="text-align: center" /><br />
-								Select VCF file<br />
+								<div style="display: inline-block;">Select VCF file</div><div style="display: inline-block;" class="select_loading"></div><br />
 								<select style="margin-bottom: 10px; " id="analysis-popstruct-section-vcf-selectfile">
 									<option>SELECT VCF FILE</option>
 								</select><br />
@@ -559,12 +576,17 @@
 
 							<!-- <div style="margin-bottom: 15px;">Note: A workspace must be used to store your input data in case you ever need to rerun the workflow</div>-->
 							<div style="display: flex; margin-bottom: 10px;">
-								<div style="width: 25%;">Step 1 - Select workflow</div>
+								<div style="width: 15%;">Step 1 - Select workflow</div>
 								<div style="width: 50%;"><select id="create-analysis-select-workflow"></select></div>
-								<div style="width: 25%;"><button class="button-refresh-workflow">REFRESH</button><span class="button-refresh-workflow-status"></span></div>
+								<div style="width: 35%;">
+									<button class="btn btn-success manage-workspace-files-refresh d-inline-block">Refresh file list</button>
+									<div class="workspace-files-loader d-inline-block" style="margin-left:5px;"></div>
+									<button class="d-inline-block btn btn-primary button-refresh-workflow">Reload workflow</button>
+									<span class="button-refresh-workflow-status d-inline-block"></span>
+								</div>
 							</div>
 							<div style="display: flex; margin-bottom: 10px;">
-								<div style="width: 25%;">Step 2 - Setup analysis</div><div id="create-analysis-workflow-submit-form" style="width: 75%;"></div>
+								<div style="width: 15%;">Step 2 - Setup analysis</div><div id="create-analysis-workflow-submit-form" style="width: 75%;"></div>
 							</div>							
 							<hr />
 							<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>																			
@@ -632,7 +654,7 @@
 									<span id="analysis-num-species">0</span>
 								</li>
 								<li class="list-group-item d-flex justify-content-between align-items-center">
-									<h5><b>Publications</b></h5>
+									<h5><b>Studies</b></h5>
 									<span id="analysis-num-pub">0</span>
 								</li>
 								<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -1090,7 +1112,7 @@
 <!-- Bootstrap row -->
 <div class="row" id="body-row">
     <!-- Main Sidebar -->
-	<div id="main-menu" class="sidebar-expanded md-block col-3 sidebar-container">
+	<div id="main-menu" style="display: none;" class="sidebar-expanded md-block col-3 sidebar-container">
     	<!-- <div id="main-menu" class="sidebar-expanded d-none d-md-block col-3 sidebar-container"> REMOVED mobile hiding -->
         <!-- d-* hides the Sidebar in smaller devices. Its items can be kept on the Navbar 'Menu' -->
         <ul class="list-group">
@@ -1121,7 +1143,8 @@
                     </ul>
                 </div>
             </li>
-			-->		
+			-->
+			<!--	
             <li>
                 <a href="#map-options" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start sidebar-separator-title">
                     <div class="d-flex w-100 justify-content-start sidebar-menu-header align-items-center">
@@ -1147,12 +1170,6 @@
 							</div>
 						</li>
 						
-                        <!-- <li class="list-group-item list-group-item-action d-flex justify-content-center">
-                            <button type="button" id="layers-menu-btn" class="btn btn-secondary show-layers-menu" data-toggle="tooltip" data-placement="right" title="Toggle Layers Panel">
-                            Environmental Layers <i class="fas fa-plus"></i>
-                            </button>
-                        </li> -->
-						
                         <li class="list-group-item list-group-item-action d-flex justify-content-center">
                             <div class="row row-100">
                                 <div class="col text-center" style='margin-bottom: 5px;'>
@@ -1163,6 +1180,8 @@
                     </ul>
                 </div>
             </li>
+			-->
+			<!--
             <li>
                 <a href="#map-summary" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start sidebar-separator-title">
                     <div class="d-flex w-100 justify-content-start sidebar-menu-header align-items-center">
@@ -1207,7 +1226,6 @@
 									<h6 id="num-trees">0</h6>
                                 </div>
                                 <div class="col-1" style="padding-top: 8px;">
-									<!-- <input type="checkbox" id="select-num-trees" /> -->
 									<button type="button" data-toggle="button" class="btn btn-sel-all" id="select-num-trees" style="margin-left: 10px;" autocomplete="off" data-original-title='Select all trees'>
                                         SEL ALL
                                     </button>
@@ -1268,6 +1286,8 @@
 					</ul>
 				</div>
 			</li>
+			-->
+
 			<!--
             <li>
                 <a href="#dataset-options" id="dataset-options-heading" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start sidebar-separator-title">
@@ -1428,7 +1448,7 @@
                 </div>
             </li>
 			-->
-	
+			<!--
 			<li>			
 				<a href="#tree-filter-options" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">
 					<div class="d-flex w-100 sidebar-menu-header justify-content-start align-items-center">
@@ -1448,12 +1468,12 @@
 							<button class="btn btn-success" id="btn-get">Apply filter</button>
 						</div>
 						<div class="col" style="margin-bottom: 15px;">
-							<!--<button class="btn btn-primary" id="btn-get">Get Rules</button>-->
 							<button class="btn btn-danger" id="btn-reset">Reset filter</button>
 						</div>
 					</div>
 				</div>
 			</li>
+			
 
 			<li id="pop-struct-options-container">			
 				<a href="#pop-struct-options" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">
@@ -1467,7 +1487,8 @@
 					<div id="pop-struct-options-toggles" style="background-color: #FFFFFF; color: #000000;">
 					</div>
 				</div>
-			</li>			
+			</li>
+			-->		
 		
 			<hr />
 
@@ -1488,9 +1509,8 @@
         </ul>
     </div>
     <!-- LAYERS SIDEBAR -->
+	<!-- 
 	<div id="layers-menu" class="sidebar-expanded md-block col-2 sidebar-container bg-secondary hidden">
-    <!-- <div id="layers-menu" class="sidebar-expanded d-none d-md-block col-2 sidebar-container bg-secondary hidden"> -->
-        <!-- d-* hiddens the Sidebar in smaller devices. Its items can be kept on the Navbar 'Menu' -->
         <ul class="list-group" id="layers-fields-container">
             <li class="list-group-item text-muted menu-collapsed">
                 <div class="row">
@@ -1504,7 +1524,7 @@
                     </div>
                 </div>
             </li>
-            <!-- php script to populate environmental layers categorical values-->
+            
             <?php
                 foreach($variables['cartogratree_layers'] as $group){
                 	if($group['group_name'] != 'Trees'){
@@ -1574,6 +1594,7 @@
         	?> 
         </ul>
     </div>
+	-->
     <!-- sidebar-container END -->
     <!-- MAIN -->
 
@@ -1584,15 +1605,220 @@
     <div class="col py-3" id="map-container">
         <!-- body-row END -->
         <div id="map"></div>
-		<div id="map-top-buttons">
-			<!--
-			<div class="map-top-buttons-parent-container" style="">
-				<div id="map-top-map-options" class="map-top-container map-top-hidden">
-					OK
+		<div id="map-right-buttons">
+			<div class="map-right-buttons-parent-container" style="">
+				<button id="map-summary-button" style="" class="map-right-button" data-state="closed">Map Summary <span class="arrow"><i class="fa-solid fa-chevron-up"></i></span></button>
+				<div style="" class="map-right-container map-right-hidden">
+					<ul class="list-group">
+						<li>
+							<!-- 
+							<a href="#map-summary" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start sidebar-separator-title">
+								<div class="d-flex w-100 justify-content-start sidebar-menu-header align-items-center">
+									<span class="mr-2"><i class="fas fa-map-marked-alt"></i></span>
+									<span class="menu-collapsed"><b>Map Summary</b></span>
+									<span class="submenu-icon ml-auto"></span>
+								</div>
+							</a>
+							-->
+							<div class="filter-options collapse sidebar-submenu" id="map-summary" aria-expanded="false">
+								<ul class="list-group">							
+									<li id="map-summary-loading">
+										<div class="map-summary-loading-class sidebar-submenu"  aria-expanded="false">
+											<ul class="list-group">
+												<li style="background-color: #006fab !important; color: #FFFFFF;" class="list-group-item list-group-item-action d-flex justify-content-center">
+													<div class="row row-100">					
+														<div id="map-summary-loading-text-status" class="text-center" style='margin-bottom: 5px;'>
+															...
+														</div>							
+													</div>
+												</li>
+												<li style="background-color: #555 !important; color: #FFFFFF;" class="list-group-item list-group-item-action d-flex justify-content-center">
+													<div class="row row-100">					
+														<div id="map-summary-loading-progressbar" class="text-center" style='width: 100%; margin-bottom: 5px;'>
+															<div id="map-summary-loading-progressbar-progress" class="text-center" style="border-radius: 3px; background-color: #d4942c; height: 5px; width: 1%;">&nbsp;</div>
+														</div>
+														<div id="map-summary-loading-progressbar-progress-text" class="text-center" style="width: 100%; color: #FFFFFF;">&nbsp;</div>						
+													</div>								
+												</li>
+											</ul>
+										</div>
+									</li>												
+									<li class="list-group-item list-group-item-action d-flex">
+										<div class="row row-100">
+											<div class="col-6">
+												<h6>
+													<!-- <i class="fas fa-tree"></i> --> Number of Plants<br />
+													<div style="margin-left: 15px; margin-top: 5px;" id="plants_loading"></div>
+													<div style="margin-left: 15px; margin-top: 5px;" id="plants_details_icons"></div>
+												</h6>
+											</div>
+											<div class="col-2">
+												<h6 id="num-trees">0</h6>
+											</div>
+											<div class="col-1" style="padding-top: 8px;">
+												<button type="button" data-toggle="button" class="btn btn-sel-all" id="select-num-trees" style="transform: scale(0.75); margin-left: 10px;" autocomplete="off" data-original-title='Select all trees'>
+													SEL ALL
+												</button>
+											</div>								
+										</div>
+									</li>
+									<li id="map-summary-selected-trees" class="list-group-item list-group-item-action d-flex">
+										<div class="row row-100">
+											<div class="col-6">
+												<h6>
+													<!-- <i class="fab fa-pagelines"></i> --> Selected Plants
+												</h6>
+											</div>
+											<div class="col-2">
+												<h6 id="num-selected-trees">0</h6>
+											</div>
+											<div class="col-1">
+												<div id="btn-find-unique-species" title="Get unique species" style="margin-left: 20px; margin-top: 6.5px;"><i class="far fa-lg fa-dot-circle"></i></div>
+											</div>								
+										</div>
+									</li>						
+									<li class="list-group-item list-group-item-action d-flex">
+										<div class="row row-100">
+											<div class="col-6">
+												<h6>
+													<!-- <div style="display: inline-block; margin-left: -4px; margin-right: 3px;"><i class="fas fa-leaf"></i></div> --><div style="display: inline-block">Species count</div>
+												</h6>
+											</div>
+											<div class="col-4">
+												<h6 id="num-species">0</h6>
+											</div>
+										</div>
+									</li>
+									<li class="list-group-item list-group-item-action d-flex">
+										<div class="row row-100">
+											<div class="col-6">
+												<h6>
+													<!-- <i class="fas fa-book"></i> --> Publications Count
+												</h6>
+											</div>
+											<div class="col-4">
+												<h6 id="num-pubs">0</h6>
+											</div>
+										</div>
+									</li>
+									<li class="list-group-item list-group-item-action d-flex">
+										<div class="row row-100">
+											<div class="col-6">
+												<h6>
+													<!-- <i class="fas fa-map"></i> --> Number of Layers
+												</h6>
+											</div>
+											<div class="col-3">
+												<h6 id="num-layers">0</h6>
+											</div>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
 				</div>
-				<button class="map-top-button" data-state="closed">Map Options <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span></button>
 			</div>
-			-->
+		</div>
+		<div id="map-top-buttons">
+			<div class="map-top-buttons-parent-container" style="">
+				<div id="map-top-layers" class="map-top-container map-top-hidden">
+					<div id="layers-menu" class="md-block bg-secondary">
+						<ul class="list-group" id="layers-fields-container">
+							<!--
+							<li class="list-group-item text-muted menu-collapsed">
+								<div class="row">
+									
+									<div class="col-1">
+										<i class="fas fa-caret-left fa-2x clickable show-layers-menu" data-toggle="tooltip" data-placement="bottom" title="Collapse Layers Panel"></i>
+									</div>
+									
+									<div class="col">
+										<div class="row justify-content-center">
+											<b>Environmental Layers <i class="fas fa-layer-group"></i></b>
+										</div>
+									</div>
+								</div>
+							</li>
+							-->
+							
+							<?php
+								foreach($variables['cartogratree_layers'] as $group){
+									if($group['group_name'] != 'Trees'){
+										//generate outer most list 
+										$group_name = $group['group_name'];
+										$group_name_parts = explode('(', $group_name);
+										$group_name_title = $group_name_parts[0];
+										$group_name_source = str_replace(')', '', $group_name_parts[1]); 
+										echo '<a href="#main-layer-' . $group['group_rank'] . '"  data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">';
+										if(count($group['subgroups']) > 1){
+											echo '<div class="d-flex w-100 justify-content-start align-items-center"><h6><span class="menu-collapsed">' . $group_name_title . '</span></h6><span class="submenu-icon ml-auto"></span><h6><div style="text-align: right; font-size: 8px; margin-left: 5px;">' . $group_name_source . '</div></h6></div></a>';
+										}
+										else{
+											echo '<div class="d-flex w-100 justify-content-start align-items-center"><h6><span class="menu-collapsed">' . $group_name_title . '</span></h6><span class="submenu-icon ml-auto"></span><h6><div style="text-align: right; font-size: 8px; margin-left: 5px;">' . $group_name_source . '</div></h6></div></a>';
+										}
+										echo '<div class="collapse sidebar-submenu" id="main-layer-' . $group['group_rank'] . '"><ul class="list-unstyled components layers-container">';    
+										if(count($group['subgroups']) == 1){
+											foreach($group['subgroups'] as $key => $subgroup){
+												foreach($subgroup['layers'] as $layer){
+													echo '<li class="justify-content-center container layers-items-header"><div class="row inner-layer-header row-100">';
+													echo '<div class="col-7"><h7 id="ct-layer-title-' . $layer['layer_id'] . '">';
+													
+													//Clean up code for Species Ranges
+													if(stripos($layer['layer_title'],'range') !== FALSE) {
+														$layer['layer_title'] = str_ireplace(' range','', $layer['layer_title']);
+													}
+
+													echo $layer['layer_title'] . '</h7>';
+													echo '</div><div class="col-3">';
+													echo '<button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button>';
+													echo '<center><i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 45px;" class="fas fa-info-circle"></i></center>';
+													echo '</div></div>';
+													echo '<div id="opacity-ctrl-' . $layer['layer_id'] . '" class="row inner-layer-op row-100 hidden">';
+													echo '<div class="col-5"><label>Opacity <span id="opacity-value-' . $layer['layer_id'] . '">100%</span></label></div>';
+													echo '<div class="col-7"><input class="opacity" id="slider-' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" type="range" min="5" max="100" step="0" value="100"/></div>';
+													echo '</div></li>';	
+												}
+											}
+										}
+										else{
+											foreach($group['subgroups'] as $key => $subgroup){
+												echo '<li class="justify-content-center layers-items-header"><h6><a class="layer_group_title" href="#layer-group-' . $key . $group['group_rank'] . '" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">';
+												echo preg_replace('/\sv\d+/', '', $subgroup['subgroup_name']) . '</a></h6><div class="collapse container-fluid" id="layer-group-' . $key . $group['group_rank'] . '"><ul class="list-unstyled components layers-container">';
+												foreach($subgroup['layers'] as $layer){
+													echo '<li class="justify-content-center container layers-items">';
+													echo '<div class="row inner-layer-header" style="margin-left: -2.0rem;">';
+													echo '<div class="col-6"><h7 id="ct-layer-title-' . $layer['layer_id'] . '">';
+													
+													//Clean up code for Precipitation layers
+													// if(stripos($layer['layer_title'],'precipitation') !== FALSE) {
+													// 	$layer['layer_title'] = str_ireplace('precipitation ','', $layer['layer_title']);
+													// }
+
+													echo $layer['layer_title'] . '</h7></div>';
+													echo '<div class="col-6">';
+													echo '<div><button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button></div>';
+													echo '<div style="position: relative; left: 35px;">';
+													echo '<i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 0px;" class="fas fa-info-circle"></i>';
+													echo '<i title="Legend details" id="legend_legend_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 0px; display: none; font-size:18px;" class="fas fa-chart-bar"></i>';
+													echo '</div>';
+													echo '</div>';
+													echo '</div>'; // end row
+													echo '<div id="opacity-ctrl-' . $layer['layer_id'] . '" class="row inner-layer-op hidden"><div class="col-5"><label>Opacity <span id="opacity-value-' . $layer['layer_id'] . '">100%</span></label></div><div class="col-7"><input class="opacity" id="slider-' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" type="range" min="5" max="100" step="0" value="100"/></div></div></li>';
+												}
+												echo '</ul></div></li>';
+											}
+										}
+										echo '</ul></div>';
+									}
+								} 
+							?> 
+						</ul>
+					</div>					
+				</div>
+				<button class="map-top-button" data-state="closed">Layers <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span></button>
+			</div>
+			
 			<div class="map-top-buttons-parent-container" style="">
 				<div id="map-top-plant-data-sources" class="map-top-container map-top-hidden">
 					<!-- <div class="filter-options sidebar-submenu" id="dataset-options" aria-expanded="false"> -->
@@ -1809,14 +2035,25 @@
 				</div>
 				<button class="map-top-button" data-state="closed">Plant Data Sources <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span></button>
 			</div>
-			<!--
+			
 			<div class="map-top-buttons-parent-container" style="">
-				<div id="map-top-filters" class="map-top-container map-top-hidden">
-					OK
+				<div id="map-top-filters" class="map-top-container map-top-hidden" style="overflow-x: auto;">
+					<div class="" id="tree-filter-options" aria-expanded="false">
+					<div style="float: right; z-index: 1002; position: relative;top: 5px; right: 5px; color: #ffffff;"><i onclick='show_filter_instructions();' class="fas fa-question-circle"></i></div>
+						<div class="filter-operation-buttons text-center" style="">
+							<button class="btn btn-success" id="btn-get">Apply filter</button>
+							<button class="btn btn-danger" id="btn-reset">Reset filter</button>
+						</div>
+						<div id="builder"></div>
+						<div id="pop-struct-options-toggles"></div>
+
+					</div>
 				</div>
-				<button class="map-top-button" data-state="closed">Filters <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span></button>
+				<button class="map-top-button" data-state="closed">
+					Filters <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span>
+				</button>
 			</div>
-			-->
+			
 			<div class="map-top-buttons-parent-container" style="">
 				<div id="map-top-coordinate-search" class="map-top-container map-top-hidden">
 					<div style="padding: 5px;" class="">					
@@ -1914,7 +2151,9 @@
 
 							<div class="row justify-content-center">
 								<!-- <button id="hide-tree-details" type="button" class="btn btn-danger" style='margin-bottom: 3px; font-size:11px;' disabled>Close Plant View</button> -->
-								<button class="btn btn-primary" data-toggle="modal" data-target="#tree-more-info" style='margin-bottom: 3px;'>Study Info</button>
+								<button class="btn btn-primary" data-toggle="modal" data-target="#tree-more-info" style='margin-bottom: 3px; font-size: 10px;'>Study Info</button>
+								<button class="btn btn-primary add-all-study-plants" style='margin-bottom: 3px; font-size: 10px;'>Add all study plants</button>
+								
 								<!-- <button id='expand-image-view-button' class="btn btn-primary" data-toggle="modal" data-target="#tree-all-images" style='margin-bottom: 3px;' >Expand Image View</button> -->
 							</div>
 
@@ -1955,6 +2194,7 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<h3 class="modal-title" id="tree-more-info-label" style="padding-top: 0px;padding-bottom: 0;padding: 5px;background-color: #333333;border-radius: 5px;color: #FFFFFF;">TGDR001-2123</h3>
+				<h3 class="modal-title" id="tree-more-info-label-species" style="padding-top: 0px;padding-bottom: 0;padding: 5px;background-color: #FFFFFF;border-radius: 5px;color: #000000; margin-left: 1em;"></h3>
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button>
@@ -1974,7 +2214,9 @@
 						<div id="tree-endangered-status">
 						</div>	
 					</div>
-				
+					<div id="treesnap-collection-container" style="width: 100%;padding-left: 20px;padding-right: 10px;" class="hidden">
+
+					</div>
 					<div id="tree-study-associated-container" style="width: 100%;padding-left: 20px;padding-right: 10px;">
 						<h3 id="tree-study-associated-label" style="padding-top: 5px; padding-bottom: 5px;">Study Associated</h3>
 						<div class="media">

@@ -1,19 +1,21 @@
 @media (max-width: 600px) { 
     #map {
         
-        height: 60vh !important;
+        /* height: 60vh !important;*/
     }
 
     #main-menu {
+        /*
         display: block !important;
         position: relative !important;
         top: 50vh !important;
         max-width: unset;
         width: 100% !important;
-         
+        */
     }
 
     #layers-menu {
+        /*
         position: absolute !important;
         top: 75vh !important;
         left: 2% !important;
@@ -21,6 +23,28 @@
         width: 96% !important;
         border-radius: 0px !important;
         border: 1px solid #000000;
+        */
+    }
+
+
+    #map-top-buttons {
+        position: absolute;
+        top: 25%;
+        
+        padding-left: unset;
+    }
+
+    #map-top-buttons .map-top-buttons-parent-container {
+        padding-left: unset;
+    }
+
+    #map-top-buttons .map-top-button {
+        border-radius: 0px 0px 10px 0px;
+        margin-bottom: 2px;
+    }
+
+    #map-right-buttons {
+        /* right: 30px; */
     }
 
 }

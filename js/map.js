@@ -70,11 +70,20 @@ var ct_ready_mapjs = function() {
 	var Querystatus = "";
 	var Querystatusinterval;
 	var treeImgsStore = {};
+
+	// Currently filtered trees store current selected trees
 	cartograplant.currently_filtered_trees = [];
 	var currently_filtered_trees = cartograplant.currently_filtered_trees;
 
+	// treeDataStore stores per tree data when clicked (as a cache)
 	cartograplant.treeDataStore = [];
 	var treeDataStore = cartograplant.treeDataStore;
+
+	// all_tree_ids stores all initially loaded tree_ids
+	// used for search for study tree ids to make add all study plants
+	// button work
+	cartograplant.json_tree_ids = [];
+	var json_tree_ids = cartograplant.json_tree_ids;
 
 	var multilayers_layer_progressbar_timer = {};
 	cartograplant.current_dataset_data = {
@@ -404,6 +413,7 @@ var ct_ready_mapjs = function() {
 						if(debug) {
 							console.log('Count:' + count);
 						}
+						Querystatus = '';
 						f_count = count;
 						layerObj.feature_count = f_count;
 						//We need to update the UI Tree Count
@@ -2495,13 +2505,15 @@ var ct_ready_mapjs = function() {
 				
 
 
-				if(debug) {
-					console.log(data);
-				}
+				// if(debug) {
+				// 	console.log(data);
+				// }
 
 				cartograplant.currently_filtered_trees = [];
+				cartograplant.json_tree_ids = [];
 				for(var i=0; i < data.length; i++) {
 					cartograplant.currently_filtered_trees.push(data[i]["properties"]["id"]);
+					cartograplant.json_tree_ids.push(data[i]["properties"]["id"]);
 				}
 
 				if(debug) {
@@ -3415,6 +3427,11 @@ var ct_ready_mapjs = function() {
 
 	function getTreegenesData(treeId) {
 
+		// Stops a publication lookup if this is a treesnap tree
+		if (treeId.includes('treesnap')) {
+			return;
+		}
+
 		// Get basic information about the tree
 		$.ajax({
 			url: Drupal.settings.ct_nodejs_api + "/v2/tree?api_key=" + Drupal.settings.ct_api + "&tree_acc=" + treeId,
@@ -3429,9 +3446,10 @@ var ct_ready_mapjs = function() {
 			url: Drupal.settings.ct_nodejs_api + "/v2/publications?api_key=" + Drupal.settings.ct_api + "&tree_acc=" + treeId.split("-")[0],
 			dataType: "json",
 			success: function (data) {
+				console.log('Specific tree data', data);
 				if(debug) {
 					console.log('getTreeGenesData treeId:' + treeId);
-					console.log(data);
+					
 				}
 				if (data.length > 0) {
 					$("#tree-phenotypes-container").removeClass("hidden");	
@@ -3737,9 +3755,7 @@ var ct_ready_mapjs = function() {
 			url: Drupal.settings.ct_nodejs_api + "/v2/phenotypes?api_key=" + Drupal.settings.ct_api + "&tree_id=" + treeId,
 			dataType: "json",
 			success: function (data) {
-				if(debug) {
-					console.log(data);
-				}
+				console.log('Phenotype data', data);
 				var cvtermsSet = {};
 				for (var i = 0; i < data.length; i++) {
 					if (cvtermsSet[data[i].cvterm_name] == undefined) {
@@ -3824,6 +3840,7 @@ var ct_ready_mapjs = function() {
 
 		$('#tree-coord-type').html('Approximate');
 		$('#tree-details .btn-primary[data-target="#tree-more-info"]').show();
+		
 
 		var sourceName = "TreeGenes";
 		if(debug) {
@@ -3834,11 +3851,44 @@ var ct_ready_mapjs = function() {
 		var sourceId = data.source_id;
 		resetTreeModalData();
 
+		$('#tree-more-info-label-species').html(data.species);
 
 		console.log('tree source_id', data.source_id);
 		console.log('species', data.species);
 		if (data.source_id == 1) {
+			// If treesnap tree, set the button label to Collection Info (Tree Popup window)
+			$('.btn[data-target="#tree-more-info"]').html('Collection Info');
+			$('.add-all-study-plants').html('Add all collection plants');
 			sourceName = "TreeSnap";
+
+			// Perform a lookup of the tree_id to get the collection name which we will then display on the
+			// 'study details' popup.
+			$.ajax({
+				url: Drupal.settings.ct_nodejs_api + "/v2/trees/treesnap/collection_name_lookup_by_tree_id?tree_id=" + treeId,
+				dataType: "json",
+				success: function (data) {
+					if (data.length > 0) {
+						console.log('Collection name response: ', data);
+						$("#treesnap-collection-container").removeClass("hidden");					
+						$("#treesnap-collection-container").html('<h2 style="padding: 0px;">Treesnap Collection: ' + data[0]['category'] + '</h2>');
+
+						// Lookup the number of plants in this collection
+						$.ajax({
+							url: Drupal.settings.ct_nodejs_api + "/v2/trees/treesnap/collection_lookup_by_tree_id?tree_id=" + treeId,
+							dataType: "json",
+							success: function (data) {
+								if (data.length > 0) {
+									console.log('Collection data: ', data);
+									$("#treesnap-collection-container").append('<div style="margin-left: 5px; margin-top: 5px;">There are ' + data.length + ' plants in this Treesnap collection</div>')
+								}
+							}
+						});
+					}
+				}
+			});
+
+
+
 			if (treeImgsStore[treeId] == undefined) {
 				$.ajax({
 					url: Drupal.settings.ct_nodejs_api + "/v2/tree/treesnap?api_key=" + Drupal.settings.ct_api + "&tree_id=" + treeId,
@@ -3854,8 +3904,12 @@ var ct_ready_mapjs = function() {
 						catch (err) {
 							console.log('ERROR FOR TREESNAP IMAGES:' + err);
 						}
-						treeImgsStore[treeId] = {"submitter": tsData.submitter, "collection_data": tsData.collection_date, "images": tsData.images.images};
-						
+						try {
+							treeImgsStore[treeId] = {"submitter": tsData.submitter, "collection_data": tsData.collection_date, "images": tsData.images.images};
+						}
+						catch (err) {
+							console.log(err);
+						}
 
 					},
 					error: function (xhr, textStatus, errorThrown) {
@@ -3880,6 +3934,10 @@ var ct_ready_mapjs = function() {
 			}
 		}
 		else {
+			// If not a treesnap tree, set the button label to Study Info (Tree Popup window)
+			$('.btn[data-target="#tree-more-info"]').html('Study Info');
+			$('.add-all-study-plants').html('Add all study plants');
+			$("#treesnap-collection-container").addClass("hidden");
 			updateTreeImgs([], data.species);
 			/*
 			if(data.source_id == 2) {
@@ -3932,7 +3990,7 @@ var ct_ready_mapjs = function() {
 					// No data available
 					// $('#biome-number').html("Unavailable");
 					$('#biome-desc').html("No biome number could be retrieved.");
-					$('#biome-info-container').show();
+					$('#biome-info-container').hide();
 				}
 				else if(data.length > 0) {
 					console.log(data);
@@ -3956,34 +4014,47 @@ var ct_ready_mapjs = function() {
 			genotype_treeId = treeId;
 		}
 
+		if (tree_id_parts[0].includes('treesnap')) {
+			$('#tree-markers-count-label').hide();
+			$('#tree-markers-count').hide();
+		}
+		else {
+			$('#tree-markers-count-label').show();
+			$('#tree-markers-count').show();
+		}
 
-		//perform phenotypes count lookup
 		$('#tree-phenotypes-count-label').hide();
-		$('#tree-phenotypes-count').hide();		
-		$.ajax({
-			url: Drupal.settings.ct_nodejs_api + "/v2/phenotypes/count/all?api_key=" + Drupal.settings.ct_api + "&tree_id=" + genotype_treeId,
-			dataType: "json",
-			success: function (data) {
-				console.log('Phenotypes for ' + genotype_treeId + ' count:');
-				console.log(data);
-				if(data.length > 0) {
-					for (var i = 0; i < data.length; i++) {
-						$('#tree-phenotypes-count').html(data[i].c1);
-						if(data[i].c1 > 0) {
-							$('#tree-phenotypes-count-label').show();
-							$('#tree-phenotypes-count').show();
+		$('#tree-phenotypes-count').hide();	
+		if (tree_id_parts[0].includes('treesnap') == false) {
+			//perform phenotypes count lookup	
+			$.ajax({
+				url: Drupal.settings.ct_nodejs_api + "/v2/phenotypes/count/all?api_key=" + Drupal.settings.ct_api + "&tree_id=" + genotype_treeId,
+				dataType: "json",
+				success: function (data) {
+					console.log('Phenotypes for ' + genotype_treeId + ' count:');
+					console.log(data);
+					if(data.length > 0) {
+						for (var i = 0; i < data.length; i++) {
+							$('#tree-phenotypes-count').html(data[i].c1);
+							if(data[i].c1 > 0) {
+								$('#tree-phenotypes-count-label').show();
+								$('#tree-phenotypes-count').show();
+							}
 						}
 					}
-				}
 
-			}
-		});		
+				}
+			});	
+		}	
 
 		//perform phenotypes lookup
+		// Cancel any previous tree_phenotypes ajax_calls lookup 
+		console.log('Cancelling ajax_calls[tree_phenotypes]');
+		try { cartograplant.ajax_calls['tree_phenotypes'].abort(); } catch (err) { console.log(err) }
 		$('#tree-specific-unique-phenotypes-container').hide();
 		$('#tree-more-info-phenotype-container').html('Looking up phenotype data for ' + treeId + '... <img style="height: 16px;" src="' + loading_icon_src + '" />');
 		$('#tree-more-info-phenotype-container').show();
-		$.ajax({
+		cartograplant.ajax_calls['tree_phenotypes'] = $.ajax({
 			url: Drupal.settings.ct_nodejs_api + "/v2/phenotypes?api_key=" + Drupal.settings.ct_api + "&tree_id=" + treeId,
 			dataType: "json",
 			success: function (data) {
@@ -4020,11 +4091,21 @@ var ct_ready_mapjs = function() {
 					// 	// $('#tree-specific-unique-phenotypes-count').html(data.length);						
 					// }
 					for (var i = 0; i < data.length; i++) {
+
+						// Patch due to Emily changing the column name of new_pheno_view from phenotype_name to synonym
+						if (data[i]['synonym'] != undefined) {
+							data[i]['name'] = data[i]['synonym'];
+						}
+						if (data[i]['name'] == undefined) {
+							console.log('phenotype name was null or undefined', data[i]['name']);
+							continue;
+						}
+
 						for (var k in data[i]) {
 							//console.log('KEY:' + k);
 							//console.log('VAL:' + data[i][k]);
 							//if (data[i].hasOwnProperty(k)) {
-						   if(data[i][k] == "null" || data[i][k] == "NULL" || data[i][k] == null) {
+						   if(data[i][k] == "null" || data[i][k] == "NULL" || data[i][k] == null || data[i][k] == 'NA') {
 							   data[i][k] = "-";
 						   }
 							//}
@@ -4033,7 +4114,7 @@ var ct_ready_mapjs = function() {
 							$("#tree-phenotypes").append("    <span class='badge badge-success'>" + data[i].cvterm_name + "</span>");
 							cvtermsSet[data[i].cvterm_name] = true;
 						}
-						if(data[i].name.startsWith('diameterNumeric') || data[i].name.startsWith('otherLabel') || data[i].name.startsWith('heightNumeric')) {
+						if(data[i].name.startsWith('diameterNumeric') || data[i].name.startsWith('otherLabel') || data[i].name.startsWith('heightNumeric') || data[i].value == 'NA' || data[i].value == '' || data[i].value == '-') {
 							//don't add to the list to clean up the list
 							unique_phenotypes_count = unique_phenotypes_count - 1;
 						}
@@ -4068,6 +4149,11 @@ var ct_ready_mapjs = function() {
 							// If cvterm_name is '-', use data[i].units
 							if(data[i].cvterm_name == '-') {
 								data[i].cvterm_name = data[i].units;
+							}
+
+							// If cvterm is NULL, replace it back with a - (this happens with the new_pheno_view at the moment)
+							if (data[i].cvterm_name == undefined) {
+								data[i]['cvterm_name'] = '-';
 							}
 
 							phenotype_html = phenotype_html + "<tr><td>"  + data[i]['tree_acc'] + "</td><td>" + data[i].mapped_name + "</td><td>" + data[i].value + "</td><td>" + data[i].cvterm_name + "</td><td>" +  data[i].structure_name +"</td><td>" + data[i].observable_name + "</td></tr>";	
@@ -4145,96 +4231,105 @@ var ct_ready_mapjs = function() {
 		// $('#tree-more-info-genotype-container').hide();
 		// $('#tree-specific-unique-genotypes-count-label').hide();
 		// $('#tree-specific-unique-genotypes-count').hide();
-		$('#tree-more-info-genotype-container').html('Looking up genotype data for ' + treeId + '... <img style="height: 16px;" src="' + loading_icon_src + '" />');
-		$('#tree-more-info-genotype-container').show();
-		$.ajax({
-			url: Drupal.settings.ct_nodejs_api + "/v2/genotypes?api_key=" + Drupal.settings.ct_api + "&tree_id=" + genotype_treeId,
-			dataType: "json",
-			success: function (data) {
-				console.log('Genotypes for ' + genotype_treeId + ':');
-				console.log(data);				
-				var tpps_study = '';
-				var genotype_html = '';
-				genotype_html += "<h3 style='padding-top: 0px;padding-bottom: 5px;margin-left: -3px; margin-bottom: 10px;'>Plant Genotypic Data</h3>";
-				genotype_html += "<table id='more_info_genotype_table' style='width: 100%;'>";
-				genotype_html += "<tr><th>Plant ID</th><th>Marker Name</th><th>Genotype</th><th>Marker Type</th></tr>";				
-				if(data.length > 0) {
-
-					$('#tree-specific-unique-genotypes-container').show();
-					$('#tree-specific-unique-genotypes-count-label').show();
-					$('#tree-specific-unique-genotypes-count').show();
-					$('#tree-specific-unique-genotypes-count').html(data.length);
-
-					$('#tree-more-info-genotype-container').show();
-					$('#tree-more-info-genotype-container').html();
-					if(debug) {
-						console.log('Genotypic data');
-						console.log(data);
-					}
-					var count = 0;
+		if (tree_id_parts[0].includes('treesnap') == false) {
+			// Cancel any previous tree_genotypes ajax lookup 
+			console.log('Cancelling ajax_calls[tree_genotypes]');
+			try { cartograplant.ajax_calls['tree_genotypes'].abort(); } catch (err) {}			
+			$('#tree-more-info-genotype-container').html('Looking up genotype data for ' + treeId + '... <img style="height: 16px;" src="' + loading_icon_src + '" />');
+			$('#tree-more-info-genotype-container').show();
+			// Perform a tree_genotypes ajax lookup
+			cartograplant.ajax_calls['tree_genotypes'] = $.ajax({
+				url: Drupal.settings.ct_nodejs_api + "/v2/genotypes?api_key=" + Drupal.settings.ct_api + "&tree_id=" + genotype_treeId,
+				dataType: "json",
+				success: function (data) {
+					console.log('Genotypes for ' + genotype_treeId + ':');
+					console.log(data);				
+					var tpps_study = '';
+					var genotype_html = '';
+					genotype_html += "<h3 style='padding-top: 0px;padding-bottom: 5px;margin-left: -3px; margin-bottom: 10px;'>Plant Genotypic Data</h3>";
+					genotype_html += "<table id='more_info_genotype_table' style='width: 100%;'>";
+					genotype_html += "<tr><th>Plant ID</th><th>Marker Name</th><th>Genotype</th><th>Marker Type</th></tr>";				
 					if(data.length > 0) {
-						//set icon if it does not exist in the map summary by number of plants
-						if($("#plants_details_genotype_icon").length) {
 
+						$('#tree-specific-unique-genotypes-container').show();
+						$('#tree-specific-unique-genotypes-count-label').show();
+						$('#tree-specific-unique-genotypes-count').show();
+						$('#tree-specific-unique-genotypes-count').html(data.length);
+
+						$('#tree-more-info-genotype-container').show();
+						$('#tree-more-info-genotype-container').html();
+						if(debug) {
+							console.log('Genotypic data');
+							console.log(data);
+						}
+						var count = 0;
+						if(data.length > 0) {
+							//set icon if it does not exist in the map summary by number of plants
+							if($("#plants_details_genotype_icon").length) {
+
+							}
+							else {
+								var icon = '<i id="plants_details_genotype_icon" title="Plants contain genotypic data" class="fas fa-dna"></i>';
+								$("#plants_details_icons").append(icon);
+							}
+						}			
+						if (data.length <= 15) {
+							count = data.length;
 						}
 						else {
-							var icon = '<i id="plants_details_genotype_icon" title="Plants contain genotypic data" class="fas fa-dna"></i>';
-							$("#plants_details_icons").append(icon);
+							count = 15;//only allow 15
 						}
-					}			
-					if (data.length <= 15) {
-						count = data.length;
+						for (var i = 0; i < count; i++) {
+							for (var k in data[i]) {
+								//console.log('KEY:' + k);
+								//console.log('VAL:' + data[i][k]);
+								//if (data[i].hasOwnProperty(k)) {
+							if(data[i][k] == "null" || data[i][k] == "NULL" || data[i][k] == null) {
+								data[i][k] = "-";
+							}
+								//}
+							}
+
+							if(i==0 && data[i].tree_acc.includes('TGDR')) {
+								tpps_study = data[i].tree_acc.split('-')[0];
+							}
+							genotype_html +=  "<tr><td>" + data[i].tree_acc + "</td><td>" + data[i].marker_name + "</td><td>" + data[i].description + "</td><td>" + data[i].marker_type + "</td></tr>";
+							//genotype_html = genotype_html + "<tr><td>" + data[i].uniquename.replace('-' + data[i].description, '') + "</td><td>" + data[i].description + "</td><td>" + data[i].marker_type + "</td></tr>";
+						}
 					}
 					else {
-						count = 15;//only allow 15
-					}
-					for (var i = 0; i < count; i++) {
-						for (var k in data[i]) {
-							//console.log('KEY:' + k);
-							//console.log('VAL:' + data[i][k]);
-							//if (data[i].hasOwnProperty(k)) {
-						   if(data[i][k] == "null" || data[i][k] == "NULL" || data[i][k] == null) {
-							   data[i][k] = "-";
-						   }
-							//}
-						}
+						$('#tree-more-info-genotype-container').html('');
+						$('#tree-more-info-genotype-container').hide();
 
-						if(i==0 && data[i].tree_acc.includes('TGDR')) {
-							tpps_study = data[i].tree_acc.split('-')[0];
-						}
-						genotype_html +=  "<tr><td>" + data[i].tree_acc + "</td><td>" + data[i].marker_name + "</td><td>" + data[i].description + "</td><td>" + data[i].marker_type + "</td></tr>";
-						//genotype_html = genotype_html + "<tr><td>" + data[i].uniquename.replace('-' + data[i].description, '') + "</td><td>" + data[i].description + "</td><td>" + data[i].marker_type + "</td></tr>";
+						// $('#tree-specific-unique-genotypes-container').show();
+						// $('#tree-specific-unique-genotypes-count').html(data.length);					
 					}
-				}
-				else {
-					$('#tree-more-info-genotype-container').html('');
+					genotype_html += "</table>";
+					
+					if(data.length > 15) {
+						if(tpps_study != '') {
+							genotype_html += "More markers are available for this plant, <a target='_blank' href='/tpps/details/" + tpps_study + "'>click here to view all</a>";
+						}
+						else {
+							genotype_html += "More markers are available for this plant.<br />";
+						}
+					}
+
+					if (data.length <= 0) {
+						genotype_html += "<p style='padding: 5px;'>No genotypes were found for this specific plant</p>";
+					}
+					
+					$('#tree-more-info-genotype-container').html(genotype_html);
+					$('#tree-more-info-genotype-container').show();				
+				},
+				error: function(err) {
 					$('#tree-more-info-genotype-container').hide();
-
-					// $('#tree-specific-unique-genotypes-container').show();
-					// $('#tree-specific-unique-genotypes-count').html(data.length);					
 				}
-				genotype_html += "</table>";
-				
-				if(data.length > 15) {
-					if(tpps_study != '') {
-						genotype_html += "More markers are available for this plant, <a target='_blank' href='/tpps/details/" + tpps_study + "'>click here to view all</a>";
-					}
-					else {
-						genotype_html += "More markers are available for this plant.<br />";
-					}
-				}
-
-				if (data.length <= 0) {
-					genotype_html += "<p style='padding: 5px;'>No genotypes were found for this specific plant</p>";
-				}
-				
-				$('#tree-more-info-genotype-container').html(genotype_html);
-				$('#tree-more-info-genotype-container').show();				
-			},
-			error: function(err) {
-				$('#tree-more-info-genotype-container').hide();
-			}
-		});
+			});
+		}
+		else {
+			$('#tree-more-info-genotype-container').hide();
+		}
 
 		$("#tree-family").text(data.family == null ? "Unidentified" : data.family);
 		//$("#tree-plant-group").text(data.subkingdom == null ? "Unidentified" : data.subkingdom);
@@ -4271,13 +4366,13 @@ var ct_ready_mapjs = function() {
 	cartograplant.searchTreeDataStore = searchTreeDataStore;
 	function searchTreeDataStore(nameKey){
 		//console.log('searchTreeDataStore for ' + nameKey);
-		for (var i=0; i < treeDataStore.length; i++) {
+		for (var i=0; i < cartograplant.treeDataStore.length; i++) {
 			//console.log(treeDataStore[i]);
-			if (treeDataStore[i].tree_id === nameKey) {
+			if (cartograplant.treeDataStore[i].tree_id === nameKey) {
 				if(debug) {
 					console.log('Found an item using searchTreeDataStore');
 				}
-				return treeDataStore[i];
+				return cartograplant.treeDataStore[i];
 			}
 		}
 		return undefined;
@@ -5974,6 +6069,7 @@ var ct_ready_mapjs = function() {
 
 					// Check to see whether a pop_struct exists for this study
 					if (Drupal.settings.popstruct_studies.includes(value_element.val())) {
+						console.log('Adding pop struct UI toggle element');
 						cartograplant.ui_add_pop_struct_toggle({
 							caption: value_element.val() + ' Population Structure',
 							name: value_element.val()
@@ -6094,7 +6190,49 @@ var ct_ready_mapjs = function() {
 	});
 	*/
 	
-
+	$(document).on("click", ".add-all-study-plants", function () {
+		var treeId = $('#tree-id').html();
+		console.log('treeId', treeId);
+		// Extract study id
+		var tree_id_parts = treeId.split('-');
+		if (tree_id_parts[0].includes('TGDR')) {
+			var study_id = tree_id_parts[0];
+			// Go through each tree_ids to see if there's a match on the study id
+			console.log('Searching ' + cartograplant.json_tree_ids.length + ' json tree ids');
+			for (var i = 0; i < cartograplant.json_tree_ids.length; i++) {
+				var tree_id_tmp = cartograplant.json_tree_ids[i];
+				// console.log('tree_id_tmp', tree_id_tmp);
+				if (tree_id_tmp.includes(study_id)) {
+					// Add this to filtered trees if it does not exist
+					if (mapState.includedTrees.includes(tree_id_tmp) == false) {
+						mapState.includedTrees.push(tree_id_tmp);
+					}
+				}
+			}
+			$('#num-selected-trees').html(mapState.includedTrees.length);
+			notifyNumSelectedTrees();
+		}
+		else if (treeId.includes('treesnap')) {
+			// Look up treesnap treeid to get list of tree_ids of the same collection
+			// url: Drupal.settings.base_url + '/cartogratree/api/v2/
+			console.log('add all collection plants click');
+			$.ajax({
+				url: Drupal.settings.base_url + '/cartogratree/api/v2/trees/treesnap/collection_lookup_by_tree_id?tree_id=' + treeId,
+				method: 'GET',
+				success: function(data) {
+					console.log('collection lookup data', data);
+					for(var i = 0; i < data.length; i++) {
+						var tree_id_tmp = data[i];
+						if (mapState.includedTrees.includes(tree_id_tmp) == false) {
+							mapState.includedTrees.push(tree_id_tmp);
+						}
+					}
+					$('#num-selected-trees').html(mapState.includedTrees.length);
+					notifyNumSelectedTrees();
+				}
+			});
+		}
+	});
 
 	$(document).on("click", ".add-tree", function () {
 		var treeId = $(this).parent().children(":first")[0].id;
@@ -6360,6 +6498,7 @@ var ct_ready_mapjs = function() {
 							'iconOverlap': false,
 							'moveLayerToTop': true
 						});
+						console.log('popstruct data', data);
 						setCurrentDatasetData(dataset_id_number, data);			
 					}, study_accession);					
 				}														
@@ -6990,37 +7129,12 @@ var ct_ready_mapjs = function() {
 		load_scripts_analysis();
 		cartograplant['analysis_boot_function']();
 
+
 		if ($(this).hasClass("disabled")) {
 			alert("You must login to perform analysis");
 			return;
 		}
-		else if (mapState.includedTrees.length <= 0) {
-			// Check to see if there are studies filtered - add these trees
-			var rule_containers = $('.rule-container .rule-filter-container select');
 
-
-			// This variable will keep track of if study filter has been selected
-			var found_study_filter_option = false;
-			
-			// Search to see whether filter option is a study filter
-			if(rule_containers.length > 0) {
-				for(var i=0; i<rule_containers.length;i++) {
-					var element = rule_containers.eq(i);
-					console.log('value', element.val());
-					if(element.val() == "accession") {
-						found_study_filter_option = true;
-						// Load all trees into included trees
-						mapState.includedTrees = cartograplant.currently_filtered_trees;
-					}	
-				}
-			}
-			
-			if(found_study_filter_option != true) {
-				alert("You have no plants selected for analysis");
-				return;
-			}
-			
-		}
 		
 
 
@@ -7106,11 +7220,11 @@ var ct_ready_mapjs = function() {
 
 		// Check if galaxy_id and history_id has been selected
 		if(cartograplant.galaxy_id == undefined && cartograplant.history_id == undefined) {
-			alert('You must choose an analysis account and workspace before you can use genotype filtering workflows. Go to the BEGIN tab to set this up.')
+			alert('You must choose a workspace before you can use genotype filtering workflows. Go to the Manage tab to set this up.')
 			return;
 		} 
 		if(cartograplant.history_id == null) {
-			alert('You must choose an analysis account and workspace before you can use genotype filtering workflows. Go to the BEGIN tab to set this up.')
+			alert('You must choose a workspace before you can use genotype filtering workflows. Go to the Manage tab to set this up.')
 			return;			
 		}
 
@@ -7128,6 +7242,12 @@ var ct_ready_mapjs = function() {
 		html += '</div>';
 
 		$('#analysis-filter-snp-vcf-detection').html(html);
+
+		if (Object.keys(cartograplant['detected_studies']).length == 0) {
+			$('#analysis-filter-snp-vcf-detection').html('⚠️ You must set configure the Filter By Genotype tab before you can use this Filtering & Imputation section');
+			return;
+		}
+
 		$('.vcf_snps_quality_filtering_ui').fadeOut(50);
 		$('.vcf_detection_loading').fadeIn(500);
 
@@ -7151,6 +7271,9 @@ var ct_ready_mapjs = function() {
 				$('.vcf_snp_quality_workflow_select_div select').html(snps_workflows_html);
 			}
 		});			
+
+
+
 
 		// Process VCF files in studies
 		var vcf_files_ui_api_url = Drupal.settings.base_url + '/cartogratree_uiapi/vcf_files/' + Object.keys(cartograplant['detected_studies']).join(',');
@@ -7249,7 +7372,7 @@ var ct_ready_mapjs = function() {
 								success: function (data) {
 									$('.vcf_detection_loading').fadeOut(500);
 									console.log('snp_vcf_filtering api response', data);
-									$('#analysis-filter-snp-vcf-detection .status').html('🌟 VCF files successfully uploaded to workspace');
+									$('#analysis-filter-snp-vcf-detection .status').html('🌟 VCF files successfully uploaded to workspace. Quality filtering methods will appear below after a few seconds.');
 									
 									// Update the file drop down list
 									if (cartograplant.galaxy_id == null) {
@@ -7342,7 +7465,7 @@ var ct_ready_mapjs = function() {
 		// );		
 	});
 
-	$('body').on('click', '.vcf_snp_quality_workflow_select_div select', function() {
+	$('body').on('change', '.vcf_snp_quality_workflow_select_div select', function() {
 		cartograplant_snp_quality_filtering_populate_workflow_submit_form();
 	});
 
@@ -7427,7 +7550,7 @@ var ct_ready_mapjs = function() {
 									// Show option to choose either file upload
 									// $('#create-analysis-workflow-submit-form').append('<div><h4>'  + title +  '</h4></div>');
 									
-									// $('.vcf_snps_quality_filtering_ui_form').append('<div style="margin-top: 5px; margin-bottom: 5px;"><input type="file" id="' + name + '-upload" name="' + name + '-upload" /><button class="history_file_upload_button" id="' + name + '-upload-button">Upload to workspace</button><div style="display: inline-block; padding-left: 5px;" id="' + name + '-upload-status"></div></div>');
+									$('.vcf_snps_quality_filtering_ui_form').append('<div style="margin-top: 5px; margin-bottom: 5px;"><input type="file" id="' + name + '-upload" name="' + name + '-upload" /><button class="history_file_upload_button" id="' + name + '-upload-button">Upload to workspace</button><div style="display: inline-block; padding-left: 5px;" id="' + name + '-upload-status"></div></div>');
 									
 
 									var options_html = "";
@@ -8065,6 +8188,8 @@ var ct_ready_mapjs = function() {
 
 	//In the confirm section of the analysis form, show the data for the selected map state and the options the user has filtered out
 	$(".analysis-confirm-section").on("click", function() {
+		// IMPORTANT: analysis_summary_update function is used in map_analysis.js to keep most of these items updated
+		
 		var configSelected = {
 			"layers": layersList.getLayersToSave(),
 			"filters": {
@@ -8085,40 +8210,26 @@ var ct_ready_mapjs = function() {
 				
 		//var totalTrees = configSelected.filters.trees.num_trees;
 		//if the user has deselected publications then update the total number of trees
-		var numPublications = 0;
-		$(".pub-dataset-btn").each(function() {
-			if (!($(this).hasClass("active"))) {
-				console.log($(this).parent().parent().children(":nth-child(5)").html());
-				totalTrees -= $(this).parent().parent().children(":nth-child(5)").html();
-			}
-			else {
-				numPublications++;
-			}
-		});
+		// var numPublications = 0;
+		// $(".pub-dataset-btn").each(function() {
+		// 	if (!($(this).hasClass("active"))) {
+		// 		console.log($(this).parent().parent().children(":nth-child(5)").html());
+		// 		totalTrees -= $(this).parent().parent().children(":nth-child(5)").html();
+		// 	}
+		// 	else {
+		// 		numPublications++;
+		// 	}
+		// });
 
-		// Try to get species for each selected tree
-		var species_unique = [];
-		for (var i = 0; i < mapState.includedTrees.length; i++) {
-			var tree = searchTreeDataStore(mapState.includedTrees[i]);
-			var species = "";
-			try {
-				species = tree.data.species;
-			}
-			catch(err) {
 
-			}
-			if(species_unique.includes(species) != true) {
-				species_unique.push(species);
-			}
-		}
 
 	
 		//$("#analysis-num-trees").text(totalTrees);
 		$("#analysis-num-trees").text(mapState.includedTrees.length);
 		//$("#analysis-num-species").text(configSelected.filters.organism.species.length);
-		$("#analysis-num-species").text(species_unique.length);
-		$("#analysis-num-pub").text(numPublications);
-		$("#analysis-env-vals").text(analysis_environmental_data_selected_properties.length);
+		// $("#analysis-num-species").text(species_unique.length);
+		// $("#analysis-num-pub").text(numPublications);
+		// $("#analysis-env-vals").text(analysis_environmental_data_selected_properties.length);
 	});
 
 	//adding and removing layers from the map
@@ -9109,21 +9220,48 @@ var ct_ready_mapjs = function() {
 		return n === +n && n === (n|0);
 	}
 
+	/** When a map top button is clicked */
 	$(document).on('click', '.map-top-button', function() {
 		console.log('map-top-button clicked');
 		// check if data-state is closed, then open it
 		var button_state = $(this).attr('data-state');
 		if (button_state == "closed") {
+			$(this).parent().find('.map-top-container').slideDown(200);
 			$(this).parent().find('.map-top-container').removeClass('map-top-hidden');
 			$(this).find('.arrow i').removeClass('fa-chevron-down');
 			$(this).find('.arrow i').addClass('fa-chevron-up');
 			$(this).attr('data-state', 'opened');
 		}
 		else {
+			$(this).parent().find('.map-top-container').slideUp(200);
 			$(this).parent().find('.map-top-container').addClass('map-top-hidden');
 			$(this).find('.arrow i').removeClass('fa-chevron-up');
 			$(this).find('.arrow i').addClass('fa-chevron-down');
 			$(this).attr('data-state', 'closed');
+		}
+	});
+
+	// ON START UP
+	$(document).ready(function() {
+		$('#map-summary-button').click();
+	});
+	
+
+	$(document).on('click', '.map-right-button', function() {
+		console.log('map-right-button clicked');
+		var button_state = $(this).attr('data-state');
+		if  (button_state == "closed") {
+			$(this).parent().find('.map-right-container').removeClass('map-right-hidden');
+			$(this).find('.arrow i').removeClass('fa-chevron-up');
+			$(this).find('.arrow i').addClass('fa-chevron-down');
+			$(this).attr('data-state', 'opened');
+		}
+		else {
+
+			$(this).parent().find('.map-right-container').addClass('map-right-hidden');
+			$(this).find('.arrow i').removeClass('fa-chevron-down');
+			$(this).find('.arrow i').addClass('fa-chevron-up');
+			$(this).attr('data-state', 'closed');			
 		}
 	});
 	

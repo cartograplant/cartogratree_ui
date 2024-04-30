@@ -153,7 +153,7 @@ function cartogratree_uiapi_get_vcf_studies($tgdr_numbers_csv) {
             else if(isset($data[4]['organism-1']['genotype']['files']['local_vcf'])) {
                 $file_location = $data[4]['organism-1']['genotype']['files']['local_vcf'];
                 // print_r($file);
-                $uri = $file_location;
+                $uri = strip_tags($file_location);
                 $return_results[$tgdr_number] = $uri;
             }
         }

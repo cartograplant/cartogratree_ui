@@ -1,5 +1,16 @@
 <?php
 
+function cartogratree_analysisapi_lookup_study_info($study_accession) {
+    $results = chado_query("SELECT * FROM chado.tpps_study_summary WHERE accession = :study_accession LIMIT 1", [
+        ':study_accession' => $study_accession
+    ]);
+    $result = [];
+    foreach ($results as $row) {
+        $result = $row;
+    }
+    drupal_json_output($result);
+}
+
 function cartogratree_analysisapi_get_all_galaxy_accounts() {
     $records = db_query('
 		SELECT galaxy_id, url, api_key, servername
@@ -154,23 +165,75 @@ function cartogratree_analysisapi_get_workflow_input_types($galaxy_id, $workflow
                     $controls[$control_id]['type'] = 'selectfile';
                     $controls[$control_id]['description'] = 'Select the file to use.';
 
-                    // Get all file lists from the workspace / history
-                    $galaxy_history_contents= new GalaxyHistoryContents($galaxy);
-                    $galaxy_contents= $galaxy_history_contents->index(['history_id' => $history_id]);
-                    // $debug[] = $galaxy_contents;
+                    // FILE CACHING (4/29/2024)
+                    $cache_key = 'cpdata-datasets-' . $galaxy_id . '-' . $history_id;
+                    $datasets = []; // empty array as default
+                    if (class_exists('Memcached')) {
+                        try {
+                            $memcache = new Memcached();
+                            $memcache->addServer('localhost', 11211);
+                            $datasets = $memcache->get($cache_key);
+                        } 
+                        catch (\Exception $ex) { 
+                            // var_dump($ex); 
+                        }
+                    }
 
-                    foreach($galaxy_contents as $galaxy_content_item) {
-                        // $debug[] = $galaxy_content_item;
-                        if($galaxy_content_item['deleted'] == false) {
-                            $galaxy_datasets = new GalaxyDatasets($galaxy);
-                            // $galaxy_dataset = $galaxy_datasets->show(['dataset_id' => $galaxy_content_item['dataset_id']]);
-                            $galaxy_dataset = $galaxy_datasets->show(['dataset_id' => $galaxy_content_item['id']]);
-                            $debug[] = $galaxy_dataset;
+                    if (isset($_GET['force'])) {
+                        $datasets = NULL; // this will force a full reload
+                    }
+
+
+                    if ($datasets == NULL || $datasets == false || $datasets == []) {
+                        // Get all file lists from the workspace / history
+                        $galaxy_history_contents= new GalaxyHistoryContents($galaxy);
+                        $galaxy_contents= $galaxy_history_contents->index(['history_id' => $history_id]);
+                        // $debug[] = $galaxy_contents;
+
+                        foreach($galaxy_contents as $galaxy_content_item) {
+                            // $debug[] = $galaxy_content_item;
+                            if($galaxy_content_item['deleted'] == false) {
+                                $galaxy_datasets = new GalaxyDatasets($galaxy);
+                                // $galaxy_dataset = $galaxy_datasets->show(['dataset_id' => $galaxy_content_item['dataset_id']]);
+                                $galaxy_dataset = $galaxy_datasets->show(['dataset_id' => $galaxy_content_item['id']]);
+                                $debug[] = $galaxy_dataset;
+                                $key = array(
+                                    'src' => $galaxy_dataset['hda_ldda'],
+                                    'id' => $galaxy_dataset['id'],
+                                );
+                                $controls[$control_id]['options'][json_encode($key)] = $galaxy_content_item['name'];
+
+                                $new_item = array(
+                                    'dataset_name' => $history_content_item['name'],
+                                    // 'dataset_id' => $galaxy_dataset['id'],
+                                    'dataset_id' => $galaxy_content_item['id'],
+                                    'dataset_url' => $output_array['download_url'] =  $galaxy->getURL() . '/api/histories/' . $history_id . '/contents/' . $galaxy_dataset['id'] . '/display?to_ext=' . $content['file_ext'] . '&key=' . $galaxy->getAPIKey(),
+                                    'dataset_size' => $content['file_size'],
+                                    'hda_ldda' => $galaxy_dataset['hda_ldda']
+                                );
+                                $datasets[] = $new_item;
+                            }
+                        }
+                        if (class_exists('Memcached')) {
+                            try {
+                                $memcache = new Memcached();
+                                $memcache->addServer('localhost', 11211);
+                                $memcache->set($cache_key, $datasets, time() + 60 * 60); // 1 hour
+                            }
+                            catch (Exception $ex) {}
+                        }
+
+                    }
+                    else {
+                        $datasets_count = count($datasets);
+
+                        for ($ds_index = 0; $ds_index < $datasets_count; $ds_index++) {
+                            $ds = $datasets[$ds_index];
                             $key = array(
-                                'src' => $galaxy_dataset['hda_ldda'],
-                                'id' => $galaxy_dataset['id'],
+                                'src' => $ds['hda_ldda'],
+                                'id' => $ds['dataset_id'],
                             );
-                            $controls[$control_id]['options'][json_encode($key)] = $galaxy_content_item['name'];
+                            $controls[$control_id]['options'][json_encode($key)] = $ds['dataset_name'];
                         }
                     }
 
@@ -816,48 +879,81 @@ function cartogratree_analysisapi_initiate_job() {
 
 function cartogratree_analysisapi_get_history_details($galaxy_id, $history_id) {
     require_once (libraries_get_path('blend4php') . '/galaxy.inc');
-    // connect to the Galaxy instance
-    $galaxy = tripal_galaxy_get_connection($galaxy_id);
-    $histories = new GalaxyHistories($galaxy);
-    $history = $histories->show(['history_id' => $history_id]);
-    $history_contents = new GalaxyHistoryContents($galaxy);
-    $history_content = $history_contents->index(['history_id' => $history_id]);
 
-    $datasets = [];//new array
+    $key = 'cpdata-datasets-' . $galaxy_id . '-' . $history_id;
+    // Try memcached
+    $datasets = []; // empty array as default
+    
+    if (class_exists('Memcached')) {
+        try {
+            $memcache = new Memcached();
+            $memcache->addServer('localhost', 11211);
+            $datasets = $memcache->get($key);
+        } 
+        catch (\Exception $ex) { 
+            // var_dump($ex); 
+        }
+    }
 
-    foreach($history_content as $history_content_item) {
-        // print_r($history_content_item);
-        if($history_content_item['deleted'] == false) {
-            $galaxy_datasets = new GalaxyDatasets($galaxy);
-            // $galaxy_dataset = $galaxy_datasets->show(['dataset_id' => $galaxy_content_item['dataset_id']]);
-            $galaxy_dataset = $galaxy_datasets->show(['dataset_id' => $history_content_item['id']]);
-            
-            $content_params['history_id'] = $history_id;
-            $content_params['id'] = $galaxy_dataset['id'];
-            $content = $history_contents->show($content_params);
-            // $output_array['name'] = $content['name'];
-            // $output_array['file_ext'] = $content['file_ext'];
-            // $output_array['file_size'] = $content['file_size'];
-            // $output_array['state'] = $content['state'];
-            /*
-            $debug[] = $galaxy_dataset;
-            $key = array(
-                'src' => $galaxy_dataset['hda_ldda'],
-                'id' => $galaxy_dataset['id'],
-            );
-            $controls[$control_id]['options'][json_encode($key)] = $galaxy_content_item['name'];
-            */
-            $new_item = array(
-                'dataset_name' => $history_content_item['name'],
-                'dataset_id' => $galaxy_dataset['id'],
-                'dataset_url' => $output_array['download_url'] =  $galaxy->getURL() . '/api/histories/' . $history_id . '/contents/' . $galaxy_dataset['id'] . '/display?to_ext=' . $content['file_ext'] . '&key=' . $galaxy->getAPIKey(),
-                'dataset_size' => $content['file_size']
-            );
-            $datasets[] = $new_item;
-        }        
+    if (isset($_GET['force'])) {
+        $datasets = NULL; // this will force a full reload
+    }
+
+    if ($datasets == NULL || $datasets == false || $datasets == []) {
+        // connect to the Galaxy instance
+        $galaxy = tripal_galaxy_get_connection($galaxy_id);
+        $histories = new GalaxyHistories($galaxy);
+        $history = $histories->show(['history_id' => $history_id]);
+        $history_contents = new GalaxyHistoryContents($galaxy);
+        $history_content = $history_contents->index(['history_id' => $history_id]);
+
+        $datasets = [];//new array
+
+        foreach($history_content as $history_content_item) {
+            // print_r($history_content_item);
+            if($history_content_item['deleted'] == false) {
+                $galaxy_datasets = new GalaxyDatasets($galaxy);
+                // $galaxy_dataset = $galaxy_datasets->show(['dataset_id' => $galaxy_content_item['dataset_id']]);
+                $galaxy_dataset = $galaxy_datasets->show(['dataset_id' => $history_content_item['id']]);
+                
+                $content_params['history_id'] = $history_id;
+                $content_params['id'] = $galaxy_dataset['id'];
+                $content = $history_contents->show($content_params);
+                // $output_array['name'] = $content['name'];
+                // $output_array['file_ext'] = $content['file_ext'];
+                // $output_array['file_size'] = $content['file_size'];
+                // $output_array['state'] = $content['state'];
+                /*
+                $debug[] = $galaxy_dataset;
+                $key = array(
+                    'src' => $galaxy_dataset['hda_ldda'],
+                    'id' => $galaxy_dataset['id'],
+                );
+                $controls[$control_id]['options'][json_encode($key)] = $galaxy_content_item['name'];
+                */
+                $new_item = array(
+                    'dataset_name' => $history_content_item['name'],
+                    'dataset_id' => $galaxy_dataset['id'],
+                    // 'dataset_id' => $history_content_item['id'],
+                    'dataset_url' => $output_array['download_url'] =  $galaxy->getURL() . '/api/histories/' . $history_id . '/contents/' . $galaxy_dataset['id'] . '/display?to_ext=' . $content['file_ext'] . '&key=' . $galaxy->getAPIKey(),
+                    'dataset_size' => $content['file_size'],
+                    'hda_ldda' => $galaxy_dataset['hda_ldda'],
+                );
+                $datasets[] = $new_item;
+            }        
+        }
+        if (class_exists('Memcached')) {
+            try {
+                $memcache = new Memcached();
+                $memcache->addServer('localhost', 11211);
+                $memcache->set($key, $datasets, time() + 60 * 60); // 1 hour
+            }
+            catch (Exception $ex) {}
+        }
     }
     // drupal_json_output($history_content);
     drupal_json_output($datasets);
+    
 }
 
 function cartogratree_analysisapi_delete_history_content_id($galaxy_id, $history_id, $content_id) {
