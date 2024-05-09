@@ -1,5 +1,35 @@
 <?php
 
+
+function cartogratree_uiapi_get_phenotype_attributes_by_species_text($species_text) {
+    $results = chado_query('SELECT distinct(phenotype_name) 
+        FROM public.ct_trees_all_view 
+        WHERE species = :species_text ORDER BY phenotype_name ASC;',
+        [':species_text' => $species_text]);
+    $phenotypes = [];
+    foreach ($results as $row) {
+        if ($row->phenotype_name != NULL) {
+            $phenotypes[] = $row->phenotype_name;
+        }
+    }
+    drupal_json_output($phenotypes);
+}
+
+function cartogratree_uiapi_get_plant_structures_by_species_text($species_text) {
+    $results = chado_query('SELECT distinct(structure_name) 
+        FROM public.ct_trees_all_view 
+        WHERE species = :species_text ORDER BY structure_name ASC;',
+        [':species_text' => $species_text]);
+    $names = [];
+    foreach ($results as $row) {
+        if ($row->structure_name != NULL) {
+            $names[] = $row->structure_name;
+        }
+    }
+    drupal_json_output($names);
+}
+
+
 /**
  * This function will dynamically create a color icon for popstruct
  * based on the population id (the population column)

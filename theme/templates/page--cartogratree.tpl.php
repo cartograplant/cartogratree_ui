@@ -265,10 +265,10 @@
 					<!-- analysis-overlapping-genotypes -->
 					
 					<li class="nav-item">
-						<a class="nav-link analysis-nav-tab analysis-filter-snp-section" data-toggle="tab" href="#analysis-filter-snp">Filtering & Imputation</a>
+						<a id="analysis-filter-snp-section-tab" class="nav-link analysis-nav-tab analysis-filter-snp-section" data-toggle="tab" href="#analysis-filter-snp">Filtering & Imputation</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link analysis-nav-tab analysis-popstruct-section-tab" data-toggle="tab" href="#analysis-popstruct-section">Population Structure</a>
+						<a id="analysis-popstruct-section-tab" class="nav-link analysis-nav-tab analysis-popstruct-section-tab" data-toggle="tab" href="#analysis-popstruct-section">Population Structure</a>
 					</li>
 					<li class="nav-item">
 						<a id='analysis-retrieve-envdata-section-tab' class="nav-link analysis-nav-tab analysis-retrieve-envdata-section" data-toggle="tab" href="#analysis-retrieve-envdata-section">Add environmental data</a>
@@ -282,7 +282,7 @@
 					</li>
 					-->
 					<li class="nav-item">
-						<a class="nav-link analysis-nav-tab analysis-confirm-section" data-toggle="tab" href="#analysis-confirm">Summary and Confirm</a>
+						<a id="analysis-confirm-section-tab" class="nav-link analysis-nav-tab analysis-confirm-section" data-toggle="tab" href="#analysis-confirm">Summary and Confirm</a>
 					</li>
 				</ul>
 	
@@ -2044,7 +2044,7 @@
 							<button class="btn btn-success" id="btn-get">Apply filter</button>
 							<button class="btn btn-danger" id="btn-reset">Reset filter</button>
 						</div>
-						<div id="builder"></div>
+						<div id="builder" style="margin-left: 5px;"></div>
 						<div id="pop-struct-options-toggles"></div>
 
 					</div>

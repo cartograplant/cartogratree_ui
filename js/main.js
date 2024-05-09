@@ -8,12 +8,22 @@ var ct_ready_mainjs = function () {
 	console.log(Drupal.settings);
 	//query builder set up
 
+	// var rulesBasic = {
+	// 	condition: "AND",
+	// 	rules: [{
+	// 		id: "family",
+	// 		operator: "equal",
+	// 	}, ]
+	// };
 	var rulesBasic = {
 		condition: "AND",
 		rules: [{
-			id: "family",
-			operator: "equal",
-		}, ]
+			condition: "AND",
+			rules: [{
+				id: "family",
+				operator: "equal",
+			}, ]
+		}]
 	};
 	cartograplant['rulesBasic'] = rulesBasic;
 
@@ -114,7 +124,8 @@ var ct_ready_mainjs = function () {
 			// cartograplant.buildSelectOption("marker_type", "Markers", "string", ["equal", "not_equal"]),
 			cartograplant.buildSelectOption("markers", "Markers", "string", ["equal", "not_equal"]), // 3
 			cartograplant.buildSelectOption("category", "Category", "string", ["equal", "not_equal"]), // 4
-			cartograplant.buildSelectOption("structure_name", "Plant Structure", "string", ["equal", "not_equal"]), //5
+			// cartograplant.buildSelectOption("structure_name", "Plant Structure", "string", ["equal", "not_equal"]), //5
+			cartograplant.buildAutocompleteOption("structure_name", "Plant Structure", "string", Drupal.settings.options_data["plant_ontology"]), // 5
 			// cartograplant.buildSelectOption("phenotype_name", "Phenotype Attribute", "string", ["equal", "not_equal"]), // 6
 			cartograplant.buildAutocompleteOption("phenotype_name", "Phenotype Attribute", "string", Drupal.settings.options_data["cvterm"]), // 6
 			cartograplant.buildSelectOption("title", "Study Title", "string", ["equal", "not_equal"]), // 7
@@ -132,7 +143,7 @@ var ct_ready_mainjs = function () {
 		// cartograplant.populateOptions(3, Drupal.settings.options_data.marker_type, {'SSR':'nSSR'});
 		cartograplant.populateOptions(3, Drupal.settings.options_data.markers, {'SSR':'nSSR'});
 		cartograplant.populateOptions(4, Drupal.settings.options_data.categories);
-		cartograplant.populateOptions(5, Drupal.settings.options_data.plant_ontology);
+		// cartograplant.populateOptions(5, Drupal.settings.options_data.plant_ontology);
 		// cartograplant.populateOptions(6, Drupal.settings.options_data["cvterm"]);
 		// populateOptions(5, Drupal.settings.options_data.phenotype);
 		cartograplant.populateOptions(7, Drupal.settings.options_tgdr["pub_title"].sort());
@@ -216,8 +227,25 @@ var ct_ready_mainjs = function () {
 
 	$(".analysis-form-next").click(function() {
 		console.log("go next");
-		$(".nav-tabs > li > .active").parent().next("li").find("a").trigger("click");
-		//$(".nav-tabs > .active").
+		// $(".nav-tabs > li > .active").parent().next("li").find("a").trigger("click");
+		console.log(cartograplant);
+		console.log('enabled tabs list', cartograplant.analysis_tabs_enabled);
+		var current_id = $(".nav-tabs > li > .active").attr('id');
+		console.log('current_tab_id', current_id);
+		for (var i = 0; i<cartograplant.analysis_tabs_enabled.length; i++) {
+			var tab_id = cartograplant.analysis_tabs_enabled[i]; // already includes the prefix #
+			console.log('tab_id', tab_id);
+			var next_id = null;
+			if (tab_id == ('#' + current_id)) {
+
+				if (i < (cartograplant.analysis_tabs_enabled.length - 1)) {
+					next_id = cartograplant.analysis_tabs_enabled[i+1];
+					console.log('next_tab_id', next_id);
+					$(next_id).trigger("click");
+					break;
+				}
+			}
+		}
 	});
 
 	$(".analysis-form-prev").click(function() {

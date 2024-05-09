@@ -342,6 +342,32 @@ function cartogratree_menu()
         ),
     );
 
+    $items['cartogratree_uiapi/get_phenotype_attributes_by_species_text/%'] = array(
+        'description' => 'Cartogratree UI API: Get phenotype attributes by species text',
+        'title' => 'Cartogratree UI API: Get phenotype attributes by species text',
+        'page callback' => 'cartogratree_uiapi_get_phenotype_attributes_by_species_text',
+        'page arguments' => array(
+            2,
+        ),
+        'file' => 'includes/cartogratree.uiapi.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
+    $items['cartogratree_uiapi/get_plant_structures_by_species_text/%'] = array(
+        'description' => 'Cartogratree UI API: Get plant structures by species text',
+        'title' => 'Cartogratree UI API: Get phenotype attributes by species text',
+        'page callback' => 'cartogratree_uiapi_get_plant_structures_by_species_text',
+        'page arguments' => array(
+            2,
+        ),
+        'file' => 'includes/cartogratree.uiapi.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );    
+
     $items['cartogratree_uiapi/pop_struct_layer_json/%'] = array(
         'description' => 'Cartogratree UI API: Population Structure Layer GeoJSON Formatted',
         'title' => 'Cartogratree UI API: Population Structure Layer GeoJSON Formatted',

@@ -199,9 +199,13 @@ select {
   background-color: #383c42 !important; 
 }
 
+.map-top-container #tree-filter-options .query-builder .rules-group-container:not([id="builder_group_0"]) button[data-add="group"]  {
+  display: none;
+}
+
 .map-top-container #tree-filter-options .query-builder .rules-group-container {
   border: 0px !important;
-  padding: 5px;
+  padding: 1px;
 }
 
 .map-top-container #tree-filter-options .query-builder .rule-container {
@@ -234,10 +238,15 @@ select {
 }
 
 .map-top-container #tree-filter-options .rules-group-container .rules-group-container {
-  margin-left: 1px;
+  margin-left: -4px;
 }
 
 
+.filter-notice {
+  color: #ffcd00;
+  font-size: 0.7em !important;
+  text-transform: uppercase;
+}
 
 .map-top-container #tree-filter-options .btn[data-delete="rule"],  .map-top-container #tree-filter-options .btn[data-delete="group"]{
   font-size: 6px !important;

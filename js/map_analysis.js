@@ -14,6 +14,31 @@ var ct_ready_map_analysis = function() {
 	var analysis_snp_filtering_final_output_file = {};
 	var genotype_filtering = {};
 	var loading_icon_src = Drupal.settings.base_url + '/' + Drupal.settings.cartogratree.url_path + '/theme/templates/resources_imgs/loader-ring.gif';
+	var analysis_tabs_all = [
+		'#analysis-initial-configuration-tab',
+		'#analysis-overlapping-traits-tab',
+		'#analysis-overlapping-genotypes-tab',
+		'#analysis-filter-snp-section',
+		'#analysis-popstruct-section-tab',
+		//'.analysis-filter-indv-section',
+		'#analysis-retrieve-envdata-section-tab',
+		'#analysis-create-analysis-section-tab',
+		'#analysis-confirm-section-tab',
+
+	];
+	cartograplant.analysis_tabs_all = analysis_tabs_all;
+	var analysis_tabs_enabled = [
+		'#analysis-initial-configuration-tab',
+		'#analysis-overlapping-traits-tab',
+		'#analysis-overlapping-genotypes-tab',
+		'#analysis-filter-snp-section-tab',
+		'#analysis-popstruct-section-tab',
+		// '.analysis-filter-indv-section',
+		'#analysis-retrieve-envdata-section-tab',
+		'#analysis-create-analysis-section-tab',
+		'#analysis-confirm-section-tab'
+	];
+	cartograplant.analysis_tabs_enabled = analysis_tabs_enabled;
 	cartograplant.loading_icon_src = loading_icon_src;
 
 	cartograplant['analysis_snp_filtering_final_output_file'] = analysis_snp_filtering_final_output_file;
@@ -100,33 +125,81 @@ var ct_ready_map_analysis = function() {
 		}		
 	});
 
+	function evaluate_tabs_visibility() {
+		console.log('evaluate_tabs_visibility');
+		for (var i = 0; i<cartograplant.analysis_tabs_all.length; i++) {
+			var selector = cartograplant.analysis_tabs_all[i];
+			console.log('selector', selector);
+			if (cartograplant.analysis_tabs_enabled.includes(selector)) {
+				$(cartograplant.analysis_tabs_enabled[i]).show().parent().show();
+			}
+			else {
+				$(selector).hide().parent().hide();
+			}
+		}
+	}
 
 	$('#analysis_type').change(function() {
 		analysis_update_type();
 		var val = $('#analysis_type').val();
+		console.log('analysis_type', val);
 		if(val == 'GxPxE') {
-			$('#analysis-initial-configuration-tab').show().parent().show();
-			$('#analysis-overlapping-traits-tab').show().parent().show();
-			$('#analysis-overlapping-genotypes-tab').show().parent().show();
-			$('.analysis-filter-snp-section').show().parent().show();
-			$('.analysis-filter-indv-section').show().parent().show();
-			$('#analysis-retrieve-envdata-section-tab').show().parent().show();
+			cartograplant.analysis_tabs_enabled = [
+				'#analysis-initial-configuration-tab',
+				'#analysis-overlapping-traits-tab',
+				'#analysis-overlapping-genotypes-tab',
+				'#analysis-filter-snp-section-tab',
+				'#analysis-popstruct-section-tab',
+				// '.analysis-filter-indv-section',
+				'#analysis-retrieve-envdata-section-tab',
+				'#analysis-create-analysis-section-tab',
+				'#analysis-confirm-section-tab'
+			];
+			evaluate_tabs_visibility();
+			// $('#analysis-initial-configuration-tab').show().parent().show();
+			// $('#analysis-overlapping-traits-tab').show().parent().show();
+			// $('#analysis-overlapping-genotypes-tab').show().parent().show();
+			// $('.analysis-filter-snp-section').show().parent().show();
+			// $('.analysis-filter-indv-section').show().parent().show();
+			// $('#analysis-retrieve-envdata-section-tab').show().parent().show();
 		}
 		else if(val == "GxP") {
-			$('#analysis-initial-configuration-tab').show().parent().show();
-			$('#analysis-overlapping-traits-tab').show().parent().show();
-			$('#analysis-overlapping-genotypes-tab').show().parent().show();
-			$('.analysis-filter-snp-section').show().parent().show();
-			$('.analysis-filter-indv-section').show().parent().show();
-			$('#analysis-retrieve-envdata-section-tab').hide().parent().hide();			
+			cartograplant.analysis_tabs_enabled = [
+				'#analysis-initial-configuration-tab',
+				'#analysis-overlapping-traits-tab',
+				'#analysis-overlapping-genotypes-tab',
+				'#analysis-filter-snp-section-tab',
+				'#analysis-popstruct-section-tab',
+				// '.analysis-filter-indv-section',
+				'#analysis-create-analysis-section-tab',
+				'#analysis-confirm-section-tab'
+			];
+			evaluate_tabs_visibility();
+			// $('#analysis-initial-configuration-tab').show().parent().show();
+			// $('#analysis-overlapping-traits-tab').show().parent().show();
+			// $('#analysis-overlapping-genotypes-tab').show().parent().show();
+			// $('.analysis-filter-snp-section').show().parent().show();
+			// $('.analysis-filter-indv-section').show().parent().show();
+			// $('#analysis-retrieve-envdata-section-tab').hide().parent().hide();			
 		}
 		else if(val == "GxE") {
-			$('#analysis-initial-configuration-tab').show().parent().show();
-			$('#analysis-overlapping-traits-tab').hide().parent().hide();
-			$('#analysis-overlapping-genotypes-tab').show().parent().show();
-			$('.analysis-filter-snp-section').show().parent().show();
-			$('.analysis-filter-indv-section').show().parent().show();
-			$('#analysis-retrieve-envdata-section-tab').show().parent().show();			
+			cartograplant.analysis_tabs_enabled = [
+				'#analysis-initial-configuration-tab',
+				'#analysis-overlapping-genotypes-tab',
+				'#analysis-filter-snp-section-tab',
+				// '.analysis-filter-indv-section',
+				'#analysis-popstruct-section-tab',
+				'#analysis-retrieve-envdata-section-tab',
+				'#analysis-create-analysis-section-tab',
+				'#analysis-confirm-section-tab'
+			];
+			evaluate_tabs_visibility();
+			// $('#analysis-initial-configuration-tab').show().parent().show();
+			// $('#analysis-overlapping-traits-tab').hide().parent().hide();
+			// $('#analysis-overlapping-genotypes-tab').show().parent().show();
+			// $('.analysis-filter-snp-section').show().parent().show();
+			// $('.analysis-filter-indv-section').show().parent().show();
+			// $('#analysis-retrieve-envdata-section-tab').show().parent().show();			
 		}	
 	});
 
@@ -1213,11 +1286,11 @@ var ct_ready_map_analysis = function() {
 			console.log(cartograplant.detected_studies);
 
 			var studies = Object.keys(cartograplant.detected_studies);
-			if(studies.length <= 1) {
-				$('#analysis-overlapping-traits-studies').html('⚠️ You must select at least 2 studies to begin trait overlap detection. Please return to the map filter section to include additional studies.');
-				return;
-				// $('#analysis-overlapping-traits-traits-list').html('You must select at least 2 studies to begin trait overlap detection. Please return to the map filter section to include additional studies.')
-			}
+			// if(studies.length <= 1) {
+			// 	$('#analysis-overlapping-traits-studies').html('⚠️ You must select at least 2 studies to begin trait overlap detection. Please return to the map filter section to include additional studies.');
+			// 	return;
+			// 	// $('#analysis-overlapping-traits-traits-list').html('You must select at least 2 studies to begin trait overlap detection. Please return to the map filter section to include additional studies.')
+			// }
 
 			var study_info_html = '';
 			if (studies.length == 0) {
@@ -2388,7 +2461,7 @@ var ct_ready_map_analysis = function() {
 			analysis_detections_html += '<div id="analysis_detections_phenotype_capability" class="mt-1 mb-3"></div>';
 			analysis_detections_html += '<h5 style="color: #036e63 !important;margin-left: 4px;">Study summary</h5>';
 			analysis_detections_html += '<div class="mt-2" id="analysis_detections_study_summary">';
-			analysis_detections_html += '<table><tr><th>Accession</th><th>Title</th><th>Trees</th><tr></table>';
+			analysis_detections_html += '<table><tr><th>Accession</th><th>Title</th><th>Genotypes</th><th>Phenotypes</th><th>Trees</th><tr></table>';
 			analysis_detections_html += '</div>';
 
 		}
@@ -2405,8 +2478,10 @@ var ct_ready_map_analysis = function() {
 			var table_row_html = "";
 			table_row_html += "<tr data-value='" + study + "'>";
 			table_row_html += "<td class='accession'></td>";
-			table_row_html += "<td class='title'></td>";
-			table_row_html += "<td class='tree_count'></td>";
+			table_row_html += "<td class='title'>Looking up study info</td>";
+			table_row_html += "<td class='gen_count' style='text-align: center;'>-</td>";
+			table_row_html += "<td class='phen_count' style='text-align: center;'>-</td>";
+			table_row_html += "<td class='tree_count' style='text-align: center;'>-</td>";
 			table_row_html += "</tr>";
 			$('#analysis_detections_study_summary table').append(table_row_html);
 			var study_retrieved_count = 0;
@@ -2419,6 +2494,12 @@ var ct_ready_map_analysis = function() {
 					$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .accession').html(data['accession']);
 					$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .title').html(data['title']);
 					$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .tree_count').html(data['tree_count']);
+					if (data['gen_count'] != null) {
+						$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .gen_count').html(parseInt(data['gen_count']).toLocaleString());
+					}
+					if (data['phen_count'] != null) {
+						$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .phen_count').html(parseInt(data['phen_count']).toLocaleString());
+					}
 				}
 			}).always(function() {
 				study_retrieved_count = study_retrieved_count + 1;
@@ -2624,7 +2705,7 @@ var ct_ready_map_analysis = function() {
 		// Do not show any of the SNP Quality Filtering
 		console.log('Populate Workflow select list for Run Analysis');
 		cartograplant_analysis_populate_workflow_select_list({
-			'show': ['Multiple Testing Correction', 'GWAS with EMMAX']
+			'show': ['GWAS with EMMAX', 'Multiple Testing Correction']
 		});
 		
 	});	
@@ -2764,6 +2845,8 @@ var ct_ready_map_analysis = function() {
 			success: function (data) {
 				console.log('workflow options', data);
 				var html = '';
+				var show_items = {};
+
 				for(var i=0; i<data.length; i++) {
 					if (filters != undefined) {
 						if(filters.show != undefined) {
@@ -2773,6 +2856,10 @@ var ct_ready_map_analysis = function() {
 							// if (data[i].workflow_name.includes(filters.show)) {
 								console.log('show');
 								// show it
+								show_items[data[i].workflow_name] = {
+									workflow_name: data[i].workflow_name,
+									workflow_id: data[i].workflow_id
+								}
 								html = html +  '<option value="' + data[i].workflow_id + '">' + data[i].workflow_name +  '</option>';
 							}
 						}
@@ -2788,15 +2875,44 @@ var ct_ready_map_analysis = function() {
 							if (hide == false) {
 							// if (filters.hide.includes(data[i].workflow_name) == undefined) {
 								// show it
+								show_items[data[i].workflow_name] = {
+									workflow_name: data[i].workflow_name,
+									workflow_id: data[i].workflow_id
+								}
 								html = html +  '<option value="' + data[i].workflow_id + '">' + data[i].workflow_name +  '</option>';
 							}
 						}
 					}
 					else {
+						show_items[data[i].workflow_name] = {
+							workflow_name: data[i].workflow_name,
+							workflow_id: data[i].workflow_id
+						}
 						html = html +  '<option value="' + data[i].workflow_id + '">' + data[i].workflow_name +  '</option>';
 					}
 					console.log('html', html);
 				}
+
+				var html = "";
+				// Order matters if listed in filters.show
+				if(filters.show != undefined) {
+					for (var i = 0; i<filters.show.length; i++) {
+						var fname = filters.show[i];
+						// Get the info from show_items
+						var item = show_items[fname];
+						html = html + '<option value="' + item.workflow_id + '">' + item.workflow_name +  '</option>';
+					}
+				}
+				// Else order does not matter 
+				else {
+					var keys = Object.keys(show_items);
+					for (var i = 0; i<keys.length; i++) {
+						var item = show_items[keys[i]];
+						html = html + '<option value="' + item.workflow_id + '">' + item.workflow_name +  '</option>';
+					}
+				}
+
+
 				$('#create-analysis-select-workflow').html(html);
 			}
 		});		

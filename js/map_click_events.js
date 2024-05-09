@@ -394,5 +394,179 @@ var ct_ready_map_click_events = function() {
 		}
 	});
 
+	$(document).on('change','.rule-filter-container select', function() {
+		console.log('Change detected for filter container select list. Value is now: ' + $(this).val());
+		var filter_name = $(this).val();
+		console.log('filter_name', filter_name);
+
+		if (filter_name == "phenotype_name") {
+			var filter_element = $(this);
+			console.log('Phenotype name filter detected');
+			// We need to find the build grouping and then check to see if species has been selected
+			var rule_group_element = $(this).closest('.rules-group-body');
+			// Use this rule_group element to then check if any filter-container select val is 'species'
+			var filter_selects = $(rule_group_element).find('.rule-filter-container select');
+			for (var i = 0; i < filter_selects.length; i++) {
+				var single_filter_select = $(filter_selects[i]);
+				var single_filter_val = single_filter_select.val();
+				if (single_filter_val == 'species') {
+					// Get the value of the species
+					var species_text = single_filter_select.closest('.rule-container').find('.rule-value-container select').val();
+					console.log('Species selected: ' + species_text);
+					// Update phenotype attributes dropdown list with a filtered list
+					update_filter_list_phenotype_attributes_by_species_text(filter_element.closest('.rule-container').find('.rule-value-container'), species_text);
+					inject_filter_notice(filter_element.closest('.rule-container'), '*Related to ' + species_text);
+				}
+				
+			}
+		}
+		else if (filter_name == "structure_name") {
+			var filter_element = $(this);
+			console.log('Structure name filter detected');
+			// We need to find the build grouping and then check to see if species has been selected
+			var rule_group_element = $(this).closest('.rules-group-body');
+			// Use this rule_group element to then check if any filter-container select val is 'species'
+			var filter_selects = $(rule_group_element).find('.rule-filter-container select');
+			for (var i = 0; i < filter_selects.length; i++) {
+				var single_filter_select = $(filter_selects[i]);
+				var single_filter_val = single_filter_select.val();
+				if (single_filter_val == 'species') {
+					// Get the value of the species
+					var species_text = single_filter_select.closest('.rule-container').find('.rule-value-container select').val();
+					console.log('Species selected: ' + species_text);
+					// Update plant structures dropdown list with a filtered list
+					update_filter_list_plant_structures_by_species_text(filter_element.closest('.rule-container').find('.rule-value-container'), species_text);
+					// Create a notice and display it in the filter container
+					inject_filter_notice(filter_element.closest('.rule-container'), '*Related to ' + species_text);
+				}
+				
+			}
+		}
+		else {
+			// Hide filter notice
+			var filter_element = $(this);
+			filter_element.closest('.rule-container').find('.filter-notice').fadeOut(200);
+		}
+	});
+
+	function inject_filter_notice(element, message) {
+		var container = $(element);
+		if (container.find('.filter-notice').length == 0) {
+			$('<div class="filter-notice"></div>').insertAfter(container.find('.rule-header'));
+		}
+		// Set / update the message
+		container.find('.filter-notice').html(message).fadeIn(1000);
+	}
+
+	function update_filter_list_plant_structures_by_species_text(element, species_text) {
+		element = $(element);
+		// Empty the select list
+		element.find('.selectized').first()[0].selectize.clearOptions();
+		element.find('.selectized').first()[0].selectize.addOption({
+			id: '🔎 Filtering...',
+			name: '🔎 Filtering...',
+			value: '🔎 Filtering...',
+		});
+		element.find('.selectized').first()[0].selectize.setValue('🔎 Filtering...');
+		// Make an ajax call to get the filtered list (JSON array)
+		$.ajax({
+			url: '/cartogratree_uiapi/get_plant_structures_by_species_text/' + species_text,
+			method: 'GET',
+			success: function(data) {
+				console.log(data);
+				console.log(element);
+				element.find('select').html('');
+				if (data.length <= 0) {
+					element.find('.selectized').first()[0].selectize.clearOptions();
+					// Display some sort of message for user to understand
+					element.find('.selectized').first()[0].selectize.addOption({
+						id: 'No related structures',
+						name: 'No related structures',
+						value: 'No related structures',
+					});
+					element.find('.selectized').first()[0].selectize.setValue('No related structures');
+				}
+				else {
+					element.find('.selectized').first()[0].selectize.clearOptions();
+					for(var i=0; i<data.length; i++) {
+						console.log(data[i]);
+						element.find('.selectized').first()[0].selectize.addOption({
+							id: data[i],
+							name: data[i],
+							value: data[i],
+						});
+						if(i==0) {
+							element.find('.selectized').first()[0].selectize.setValue(data[i]);
+						}
+					}
+				}
+			},
+			error: function (err) {
+				// Display some sort of message for user to understand
+				element.find('.selectized').first()[0].selectize.addOption({
+					id: 'No related structures',
+					name: 'No related structures',
+					value: 'No related structures',
+				});
+				element.find('.selectized').first()[0].selectize.setValue('No related structures');
+			}
+		});
+	}
+
+	function update_filter_list_phenotype_attributes_by_species_text(element, species_text) {
+		element = $(element);
+		// Empty the select list
+		element.find('.selectized').first()[0].selectize.clearOptions();
+		element.find('.selectized').first()[0].selectize.addOption({
+			id: '🔎 Filtering...',
+			name: '🔎 Filtering...',
+			value: '🔎 Filtering...',
+		});
+		element.find('.selectized').first()[0].selectize.setValue('🔎 Filtering...');
+		// element.find('.selectize-input input').attr('placeholder', 'Filtering...');
+		// Make an ajax call to get the filtered list (JSON array)
+		$.ajax({
+			url: '/cartogratree_uiapi/get_phenotype_attributes_by_species_text/' + species_text,
+			method: 'GET',
+			success: function(data) {
+				console.log(data);
+				console.log(element);
+				if (data.length <= 0) {
+					element.find('.selectized').first()[0].selectize.clearOptions();
+					// Display some sort of message for user to understand
+					element.find('.selectized').first()[0].selectize.addOption({
+						id: 'No related phenotypes',
+						name: 'No related phenotypes',
+						value: 'No related phenotypes',
+					});
+					element.find('.selectized').first()[0].selectize.setValue('No related phenotypes');
+				}
+				else {
+					element.find('.selectized').first()[0].selectize.clearOptions();
+					for(var i=0; i<data.length; i++) {
+						console.log(data[i]);
+						element.find('.selectized').first()[0].selectize.addOption({
+							id: data[i],
+							name: data[i],
+							value: data[i],
+						});
+						if(i==0) {
+							element.find('.selectized').first()[0].selectize.setValue(data[i]);
+						}
+					}
+					
+				}
+			},
+			error: function (err) {
+				element.find('.selectized').first()[0].selectize.addOption({
+					id: 'No related phenotypes',
+					name: 'No related phenotypes',
+					value: 'No related phenotypes',
+				});
+				element.find('.selectized').first()[0].selectize.setValue('No related phenotypes');
+			}
+		});
+	}
+
 }
 $(ct_ready_map_click_events);
