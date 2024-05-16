@@ -2173,7 +2173,7 @@
 				</div>
 				<!--</div>-->
 				<div class="btn-group-vertical card narrower mb-4 tree-card"  style='padding-top: 10px; overflow-y: scroll; overflow-x: hidden; max-height: 15vh;'>
-					<button style="line-height: 140%; width: 80%; margin-left: auto; margin-right: auto;" class="btn btn-success" id="add-all-trees">Add All Plants</button>
+					<button style="line-height: 140%; width: 80%; font-size: 0.8em; margin-left: auto; margin-right: auto;" class="btn btn-success p-1" id="add-all-trees">Add All Plants</button>
 					<div id="tree-ids-list" style='padding-top: 10px;'></div>
 				</div>
 			</div>

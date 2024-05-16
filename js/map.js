@@ -4568,7 +4568,24 @@ var ct_ready_mapjs = function() {
 				activeTreesCount++;
 			}
 			
-			$("#tree-ids-list").append("<div class='row justify-content-center'><button style='padding-left: 2px; padding-right: 2px; font-size: 0.8vw;' class='btn btn-primary tree-ids-select tree-selected' data-toggle='tooltip' data-placement='bottom' title='The ID of this tree.' id='" + cartograplant.clickedTrees[i] + "'>" + treeId_text + "</button><a style='padding-left: 2px; padding-right: 2px; font-size: 0.8vw;' class='btn btn-success add-tree " + activeClass + "' data-toggle='tooltip' data-placement='bottom' title='Add this plant for analysis.'> Add Plant</a>");/*<span class='badge badge-info' data-toggle='tooltip' data-placement='left' data-html='true' title='Tree data source. <br/> TG = TreeGenes <br/> TS = TreeSnap <br/> DD = DataDryad.'>" + sourceSymbol + "</span>");*/
+
+			var tree_id_html = "";
+			tree_id_html += "<div class='w-90 row justify-content-center' style='margin: 2px;'>";
+			tree_id_html += '<div class="col-2" style="padding: 2px;">';
+			tree_id_html += '<button class="btn btn-success single-tree-more-info" style="padding: 9px;" data-toggle="tooltip" data-placement="bottom" title="Get more plant details"><i style="font-size: 1vw;" class="fas fa-info-circle"></i></button>';
+			tree_id_html += '</div>';
+			tree_id_html += '<div class="col-5" style="padding: 2px;">';
+			tree_id_html += "<button style='padding-left: 2px; padding-right: 2px; font-size: 0.8vw;' class='btn btn-primary tree-ids-select tree-selected' data-toggle='tooltip' data-placement='bottom' title='The ID of this tree.' id='" + cartograplant.clickedTrees[i] + "'>";
+			tree_id_html += treeId_text;
+			tree_id_html += "</button>";
+			tree_id_html += '</div>';
+			tree_id_html += '<div class="col-3" style="padding: 2px;">';
+			tree_id_html += "<a style='font-size: 1.3vw; padding: 6px' class='btn btn-success add-tree " + activeClass + "' data-toggle='tooltip' data-placement='bottom' title='Add this plant for analysis.'>";
+			tree_id_html += ' <i class="fas fa-plus-square"></i>';
+			tree_id_html += "</a>"
+			tree_id_html += '</div>';
+			tree_id_html += "</div>";
+			$("#tree-ids-list").append(tree_id_html);/*<span class='badge badge-info' data-toggle='tooltip' data-placement='left' data-html='true' title='Tree data source. <br/> TG = TreeGenes <br/> TS = TreeSnap <br/> DD = DataDryad.'>" + sourceSymbol + "</span>");*/
 		}
 		$('#add-all-trees').html('Add Selected<br />Plants (' + cartograplant.clickedTrees.length + ')');
 

@@ -394,6 +394,12 @@ var ct_ready_map_click_events = function() {
 		}
 	});
 
+	$(document).on('click', '.single-tree-more-info', function() {
+		$(this).closest('.row').find('.tree-ids-select').click();
+		$('#tree-more-info').modal('show');
+
+	});
+
 	$(document).on('change','.rule-filter-container select', function() {
 		console.log('Change detected for filter container select list. Value is now: ' + $(this).val());
 		var filter_name = $(this).val();

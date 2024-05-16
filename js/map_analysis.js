@@ -6,6 +6,9 @@ var ct_ready_map_analysis = function() {
 	var detected_studies = null; // This contains detected studies and trees selected within each study from user selections on the map
 	var analysis_trees = []; // After necessary filter, this will contain the applicable trees
 	var analysis_timers = {};
+	var analysis_initial_configuration_tab = false;
+	var analysis_traits_configuration_tab = false;
+	var analysis_genotypes_configuration_tab = false;
 	var analysis_data_store = {};
 	var current_analysis_id = -1;
 	var workflow_inputs_state = {};
@@ -14,6 +17,7 @@ var ct_ready_map_analysis = function() {
 	var analysis_snp_filtering_final_output_file = {};
 	var genotype_filtering = {};
 	var loading_icon_src = Drupal.settings.base_url + '/' + Drupal.settings.cartogratree.url_path + '/theme/templates/resources_imgs/loader-ring.gif';
+	var analysis_includedTrees = undefined; // [IMPORTANT!] Initialized on first tab load 
 	var analysis_tabs_all = [
 		'#analysis-initial-configuration-tab',
 		'#analysis-overlapping-traits-tab',
@@ -42,6 +46,8 @@ var ct_ready_map_analysis = function() {
 	cartograplant.loading_icon_src = loading_icon_src;
 
 	cartograplant['analysis_snp_filtering_final_output_file'] = analysis_snp_filtering_final_output_file;
+
+
 
 	// Eventually turn all the above variables into public cartograplant[var_name] variables
 	cartograplant['analysis_workflow_step_indexes'] = analysis_workflow_step_indexes;
@@ -215,11 +221,17 @@ var ct_ready_map_analysis = function() {
 		$('#analysis-num-pub').html(studies.length);
 		var el_st = $('<div class="d-inline-block tag" style="background-color: #10a689; color: #FFFFFF; margin-right: 10px; padding-left: 10px; padding: 10px;">Studies: ' + studies.length + '</div>').fadeOut(100);
 
+		// Trees count
+		var trees_count = analysis_includedTrees.length;
+		//$('#analysis-num-pub').html(trees_count);
+		var el_tc = $('<div class="d-inline-block tag" style="background-color: #10a689; color: #FFFFFF; margin-right: 10px; padding-left: 10px; padding: 10px;">Plants: ' + trees_count + '</div>').fadeOut(100);
+
+
 		// Unique Species count
 		// Try to get species for each selected tree
 		var species_unique = [];
-		for (var i = 0; i < mapState.includedTrees.length; i++) {
-			var tree = cartograplant.searchTreeDataStore(mapState.includedTrees[i]);
+		for (var i = 0; i < analysis_includedTrees.length; i++) {
+			var tree = cartograplant.searchTreeDataStore(analysis_includedTrees[i]);
 			var species = "";
 			try {
 				species = tree.data.species;
@@ -310,9 +322,10 @@ var ct_ready_map_analysis = function() {
 		
 
 		//$('#analysis_summary_html').html(html);
-		$('#analysis_summary_html').append(el_aid).append(el_st).append(el_sp).append(el_ph).append(el_ge).append(el_el);
+		$('#analysis_summary_html').append(el_aid).append(el_st).append(el_tc).append(el_sp).append(el_ph).append(el_ge).append(el_el);
 		$(el_aid).fadeOut(200).delay(0).fadeIn(500);
 		$(el_st).fadeOut(200).delay(1000).fadeIn(500);
+		$(el_tc).fadeOut(200).delay(1000).fadeIn(500);
 		$(el_ph).fadeOut(200).delay(2000).fadeIn(500);
 		$(el_ge).fadeOut(200).delay(4000).fadeIn(500);
 		$(el_el).fadeOut(200).delay(6000).fadeIn(500);
@@ -377,20 +390,26 @@ var ct_ready_map_analysis = function() {
 	cartograplant.get_detected_studies_from_selected_trees = get_detected_studies_from_selected_trees;
 	function get_detected_studies_from_selected_trees() {
 		cartograplant.detected_studies = {};
-		// console.log(mapState.includedTrees);
-		for(var i=0; i < mapState.includedTrees.length; i++) {
-			if(mapState.includedTrees[i].includes('TGDR')) {
-				var tree_parts = mapState.includedTrees[i].split('-');
-				var study = tree_parts[0];
-				// console.log(study);
-				if(study != "") {
-					// console.log(detected_studies[study]);
-					if(cartograplant.detected_studies[study] == undefined) {
-						cartograplant.detected_studies[study] = [];
+		// console.log(analysis_includedTrees);
+		if (analysis_includedTrees.length > 0) {
+			for(var i=0; i < analysis_includedTrees.length; i++) {
+				if(analysis_includedTrees[i].includes('TGDR')) {
+					var tree_parts = analysis_includedTrees[i].split('-');
+					var study = tree_parts[0];
+					// console.log(study);
+					if(study != "") {
+						// console.log(detected_studies[study]);
+						if(cartograplant.detected_studies[study] == undefined) {
+							cartograplant.detected_studies[study] = [];
+						}
+						cartograplant.detected_studies[study].push(analysis_includedTrees[i]);
 					}
-					cartograplant.detected_studies[study].push(mapState.includedTrees[i]);
 				}
 			}
+			console.log('Studies detected: ' + Object.keys(cartograplant.detected_studies));
+		}
+		else {
+			// Doing a full search is probably a bad idea (thought about this on 5/9/2024)
 		}
 	}
 
@@ -400,6 +419,15 @@ var ct_ready_map_analysis = function() {
 	} catch (err) {}
 	// This happens when someone clicks on the genotype overlap analysis tab
 	$('a[href="#analysis-overlapping-genotypes"]').on('click', function() {
+
+		if (analysis_genotypes_configuration_tab == true) {
+			console.log('#analysis-overlapping-genotypes tab already generated - bypassing');
+			return;
+		}
+
+		// Set configuration tab as loaded
+		analysis_genotypes_configuration_tab = true;
+
 		// load_analysis_overlapping_genotypes_snp_grid_filter();
 		get_detected_studies_from_selected_trees();
 		console.log('detected_studies', cartograplant.detected_studies);
@@ -412,7 +440,7 @@ var ct_ready_map_analysis = function() {
 		if (studies.length == 0) {
 			study_info_html += '⚠️ ';
 		}
-		study_info_html += studies.length + ' studies detected based on the trees you selected on the map<br />';
+		study_info_html += studies.length + ' studies detected based on the trees you selected on the map and analysis study selections<br />';
 		for(var i=0; i<studies.length; i++) {
 			if(i > 0) {
 				// study_info_html += ', ';
@@ -1168,9 +1196,18 @@ var ct_ready_map_analysis = function() {
 	});
 
 	// This happens when someone clicks on the phenotype / traits analysis tab
+	$('#analysis-overlapping-traits-tab').off('click');
 	$('#analysis-overlapping-traits-tab').on('click', function() {
 	// $('a[href="#analysis-overlapping-traits"]').on('click', function() {
-		
+	
+		if (analysis_traits_configuration_tab == true) {
+			console.log('#analysis-overlapping-traits-tab already generated - bypassing')
+			return;
+		}
+
+		// Sets this tab as loaded
+		analysis_traits_configuration_tab = true;
+
 		// TEST PCA / SCATTERPLOT
 		try {
 			// $('#analysis-overlapping-traits-scatterplot').html('');
@@ -1274,10 +1311,10 @@ var ct_ready_map_analysis = function() {
 
 		console.log('Analysis overlap tab click detected');
 		console.log('html', $('#analysis-overlapping-traits-studies').html());
-		if ($('#analysis-overlapping-traits-studies').html() == "") {
+		//if ($('#analysis-overlapping-traits-studies').html() == "") {
 			console.log('Generating html');
 			$('#analysis-overlapping-traits-studies').html('<i class="fas fa-clock"></i> Detecting studies...');
-			$('#analysis-overlapping-traits-traits-list-summary').html('<i class="fas fa-clock"></i> Querying ' + mapState.includedTrees.length + ' trees ' + '<span class="loading"></span> <img style="height: 16px;" src="' + loading_icon_src + '" />');
+			$('#analysis-overlapping-traits-traits-list-summary').html('<i class="fas fa-clock"></i> Querying ' + analysis_includedTrees.length + ' trees ' + '<span class="loading"></span> <img style="height: 16px;" src="' + loading_icon_src + '" />');
 			$('#analysis-overlapping-traits-traits-list').html('<i class="fas fa-clock"></i> Awaiting query...');
 			$('#analysis-overlapping-traits-traits-operation-container').fadeOut(500);
 			$('#analysis-overlapping-traits-download-by-selected-phenotypes').fadeOut(500);
@@ -1296,7 +1333,7 @@ var ct_ready_map_analysis = function() {
 			if (studies.length == 0) {
 				study_info_html += '⚠️ ';
 			}
-			study_info_html += studies.length + ' studies detected based on the trees you selected on the map<br />';
+			study_info_html += studies.length + ' studies detected based on the trees you selected on the map and analysis study selections<br />';
 			for(var i=0; i<studies.length; i++) {
 				if(i > 0) {
 					// study_info_html += ', ';
@@ -1530,10 +1567,10 @@ var ct_ready_map_analysis = function() {
 					// console.log('overlapping-phenotypes-data', data);
 				}
 			});
-		}
-		else {
-			console.log('Do not regenerate the phenotype overlap interface since it already has been generated');
-		}
+		// }
+		// else {
+		// 	console.log('Do not regenerate the phenotype overlap interface since it already has been generated');
+		// }
 
 		// We need to query the API for the studies detected (phenotypes_phenotypes_overlaps_by_studies_views)
 		// var url = Drupal.settings.base_url + "/cartogratree/api/v2/phenotypes/phenotypes_overlaps_by_studies_views";
@@ -2327,7 +2364,7 @@ var ct_ready_map_analysis = function() {
 				$('#' + id_name_nospaces).html('<i class="fas fa-tree"></i> ' + data.length + ' of ' + data.length + ' trees');
 			},
 			error: function() {
-				$('#' + id_name_nospaces).html('<i class="fas fa-tree"></i>  0 of ' + mapState.includedTrees.length + ' trees (query failed)');
+				$('#' + id_name_nospaces).html('<i class="fas fa-tree"></i>  0 of ' + analysis_includedTrees.length + ' trees (query failed)');
 			}
 		});	
 	}
@@ -2336,7 +2373,7 @@ var ct_ready_map_analysis = function() {
 	// Perform traits filtering
 	$('#analysis-overlapping-traits-filter-by-selected-phenotypes').click(function() {
 		$('#analysis-overlapping-traits-download-by-selected-phenotypes').hide();
-		var trees = mapState.includedTrees;
+		var trees = analysis_includedTrees;
 		var operand = $('#analysis-overlapping-traits-traits-operation').val();
 		var traits = [];
 
@@ -2378,7 +2415,7 @@ var ct_ready_map_analysis = function() {
 				
 				analysis_data_store['traits_filtered_csv'] = csv_data;
 				$('#analysis-overlapping-traits-download-by-selected-phenotypes').fadeIn(500);
-				$('#analysis-overlapping-traits-filter-by-selected-phenotypes-results').html('<i class="fas fa-check-square"></i> Completed! ' + analysis_trees.length + ' of ' + mapState.includedTrees.length + ' trees were found to contain traits you selected!');	
+				$('#analysis-overlapping-traits-filter-by-selected-phenotypes-results').html('<i class="fas fa-check-square"></i> Completed! ' + analysis_trees.length + ' of ' + analysis_includedTrees.length + ' trees were found to contain traits you selected!');	
 			}
 		});	
 	});
@@ -2416,6 +2453,10 @@ var ct_ready_map_analysis = function() {
 	$('#analysis-initial-configuration-tab').click(function() {
 		console.log('Config/Manage tab load');
 
+		if (analysis_initial_configuration_tab == true) {
+			return;
+		}
+
 
 		// Check to see if there are studies filtered (from UI filters) - add these trees
 		var rule_containers = $('.rule-container .rule-filter-container select');
@@ -2436,11 +2477,20 @@ var ct_ready_map_analysis = function() {
 			}
 		}
 
+		// [RISH] 5/15/2024
+		// Order matters, this should be done before get_detected_studies_from_selected_trees
+		// since it is used by the function. Failure to do so will result in study detection inaccuracies.
+		// analysis_includedTrees will have the filtered trees based on the checkboxes on the first analysis page
+		// THIS FILTER DOES NOT TAKE PLACE HERE BUT RATHER FROM THE CHECKBOX CLICKS
+		// THIS JUST INITIALIZES THE VARIABLE SO IT DOES NOT REMAIN UNDEFINED AND HAS ALL SELECTED TREES FROM CP MAIN
+		analysis_includedTrees = JSON.parse(JSON.stringify(mapState.includedTrees)); // makes a complete copy
+
 		// Populate cartograplant studies variables which is used throughout the panel
 		get_detected_studies_from_selected_trees();
 		
 		console.log('cartograplant.detected_studies', cartograplant.detected_studies);
 		var studies = Object.keys(cartograplant.detected_studies);
+		// The code below generates the study summary table including the checkboxes to be used for filtering
 		$('#analysis_detections').html(''); // empty
 		var analysis_detections_html = '';
 		analysis_detections_html += '<div class="row mt-3 mb-3">';
@@ -2461,7 +2511,7 @@ var ct_ready_map_analysis = function() {
 			analysis_detections_html += '<div id="analysis_detections_phenotype_capability" class="mt-1 mb-3"></div>';
 			analysis_detections_html += '<h5 style="color: #036e63 !important;margin-left: 4px;">Study summary</h5>';
 			analysis_detections_html += '<div class="mt-2" id="analysis_detections_study_summary">';
-			analysis_detections_html += '<table><tr><th>Accession</th><th>Title</th><th>Genotypes</th><th>Phenotypes</th><th>Trees</th><tr></table>';
+			analysis_detections_html += '<table><tr><th>Filter</th><th>Accession</th><th>Title</th><th>Genotypes</th><th>Phenotypes</th><th>Trees</th><tr></table>';
 			analysis_detections_html += '</div>';
 
 		}
@@ -2469,7 +2519,8 @@ var ct_ready_map_analysis = function() {
 		analysis_detections_html += '</div>';
 		
 		$('#analysis_detections').html(analysis_detections_html);
-		// Dynamic lookup of study info
+		
+		// Dynamic lookup of study info is done to avoid slow page load - this will populate the study summary table
 		var study_data = [];
 		var studies_with_genotypes_count = 0;
 		var studies_with_phenotypes_count = 0;
@@ -2477,6 +2528,7 @@ var ct_ready_map_analysis = function() {
 			var study = studies[i];
 			var table_row_html = "";
 			table_row_html += "<tr data-value='" + study + "'>";
+			table_row_html += "<td class='checkbox_option'><input type='checkbox' checked /></td>";
 			table_row_html += "<td class='accession'></td>";
 			table_row_html += "<td class='title'>Looking up study info</td>";
 			table_row_html += "<td class='gen_count' style='text-align: center;'>-</td>";
@@ -2524,8 +2576,61 @@ var ct_ready_map_analysis = function() {
 					}
 				}
 			});
+			analysis_initial_configuration_tab = true;
+
 
 		}
+
+
+		// [RISH] This code caters for when a study summary study checkbox is clicked or unclicked 
+		// This will filter out trees or filter in trees as is necessary into analysis_includedTrees
+		$(document).off('click', '#analysis_detections_study_summary table .checkbox_option input[type="checkbox"]');
+		$(document).on('click', '#analysis_detections_study_summary table .checkbox_option input[type="checkbox"]', function() {
+			console.log('analysis_detections_study_summary checkbox selection has been detected');
+			console.log('mapState.includedTrees', mapState.includedTrees);
+			console.log('analysis_includedTrees', analysis_includedTrees);
+
+			// This might not matter since once something is checked, we need to re-evaluate all trees
+			if ($(this).is(':checked')) {
+				console.log('is checked')
+			}
+			else {
+				console.log('is unchecked');
+			}
+
+			var selected_studies = [];
+			// Go through all checkboxes
+			var study_checkboxes = $('#analysis_detections_study_summary table .checkbox_option input[type="checkbox"]');
+			for (var i=0; i<study_checkboxes.length; i++) {
+				var checkbox = $(study_checkboxes.get(i));
+				var tr = $(checkbox.closest('tr'));
+				// console.log('tr',tr);
+				var study_acccession = tr.attr('data-value');
+				if (checkbox.is(':checked')) {
+					selected_studies.push(study_acccession);
+				}
+				//console.log(study_acccession);
+			}
+			console.log('selected_studies', selected_studies);
+			analysis_includedTrees = [];
+			for (var i = 0; i < selected_studies.length; i++) {
+				var study_accession = selected_studies[i];
+				for (var j = 0; j < mapState.includedTrees.length; j++) {
+					var treeid_tmp = mapState.includedTrees[j];
+					// Check if treeid contains study accession, add it to analysis_includedTrees
+					if (treeid_tmp.includes(study_accession)) {
+						analysis_includedTrees.push(treeid_tmp);
+					}
+				}
+			}
+			console.log('Analysis filtered trees: ' + analysis_includedTrees.length + ' compared with Map included trees: ' + mapState.includedTrees.length);
+			get_detected_studies_from_selected_trees();
+			// Reset the traits configuration
+			analysis_traits_configuration_tab = false;
+			// Reset the genotypes configuration
+			analysis_genotypes_configuration_tab = false;
+			analysis_summary_update();
+		});		
 
 		console.log($('#create-analysis-select-galaxy-account').html());
 		//if($('#create-analysis-select-galaxy-account').html() == "") {
@@ -2573,6 +2678,8 @@ var ct_ready_map_analysis = function() {
 			$('#create-analysis-select-history').click();
 		//}
 	});
+
+
 
 
 	// When the popstruct tab is clicked
@@ -4245,18 +4352,18 @@ var ct_ready_map_analysis = function() {
 		var tree_list_for_websocket_command = '';
 
 		// Create a string containing tree_ids delimited by commas
-		for(var i=0; i < mapState.includedTrees.length; i++) {
-			aes_progressbar_description.html("Requesting tree " + (i+1) + " of " + mapState.includedTrees.length);
+		for(var i=0; i < analysis_includedTrees.length; i++) {
+			aes_progressbar_description.html("Requesting tree " + (i+1) + " of " + analysis_includedTrees.length);
 			if (i == 0) {
-				tree_list_for_websocket_command += mapState.includedTrees[i]
+				tree_list_for_websocket_command += analysis_includedTrees[i]
 			}
 			else {
-				tree_list_for_websocket_command += ',' + mapState.includedTrees[i]
+				tree_list_for_websocket_command += ',' + analysis_includedTrees[i]
 			}
 		}
 		analysis_envdata_csv_data = "";
 		analysis_envdata_current_progress_tree_count = -1;
-		analysis_envdata_current_progress_tree_total = mapState.includedTrees.length;
+		analysis_envdata_current_progress_tree_total = analysis_includedTrees.length;
 
 		// We need to get the selected layer and corresponding data property names
 		var analysis_envdata_array_items = [];
@@ -4285,7 +4392,7 @@ var ct_ready_map_analysis = function() {
 		console.log('Checking database for trees with locations');
 		console.log('detected_studies', Object.keys(cartograplant.detected_studies))
 		// We first need to get all the tree ids
-		// console.log(mapState.includedTrees);
+		// console.log(analysis_includedTrees);
 
 		// STEP 1 - Check if SNPs were selected using the analysis_id
 		var treeids_locations = [];
@@ -4335,7 +4442,7 @@ var ct_ready_map_analysis = function() {
 
 					// STEP 2 - get unique locations
 					// We need to send these tree ids to the CT API to get the distinct locations (lat lon vals);
-					$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(500).html('Looking up locations for ' + mapState.includedTrees.length + ' plant ids...' + '<img style="height: 16px;" src="' + loading_icon_src + '" />').fadeIn(500);
+					$('#analysis-generateoutput-envdata-section-from-db-status').fadeOut(500).html('Looking up locations for ' + analysis_includedTrees.length + ' plant ids...' + '<img style="height: 16px;" src="' + loading_icon_src + '" />').fadeIn(500);
 					$.ajax({
 						url: Drupal.settings.base_url + '/cartogratree/api/v2/environmental/get_unique_locations_from_treeids',
 						method: 'POST',
@@ -4693,14 +4800,14 @@ var ct_ready_map_analysis = function() {
 		// analysis_envdata_csv_data += "\n"; 
 		analysis_envdata_current_progress_tree_count = 0;
 		analysis_envdata_current_progress_properties_count = 0;
-		analysis_envdata_current_progress_properties_total = mapState.includedTrees.length * analysis_environmental_data_selected_properties.length;
+		analysis_envdata_current_progress_properties_total = analysis_includedTrees.length * analysis_environmental_data_selected_properties.length;
 		console.log("Analysis Environmental Data Selected Properties");
 		console.log(analysis_environmental_data_selected_properties);
-		for(var i=0; i < mapState.includedTrees.length; i++) {
+		for(var i=0; i < analysis_includedTrees.length; i++) {
 			//Create empty arrays (space holders) within the array_items array
 			analysis_envdata_array_items.push([]);
 		}
-		for(var i=0; i < mapState.includedTrees.length; i++) {
+		for(var i=0; i < analysis_includedTrees.length; i++) {
 			// Query the db for each tree lat and lon
 			generate_envdata_for_selected_tree(i);
 		}
@@ -4709,7 +4816,7 @@ var ct_ready_map_analysis = function() {
 
 	function generate_envdata_for_selected_tree(i) {
 		$.ajax({
-			url:  Drupal.settings.ct_nodejs_api + "/v2/tree?api_key=" + Drupal.settings.ct_api + "&tree_id=" + mapState.includedTrees[i],
+			url:  Drupal.settings.ct_nodejs_api + "/v2/tree?api_key=" + Drupal.settings.ct_api + "&tree_id=" + analysis_includedTrees[i],
 			dataType: "json",
 			async: true,
 			success: function (data) {
@@ -4736,10 +4843,10 @@ var ct_ready_map_analysis = function() {
 				analysis_envdata_current_progress_tree_count = analysis_envdata_current_progress_tree_count + 1;
 				
 				aes_progressbar.progressbar( "option", {
-					value: Math.ceil((analysis_envdata_current_progress_tree_count / mapState.includedTrees.length) * 100),
+					value: Math.ceil((analysis_envdata_current_progress_tree_count / analysis_includedTrees.length) * 100),
 				});
 				analysis_envdata_end_time = Math.round((new Date()).getTime() / 1000);
-				aes_progressbar_description.html("Basic metadata for tree " + analysis_envdata_current_progress_tree_count + " of " + mapState.includedTrees.length + " downloaded.");
+				aes_progressbar_description.html("Basic metadata for tree " + analysis_envdata_current_progress_tree_count + " of " + analysis_includedTrees.length + " downloaded.");
 				$("#analysis-generateoutput-elapsed-time").html("(" + Math.ceil(analysis_envdata_end_time - analysis_envdata_start_time) + "s)");
 			}
 		});
