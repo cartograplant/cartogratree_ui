@@ -428,7 +428,12 @@
 											<div id="analysis-overlapping-genotypes-detected-studies"></div>
 											<div id="analysis-overlapping-genotypes-across-studies"></div>
 											<hr />
+											<div id="analysis-overlapping-genotypes-upset-1" class="d-inline-block"></div>
+											<div id="analysis-overlapping-genotypes-upset-2-status" class="d-inline-block"></div>
+											<div id="analysis-overlapping-genotypes-upset-2" class="d-inline-block"></div>
+											<div id="analysis-overlapping-genotypes-metadata"></div>
 											<div id="analysis-overlapping-genotypes-summary-insights"></div>
+											
 											<!--
 											<span id="analysis-overlapping-genotypes-algorithm-status"><i class="fas fa-clock"></i> Awaiting download to begin calculations...</span><hr />
 											<input type="checkbox" id="analysis_genotypes_select_snps" /> <span>SNPs found</span> <span id="analysis-overlapping-genotypes-snps-tree-count">Querying...</span><br />

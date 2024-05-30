@@ -237,6 +237,17 @@ select {
 
 }
 
+.selection_set_all, .selection_set_none_overlap {
+  width: 50%;
+  padding: 5px;
+}
+
+.selection_set_overlap {
+  padding: 5px;
+  min-width: 50%;
+  max-width: 100%;
+}
+
 .map-top-container #tree-filter-options .rules-group-container .rules-group-container {
   margin-left: -4px;
 }
