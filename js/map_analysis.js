@@ -2568,7 +2568,7 @@ var ct_ready_map_analysis = function() {
 	$(document).on('click', '.trait_description', function() {
 		// alert('Click detected');
 		console.log('.trait_description on click detected');
-		analysis_overlapping_traits_histogram_dataselect_element(this);
+		// analysis_overlapping_traits_histogram_dataselect_element(this);
 	});
 
 	$(document).on('click', '.filter_trait_interactive_histogram', function() {
