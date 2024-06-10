@@ -970,30 +970,34 @@ var ct_ready_map_analysis = function() {
 												width: 800,
 												height: 600,
 												combinations: {
-												  type: 'intersection',
-												  min: 1,
-												  limit: 100,
-												  order: 'cardinality',
+													type: 'intersection',
+													min: 1,
+													limit: 100,
+													order: 'cardinality',
 												},
 												selection: null
-											  }
-											  props_2.onHover = (set) => {
+											}
+											props_2.onHover = (set) => {
 												props_2.selection = set;
 												UpSetJS.render(document.getElementById("analysis-overlapping-genotypes-upset-2"), props_2);
-											  };
-											  UpSetJS.render(document.getElementById("analysis-overlapping-genotypes-upset-2"), props_2);
-											  // Hack to shift counts to vertical
-											  $('g[data-upset="cs"] text[class^="cBarTextStyle-upset-"]').each(function() {
+											};
+											UpSetJS.render(document.getElementById("analysis-overlapping-genotypes-upset-2"), props_2);
+											// Change color of bars to match Cartograplant a little more
+											$('g[data-upset="cs"] rect[class^="fillPrimary-upset-"]').css('fill', '#ffb000');
+											$('g[data-upset="csaxis"] line').css('stroke-dasharray', '0').css('stroke-width', '1px');
+											
+											// Hack to shift counts to vertical
+											$('g[data-upset="cs"] text[class^="cBarTextStyle-upset-"]').each(function() {
 												// Get the width of the fillPrimary-upset element and use it for the y value
 												var width = $('g[data-upset="cs"] text[class^="cBarTextStyle-upset-"]').closest('g').find('rect[class^="fillPrimary-upset-"]').attr('width');
 												// Get the height of the column which can be found from the hoverBar
 												var height_total = $('g[data-upset="cs"] text[class^="cBarTextStyle-upset-"]').closest('g').find('rect[class^="hoverBar-upset-"]').attr('height');
-												
+											
 												// Now we have an issue if the fillBar because if it's tall, it will be black
 												// So we should change the color of the text if this happens to white to show up
 												// on the black fillBar
 												var height_fillBar = $('g[data-upset="cs"] text[class^="cBarTextStyle-upset-"]').closest('g').find('rect[class^="fillPrimary-upset-"]').attr('height');
-												
+											
 												// Calculate a location of where the count text should be (for example half way)
 												var x_location_of_text = (parseFloat(height_total) / 2);
 
@@ -1005,10 +1009,10 @@ var ct_ready_map_analysis = function() {
 
 
 												$(this).css('transform', 'rotate(-90deg)')
-												.attr('x', x_location_of_text * -1) // multiply by one to bring it down
-												.attr('y', parseFloat(width) - 5)
+													.attr('x', x_location_of_text * -1) // multiply by one to bring it down
+													.attr('y', parseFloat(width) - 5)
 												if (overlap_boolean) {
-													$(this).css('fill', '#BBBBBB');
+													$(this).css('fill', '#000000');
 												}
 
 												// Does not work - SVG redrawing?
@@ -1033,12 +1037,43 @@ var ct_ready_map_analysis = function() {
 												parent_element.appendChild(image_element);
 
 
-											  })
+											});
 
-											  // On click event for when an upset bar is selected
-											  var upset_bar_selector = '#analysis-overlapping-genotypes-upset-2 g[class^="interactive-upset-"]';
-											  $(document).off('click', upset_bar_selector);
-											  $(document).on('click', upset_bar_selector, function() {
+											var upset_bar_selector = '#analysis-overlapping-genotypes-upset-2 g[class^="interactive-upset-"]';
+											// On hover event for when an upset bar mouse is over it
+											$(document).off('mouseover', upset_bar_selector);
+											$(document).on('mouseover', upset_bar_selector, function() {
+												//console.log('mouseover');
+												// Reset all other text back to black
+												$('#analysis-overlapping-genotypes-upset-2 text[class^="setTextStyle-upset-"]').css('fill', '#000000');
+
+												// Get the study or studies text for this bar
+												var studies_arr = $(this).closest('g').find('text[class^="hoverBarTextStyle-upset-"]').html().replaceAll(')','').replaceAll('(','').split(' ∩ ');
+												console.log('studies_arr', studies_arr);
+												
+												// Now go through the horizontal column of studies and change their colors if they match any in the studies_arr
+												$('#analysis-overlapping-genotypes-upset-2 text[class^="setTextStyle-upset-"]').each(function () {
+													var study_text = $(this).html();
+													// console.log('study_text', study_text);
+													if (studies_arr.includes(study_text)) {
+														console.log('Study match found: ', study_text);
+														$(this).css('fill', '#ffb000');
+													}
+												});
+												// #036e63
+											});
+
+											// On hover event for when an upset bar mouse is over it
+											$(document).off('mouseout', upset_bar_selector);
+											$(document).on('mouseout', upset_bar_selector, function() {
+												// console.log('mouseout');
+												// Reset all other text back to black
+												$('#analysis-overlapping-genotypes-upset-2 text[class^="setTextStyle-upset-"]').css('fill', '#000000');
+											});											
+
+											// On click event for when an upset bar is selected
+											$(document).off('click', upset_bar_selector);
+											$(document).on('click', upset_bar_selector, function() {
 												console.log('Upset bar click detected');
 												// Find the checkbox_image class element
 												var display_value = $(this).find('.checkbox_image').css('display');
@@ -1062,6 +1097,7 @@ var ct_ready_map_analysis = function() {
 														}
 													});
 												}
+											
 												else {
 													// Deselect it
 													$(this).find('.checkbox_image').css('display', 'none')
@@ -1083,9 +1119,8 @@ var ct_ready_map_analysis = function() {
 													});
 												}
 												analysis_summary_update();
-											  });
-
-										}
+											});	
+										}	
 									},
 									error: function (err) {
 										upset_plot_2_studies_finished = upset_plot_2_studies_finished + 1;
@@ -2269,7 +2304,11 @@ var ct_ready_map_analysis = function() {
 					
 	}
 		
-
+	/**
+	 * This code will pull all the data from the first histogram which has the adjust threshold button
+	 * Creates a new histogram on the right side of the UI which allows dragging the line thresholds
+	 * @param {*} element 
+	 */
 	function analysis_overlapping_traits_histogram_dataselect_element(element) {
 		var phenotype_name = $(element).attr('phenotype_name');
 		var studies = $(element).attr('studies');
@@ -2528,6 +2567,7 @@ var ct_ready_map_analysis = function() {
 
 	$(document).on('click', '.trait_description', function() {
 		// alert('Click detected');
+		console.log('.trait_description on click detected');
 		analysis_overlapping_traits_histogram_dataselect_element(this);
 	});
 

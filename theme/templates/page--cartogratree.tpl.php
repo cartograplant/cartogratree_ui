@@ -424,7 +424,7 @@
 								<div><span style="float: right;" id="analysis_genotypes_overall_status"></span></div>
 								<table style="width: 100%;">
 									<tr>
-										<td style="width: 60%; vertical-align: top;">
+										<td style="width: 100%; vertical-align: top;">
 											<div id="analysis-overlapping-genotypes-detected-studies"></div>
 											<div id="analysis-overlapping-genotypes-across-studies"></div>
 											<hr />
@@ -446,7 +446,7 @@
 											<span>Overlapping genotypes</span> <span id="analysis-overlapping-genotypes-overlapped">Awaiting data...</span>
 											-->
 										</td>
-										<td style="width: 40%; vertical-align: top;">
+										<td style="width: 0%; vertical-align: top;">
 											<div id="analysis-overlapping-genotypes-snp-venn-diagram">
 
 											</div>										
