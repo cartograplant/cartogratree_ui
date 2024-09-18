@@ -2138,6 +2138,7 @@
 									<i class="fas fa-map-marker-alt"></i><b> Source</b>
 								</div>
 							</div>
+
 							<div class="row" style='margin-bottom: 5px;'>
 								<!-- <div class="col" id="tree-plant-group">
 									Plant group
@@ -2149,6 +2150,14 @@
 									source
 								</div>
 							</div>
+							<div class="row">
+								<div class="col">
+									<button class="btn btn-primary w-100" data-toggle="modal" data-target="#tree-more-info" style='margin-bottom: 3px; font-size: 10px;'>Study Info</button>
+								</div>
+								<div class="col">
+									<button class="btn btn-primary w-100" data-toggle="modal" data-target="#species-details-info" style='margin-bottom: 3px; font-size: 10px;'>Species Info</button>
+								</div>
+							</div>
 				
 							<!-- <div class="row justify-content-center">
 								<h6>Coordinate Type: <span id="tree-coord-type">Approximate</span></h6>
@@ -2156,9 +2165,9 @@
 
 							<div class="row justify-content-center">
 								<!-- <button id="hide-tree-details" type="button" class="btn btn-danger" style='margin-bottom: 3px; font-size:11px;' disabled>Close Plant View</button> -->
-								<button class="btn btn-primary" data-toggle="modal" data-target="#tree-more-info" style='margin-bottom: 3px; font-size: 10px;'>Study Info</button>
-								<button class="btn btn-primary add-all-study-plants" style='margin-bottom: 3px; font-size: 10px;'>Add all study plants</button>
-								
+								<div class="col">
+									<button class="btn w-100 btn-primary add-all-study-plants" style='margin-bottom: 3px; font-size: 10px;'>Add all study plants</button>
+								</div>
 								<!-- <button id='expand-image-view-button' class="btn btn-primary" data-toggle="modal" data-target="#tree-all-images" style='margin-bottom: 3px;' >Expand Image View</button> -->
 							</div>
 
@@ -2289,6 +2298,38 @@
 		</div>
 	</div>
 </div>
+
+
+<div class="modal fade" id="species-details-info" tabindex="-1" role="dialog" aria-labelledby="species-details-info-label" aria-hidden="true">	
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<div id="species-details-info-title"></div>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="row w-100">
+					<div class="p-2 w-100 ml-2" id="species-details-info-body-genomes-header" style="background-color: #589a60; color: #FFFFFF; border: 1px solid #41824c"><h2 style="padding-top: 0px; padding-bottom: 0px;">Genomes</h2></div>
+				</div>
+				<div class="row w-100">
+					<div class="p-2 w-100" id="species-details-info-body-genomes-container"></div>
+				</div>
+				<div class="row w-100 mt-2">
+					<div class="p-2 w-100 ml-2" id="species-details-info-body-studies-header" style="background-color: #589a60; color: #FFFFFF; border: 1px solid #41824c"><h2 style="padding-top: 0px; padding-bottom: 0px;">TPPS Studies</h2></div>
+				</div>
+				<div class="row w-100">
+					<div class="p-2 w-100" id="species-details-info-body-studies-container"></div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 
 <div class="modal fade" id="tree-all-images" tabindex="-1" role="dialog" aria-labelledby="tree-view-images-label" aria-hidden="true">	
 	<div class="modal-dialog modal-lg" role="document">

@@ -3441,6 +3441,8 @@ var ct_ready_mapjs = function() {
 			}
 		});
 
+
+
 		// Get publication info for specific tree
 		$.ajax({
 			url: Drupal.settings.ct_nodejs_api + "/v2/publications?api_key=" + Drupal.settings.ct_api + "&tree_acc=" + treeId.split("-")[0],
@@ -4334,6 +4336,67 @@ var ct_ready_mapjs = function() {
 		$("#tree-family").text(data.family == null ? "Unidentified" : data.family);
 		//$("#tree-plant-group").text(data.subkingdom == null ? "Unidentified" : data.subkingdom);
 		$("#tree-species").text(data.species);
+
+		// Lookup species information to populate the species-details-info modal
+		$('#species-details-info-title').html('<h2>' + data.species + ' overview' + '</h2>');
+		$.ajax({
+			url: Drupal.settings.base_url + '/cartogratree_uiapi/get_genomes_by_species_text/' + data.species,
+			method: 'GET',
+			success: function(data) {
+				console.log('get_genomes_by_species_text', data);
+				for (var i =0; i<data.length; i++) {
+					var g_html = '';
+					g_html += '<div class="row w-100">';
+					g_html += '<div class="col-2">';
+					g_html += '<div class="tag" style="background-color: #000000; color: #FFFFFF; margin-right: 10px;">FTP</div>';
+					g_html += '<a target="_blank" href="' + Drupal.settings.base_url + '/FTP/Genomes/' + data[i].ftp + '/' + data[i].sourceversion + '/genome">';
+					g_html += data[i].sourceversion;
+					g_html += '</a>';
+					g_html += '</div>';
+					g_html += '<div class="col-8">';
+					g_html += '<div class="tag" style="background-color: #000000; color: #FFFFFF; margin-right: 10px;">PUBLICATION</div>';
+					if (data[i].pub_link == null) {
+						data[i].pub_link = '';
+					}
+					if (data[i].uniquename == null) {
+						data[i].uniquename = 'Publication title could not be retrieved.';
+					}
+					g_html += '<a target="_blank" href="' + data[i].pub_link + '">';
+					g_html += data[i].uniquename;
+					g_html += '</a>';
+					g_html += '</div>';
+					g_html += '</div>';
+					$('#species-details-info-body-genomes-container').html(g_html);
+				}
+			}
+		});
+
+		$.ajax({
+			url: Drupal.settings.base_url + '/cartogratree_uiapi/get_studies_by_species_text/' + 'Picea abies',  //+ data.species,
+			method: 'GET',
+			success: function(data) {
+				console.log('get_studies_by_species_text', data);
+				for (var i =0; i<data.length; i++) {
+					var g_html = '';
+					g_html += '<div class="row w-100">';
+					g_html += '<div class="col-2">';
+					g_html += '<div class="tag" style="background-color: #000000; color: #FFFFFF; margin-right: 10px;">STUDY</div>';
+					g_html += '<a target="_blank" href="' + Drupal.settings.base_url + '/tpps/details/' + data[i].accession + '">';
+					g_html += data[i].accession;
+					g_html += '</a>';
+					g_html += '</div>';
+					g_html += '<div class="col-8">';
+					// g_html += '<div class="tag" style="background-color: #000000; color: #FFFFFF; margin-right: 10px;">TITLE</div>';
+					g_html += '<a>';
+					g_html += data[i].name;
+					g_html += '</a>';
+					g_html += '</div>';
+					g_html += '</div>';
+					$('#species-details-info-body-studies-container').html(g_html);
+				}
+			}
+		});
+
 		$("#tree-source").text(sourceName);
 		$("#tree-id").text('');
 		$("#tree-id").text(treeId);

@@ -29,6 +29,111 @@ function cartogratree_uiapi_get_plant_structures_by_species_text($species_text) 
     drupal_json_output($names);
 }
 
+function cartogratree_uiapi_get_studies_by_species_text($species_text) {
+    $species_text = strtolower(trim($species_text));
+    $species_parts = explode(' ', $species_text);
+
+    // Get organism_id
+    $organism_id = NULL;
+    $results_organism = chado_query('SELECT * FROM chado.organism WHERE genus ILIKE :genus AND species ILIKE :species', [
+        ':genus' => $species_parts[0],
+        'species' => $species_parts[1]
+    ]);
+    foreach ($results_organism as $row) {
+        $organism_id = $row->organism_id;
+    }
+
+    $results_publications = chado_query(
+        "SELECT ts.accession, pdbxref.project_id, organism_id, p.name FROM public.tpps_submission ts 
+        LEFT JOIN chado.project_dbxref pdbxref ON (ts.dbxref_id = pdbxref.dbxref_id) 
+        JOIN chado.project_organism po ON (po.project_id = pdbxref.project_id) 
+        LEFT JOIN chado.project p ON (p.project_id = po.project_id) 
+        WHERE ts.status LIKE 'Approved' AND po.organism_id = :organism_id;"
+        ,[
+            ':organism_id' => $organism_id
+        ]
+    );
+
+    $rows = [];
+    foreach ($results_publications as $row) {
+        $array = json_decode(json_encode($row), true);
+        $rows[] = $array;
+    }
+    drupal_json_output($rows);
+}
+
+function cartogratree_uiapi_get_genomes_by_species_text($species_text) {
+    $species_text = strtolower(trim($species_text));
+    $species_parts = explode(' ', $species_text);
+
+    // Get organism_id
+    $organism_id = NULL;
+    $results_organism = chado_query('SELECT * FROM chado.organism WHERE genus ILIKE :genus AND species ILIKE :species', [
+        ':genus' => $species_parts[0],
+        ':species' => $species_parts[1]
+    ]);
+    $genus_species = NULL;
+    foreach ($results_organism as $row) {
+        $organism_id = $row->organism_id;
+        $genus_species = $row->genus . '_' . $row->species;
+    }
+
+    $four_letter_code_type_id = NULL;
+    $results_type_id = chado_query('SELECT * FROM chado.cvterm WHERE name ILIKE :name', [
+        ':name' => 'organism 4 letter code'
+    ]);
+    foreach ($results_type_id as $row) {
+        $four_letter_code_type_id = $row->cvterm_id;
+    }
+
+    $four_letter_code = NULL;
+    $results_four_letter_code = chado_query('SELECT * FROM chado.organismprop WHERE organism_id = :organism_id AND type_id = :type_id',[
+        ':organism_id' => $organism_id,
+        ':type_id' => $four_letter_code_type_id
+    ]);
+    foreach ($results_four_letter_code as $row) {
+        $four_letter_code = $row->value;
+    }
+
+    // Get the table name of the tripal_bundle 'Publication'
+    $publication_tripal_bundle_results = chado_query("SELECT * FROM public.tripal_bundle WHERE label = 'Publication' AND type='TripalEntity';", []);
+    foreach ($publication_tripal_bundle_results as $row) {
+        $publication_bio_data_table_name = 'public.chado_' . $row->name;
+    }
+
+    $results = chado_query('SELECT *  
+        FROM chado.analysis a
+        LEFT JOIN chado.analysis_pub ap ON (ap.analysis_id = a.analysis_id) 
+        LEFT JOIN chado.pub p ON (ap.pub_id = p.pub_id) 
+        WHERE LOWER(a.name) ILIKE :species_text ORDER BY a.sourceversion ASC;',
+        [':species_text' => $species_text . '%']);
+    $rows = [];
+    $ftp_main_dir = '/isg/treegenes/treegenes_store/FTP/Genomes/';
+    $ftp_species_dir =  $four_letter_code;
+    if (is_dir($ftp_main_dir . $genus_species)) {
+        $ftp_species_dir = $genus_species;
+    }
+    foreach ($results as $row) {
+        $array = json_decode(json_encode($row), true);
+        $array['four_letter_code'] = $four_letter_code;
+        $array['ftp'] = $ftp_species_dir;
+
+        //$sql_title_link = "SELECT id FROM public.tripal_entity WHERE title ILIKE '%" . $row_plusgenoview->title . "%' LIMIT 1;";
+		$sql_title_link = "SELECT entity_id as id FROM $publication_bio_data_table_name WHERE record_id = :pub_id LIMIT 1;";
+		//dpm($row_plusgenoview->title);
+		$results_title_link = chado_query($sql_title_link, [
+            ':pub_id' => $array['pub_id']
+        ]);
+		$title_link = "";
+		foreach($results_title_link as $row_title_link) {
+			$title_link = "/Publication/" . $row_title_link->id;
+		}
+        $array['pub_link'] = $title_link;
+
+        $rows[] = $array;
+    }
+    drupal_json_output($rows);
+}
 
 /**
  * This function will dynamically create a color icon for popstruct

@@ -366,6 +366,32 @@ function cartogratree_menu()
         'access arguments' => array(
             'use cartogratree',
         ),
+    );   
+    
+    $items['cartogratree_uiapi/get_genomes_by_species_text/%'] = array(
+        'description' => 'Cartogratree UI API: Get Genomes by species text',
+        'title' => 'Cartogratree UI API: Get Genomes by species text',
+        'page callback' => 'cartogratree_uiapi_get_genomes_by_species_text',
+        'page arguments' => array(
+            2,
+        ),
+        'file' => 'includes/cartogratree.uiapi.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
+    $items['cartogratree_uiapi/get_studies_by_species_text/%'] = array(
+        'description' => 'Cartogratree UI API: Get Studies by species text',
+        'title' => 'Cartogratree UI API: Get Studies by species text',
+        'page callback' => 'cartogratree_uiapi_get_studies_by_species_text',
+        'page arguments' => array(
+            2,
+        ),
+        'file' => 'includes/cartogratree.uiapi.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
     );    
 
     $items['cartogratree_uiapi/pop_struct_layer_json/%'] = array(
@@ -944,8 +970,14 @@ function cartogratree_preprocess_page(&$variables)
             }
         }
 
+        // @TODO RISH - to create a boot popup when this tree-details url parameter is set
+        $params = drupal_get_query_parameters();
+        $species_details = NULL;
+        if (isset($params['species-details'])) {
+            $plant_details = $params['species-details'];
+        }
 
-
+        // This happens on the URL for example accession=TGDR124
         $url_filters = cartogratree_add_url_query($session['filters'] != null, $query_string);
         if (count($url_filters) > 0) {
             $session['filters'] = $url_filters;
@@ -1014,6 +1046,7 @@ function cartogratree_preprocess_page(&$variables)
             'options_data' => $fields_data,
             'base_url' => $GLOBALS['base_url'],
             'layers' => $layers,
+            'species_details' => $species_details,
             'layers_select_color_styles' => array(
                 array(
                     "title" => "grey",
@@ -1064,6 +1097,8 @@ function cartogratree_preprocess_page(&$variables)
                 'dryad' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/resources_imgs/logo_dryad.png',
                 'treesnap' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/resources_imgs/logo_treesnap.png',
             ),
+            /*
+            // Original code - 7/1/2024
             'tree_img' => array(
                 'exact' => array(
                     'angiosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/angio_exact.png',
@@ -1082,6 +1117,28 @@ function cartogratree_preprocess_page(&$variables)
                 'wfid' => array(
                     'angiosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/wfid_exact.png',
                     'gymnosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/wfid_exact.png',
+                ),
+                'selected' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/selected_tree.png',
+            ),
+            */
+            'tree_img' => array(
+                'exact' => array(
+                    'angiosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/plant.png',
+                    'gymnosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/plant.png',
+                    'plant' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/plant.png',
+                    'publication' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/ui_icons_imgs/publication3.png',
+                ),
+                'approximate' => array(
+                    'angiosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/plant.png',
+                    'gymnosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/plant.png',
+                ),
+                'treesnap' => array(
+                    'angiosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/plant_treesnap.png',
+                    'gymnosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/plant_treesnap.png',
+                ),
+                'wfid' => array(
+                    'angiosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/plant_wfid.png',
+                    'gymnosperm' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/plant_wfid.png',
                 ),
                 'selected' => '/' . drupal_get_path('module', 'cartogratree') . '/theme/templates/trees_imgs/selected_tree.png',
             ),

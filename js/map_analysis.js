@@ -1471,9 +1471,9 @@ var ct_ready_map_analysis = function() {
 		console.log('Phenotype_name', phenotype_name);
 
 		// Remove the old histogram (grid_element class)
-		$('#analysis-overlapping-traits-traits-histogram-grid .grid_element[phenotype_name="' + phenotype_name + '"]').html('');
+		$('#analysis-overlapping-traits-traits-table td.phenotype_overlap_status[phenotype_name="' + phenotype_name + '"]').html('');
 
-		analysis_overlapping_traits_grid_histogram_element_add('#analysis-overlapping-traits-traits-histogram-grid .grid_element[phenotype_name="' + phenotype_name + '"]', phenotype_name, studies_csv, units_csv, $(this).val());
+		analysis_overlapping_traits_grid_histogram_element_add('#analysis-overlapping-traits-traits-table td.phenotype_overlap_status[phenotype_name="' + phenotype_name + '"]', phenotype_name, studies_csv, units_csv, $(this).val());
 	});
 
 	// This happens when someone clicks on the phenotype / traits analysis tab
@@ -1632,6 +1632,7 @@ var ct_ready_map_analysis = function() {
 
 			var phenotypes_all = {};
 			var url = Drupal.settings.base_url + "/cartogratree/api/v2/phenotypes/phenotypes_all_by_studies_views";
+			var phenotype_names_with_overlaps = {};
 			$.ajax({
 				method: 'POST',
 				url: url,
@@ -1678,23 +1679,27 @@ var ct_ready_map_analysis = function() {
 							}
 
 							// check if overlap with all studies
-							var overlap_html = '<div>No overlaps</div>';
+							var overlap_html = '<div style="text-align: center;">No overlaps</div>';
 							console.log(Object.keys(phenotypes_all[phenotypes_arr[i]]['studies']).length);
 
 							// if overlaps are found
+							
 							if(Object.keys(phenotypes_all[phenotypes_arr[i]]['studies']).length == studies.length) {
 								overlap_html = '<div style="display: inline-block; padding: 3px; color: #FFFFFF; background-color: #036e63; border-radius: 2px;">Overlaps with all studies</div>';
 
 								// If these are the overlaps detected, we can generate a grid of histograms for these below.
-								var traits_grid_html = '<div class="grid_element" style="display: inline-block;" studies="' + studies_csv + '" phenotype_name="' + phenotypes_arr[i] + '"></div>';
+								var traits_grid_html = '<div class="grid_element trait_grid_element" style="display: inline-block;" studies="' + studies_csv + '" phenotype_name="' + phenotypes_arr[i] + '"></div>';
 								$('#analysis-overlapping-traits-traits-histogram-grid').append(traits_grid_html);
 
 
 								// // Load the histogram into the grid elememt
 								// analysis_overlapping_traits_grid_histogram_element_add('#analysis-overlapping-traits-traits-histogram-grid .grid_element[phenotype_name="' + phenotypes_arr[i] + '"]', phenotypes_arr[i], studies_csv)
 
-
+								// Record that this phenotype has overlaps between all studies
+								// This is needed for later on code to either generate or block generation of the histogram
+								phenotype_names_with_overlaps[phenotypes_arr[i]] = true;
 							}
+							console.log('phenotype_names_with_overlaps', phenotype_names_with_overlaps)
 
 							phenotypes_items_html += '<tr>';
 							phenotypes_items_html += '<td style="min-width: 30%;"><input class="trait_select_checkbox" type="checkbox" studies="' + studies_csv + '" phenotype_name="' + phenotypes_arr[i] + '"><span style="margin-left: 5px; text-decoration: none; cursor: pointer; text-decoration: none;" class="trait_description" studies="' + studies_csv + '" phenotype_name="' + phenotypes_arr[i] + '">' + phenotypes_arr[i] + '</span></td>';
@@ -1759,8 +1764,9 @@ var ct_ready_map_analysis = function() {
 
 									var units_options = Object.keys(units_options_obj);
 									console.log('units_options', units_options);
+
 									if (units_options.length <= 1) {
-										if (units_options == 0) {
+										if (units_options.length == 0) {
 											$('#analysis-overlapping-traits-traits-list td[phenotype_name="' + row['phenotype'] + '"].phenotype_units').html('⛔');
 										}
 										else {
@@ -1768,12 +1774,14 @@ var ct_ready_map_analysis = function() {
 											if (units_options[0] == 'null') {
 												$('#analysis-overlapping-traits-traits-list td[phenotype_name="' + row['phenotype'] + '"].phenotype_units').html('⛔');
 												// Load the histogram into the grid elememt (if units is null - assume they are the same)
-												analysis_overlapping_traits_grid_histogram_element_add('#analysis-overlapping-traits-traits-histogram-grid .grid_element[phenotype_name="' + row['phenotype'] + '"]', row['phenotype'], studies_csv)
+												// analysis_overlapping_traits_grid_histogram_element_add('#analysis-overlapping-traits-traits-table td.phenotype_overlap_status[phenotype_name="' + row['phenotype'] + '"]', row['phenotype'], studies_csv)
 											}
 											else {
 												$('#analysis-overlapping-traits-traits-list td[phenotype_name="' + row['phenotype'] + '"].phenotype_units').html(units_options[0]);
 												// Load the histogram into the grid element if the units for the studies are the same type
-												analysis_overlapping_traits_grid_histogram_element_add('#analysis-overlapping-traits-traits-histogram-grid .grid_element[phenotype_name="' + row['phenotype'] + '"]', row['phenotype'], studies_csv)
+												if (phenotype_names_with_overlaps[row['phenotype']] != undefined) {
+													analysis_overlapping_traits_grid_histogram_element_add('#analysis-overlapping-traits-traits-table td.phenotype_overlap_status[phenotype_name="' + row['phenotype'] + '"]', row['phenotype'], studies_csv)
+												}
 											}
 										}
 									}
@@ -1794,13 +1802,18 @@ var ct_ready_map_analysis = function() {
 										// Load the histogram into the grid elememt (REMOVE THIS LATER ON SINCE WE ACTUALLY WANT
 										// THE USER TO SPECIFY THE UNITS FOR CONVERSION BEFORE SHOWING IT)
 										console.log(row);
-										analysis_overlapping_traits_grid_histogram_element_add('#analysis-overlapping-traits-traits-histogram-grid .grid_element[phenotype_name="' + row['phenotype'] + '"]', row['phenotype'], studies_csv, units_csv, $('#analysis-overlapping-traits-traits-list td[phenotype_name="' + row['phenotype'] + '"].phenotype_units select').val());
+										if (phenotype_names_with_overlaps[row['phenotype']] != undefined) {
+											analysis_overlapping_traits_grid_histogram_element_add('#analysis-overlapping-traits-traits-table td.phenotype_overlap_status[phenotype_name="' + row['phenotype'] + '"]', row['phenotype'], studies_csv, units_csv, $('#analysis-overlapping-traits-traits-list td[phenotype_name="' + row['phenotype'] + '"].phenotype_units select').val());
+										}
 									}
+									
+
+
+
 								}
 							});						
 						}
 								
-
 
 						// Now perform the counts dynamically as well
 						for(var i=0; i<phenotypes_arr.length; i++) {
@@ -1971,7 +1984,7 @@ var ct_ready_map_analysis = function() {
 
 		analysis_summary_update();
 		if(element.is(":checked") == true) {
-			// perform an insert (since the checkbox is no selected)
+			// perform an insert (since the checkbox is now selected)
 			// Check to see whether an interactive histogram with container name exists
 			//console.log(Object.keys(interactive_histograms_selected_data));
 			// Count the items
@@ -2379,7 +2392,7 @@ var ct_ready_map_analysis = function() {
 		var values = [];
 		// try {
 			console.log(phenotype_name);
-			var source_histogram = $('#analysis-overlapping-traits-traits-histogram-grid .grid_element[phenotype_name="' + phenotype_name + '"]');
+			var source_histogram = $('#analysis-overlapping-traits-traits-table td.phenotype_overlap_status[phenotype_name="' + phenotype_name + '"]');
 			console.log('source_histogram', source_histogram);
 			console.log('values', source_histogram.attr('data-values'));
 			values = JSON.parse(source_histogram.attr('data-values')); // get the values from data-values and parse it since it is in JSON string format
@@ -2402,10 +2415,28 @@ var ct_ready_map_analysis = function() {
 		// }	
 	}
 
-	$('body').on('click', '#analysis-overlapping-traits-histogram .histogram_button_save', function() {
+	// This old version is when the histogram is on the right
+	// $('body').on('click', '#analysis-overlapping-traits-histogram .histogram_button_save', function() {
+	// 	console.log('histogram button save clicked');
+	// 	var element = $(this);
+	// 	var phenotype_name = element.parent().parents().find('.histogram_container').attr('unique_id');
+	// 	console.log('phenotype_name', phenotype_name);
+	// 	if($('.trait_select_checkbox[phenotype_name="' + phenotype_name + '"]').is(':checked')) {
+	// 		// uncheck it
+	// 		$('.trait_select_checkbox[phenotype_name="' + phenotype_name + '"]').click();
+	// 		setTimeout(function() {
+	// 			$('.trait_select_checkbox[phenotype_name="' + phenotype_name + '"]').click();
+	// 		}, 3000);
+	// 	}
+	// 	else {
+	// 		$('.trait_select_checkbox[phenotype_name="' + phenotype_name + '"]').click();
+	// 	}
+	// });
+
+	$('body').on('click', '.phenotype_overlap_status .histogram_button_save', function() {
 		console.log('histogram button save clicked');
 		var element = $(this);
-		var phenotype_name = element.parent().parents().find('.histogram_container').attr('unique_id');
+		var phenotype_name = element.closest('.phenotype_overlap_status').attr('unique_id');
 		console.log('phenotype_name', phenotype_name);
 		if($('.trait_select_checkbox[phenotype_name="' + phenotype_name + '"]').is(':checked')) {
 			// uncheck it
@@ -2417,8 +2448,7 @@ var ct_ready_map_analysis = function() {
 		else {
 			$('.trait_select_checkbox[phenotype_name="' + phenotype_name + '"]').click();
 		}
-
-	});
+	});	
 
 
 	function analysis_overlapping_traits_grid_histogram_element_add(container, phenotype_name, studies, phenotype_units = undefined, phenotype_default_unit = undefined) {
@@ -2548,10 +2578,14 @@ var ct_ready_map_analysis = function() {
 							phenotype_name, 
 							350, 350, 
 							values,['phenotype_id','plant_accession','value'], 
-							false
+							true
 						);
 						// Add a filter button which opens the interactive histogram with line thresholds
-						var button_html = '<div><center><button style="border-radius: 3px;" phenotype_name="' + phenotype_name + '" studies="' + studies + '" class="filter_trait_interactive_histogram">Adjust thresholds</button></center></div>';
+
+						// Old button removed on 6/10/2024 since this would open up an extra right side histogram which
+						// we do not want anymore
+						// var button_html = '<div><center><button style="border-radius: 3px;" phenotype_name="' + phenotype_name + '" studies="' + studies + '" class="filter_trait_interactive_histogram">Adjust thresholds</button></center></div>';
+						var button_html = '<center><button class="histogram_button_save">Save adjustment</button></center>';
 						$(container).append(button_html);
 					}
 					catch (err) {
@@ -2576,6 +2610,9 @@ var ct_ready_map_analysis = function() {
 		analysis_overlapping_traits_histogram_dataselect_element(this);
 	});
 
+	/**
+	 * On clicking phenotype checkbox from phenotype / traits tab, perform function
+	 */
 	$(document).on('click', '.trait_select_checkbox', function() {
 		// alert('click detected');
 		console.log($(this)[0]);

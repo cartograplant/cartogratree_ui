@@ -7,9 +7,6 @@ var ct_ready_map_onload_events = function() {
 		console.log('Page is fully loaded');
 	});
 
-
-
-    
 	window.onload = function () {
 		cartograplant.map.on("load", function () {
 			//mapActivityStatus = 'map-loading-finished';
@@ -17,6 +14,11 @@ var ct_ready_map_onload_events = function() {
 				console.log('Session from Drupal settings:');
 				console.log(Drupal.settings.session);
 				console.log('Perform loadSession function()');
+			}
+
+			if (Drupal.settings.species_details != null) {
+				alert('Species details query detected');
+				$('#species-details-info').modal();
 			}
 
 			try {
