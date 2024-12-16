@@ -214,7 +214,18 @@ function cartogratree_uiapi_get_all_pop_struct_studies() {
     drupal_json_output($return_results);
 }
 
+function cartogratree_uiapi_get_evome_data($tree_id) {
+    $return_results = [];
+    $evome_results = chado_query('SELECT * FROM public.ct_trees_data_treesnap WHERE tree_acc = :tree_id', [
+        ':tree_id' => $tree_id
+    ]);
 
+    foreach ($evome_results as $row) {
+        $return_results[] = (array) $row;
+    }
+
+    drupal_json_output($return_results);
+}
 
 /**
  * This function will convert a pop struct table into geojson format

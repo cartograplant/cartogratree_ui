@@ -26,6 +26,22 @@ function cartogratree_analysisapi_get_all_galaxy_accounts() {
     drupal_json_output($galaxy_servers);
 }
 
+function cartogratree_analysisapi_get_all_nextflow_workspaces() {
+    global $user;
+    $results = [];
+    $user_id = $user->uid;
+    $dir_workspaces = '/isg/treegenes/cartograplant_analysis_workspaces/';
+    $items = scandir($dir_workspaces . $user_id . '/');
+    foreach ($items as $item) {
+        if (is_dir($dir_workspaces . $user_id . '/' . $item)) {
+            if ($item != '.' and $item != '..') {
+                $results[] = $item;
+            }
+        }
+    }
+    drupal_json_output($results);
+}
+
 function cartogratree_analysisapi_get_all_history_from_galaxy_account($galaxy_id) {
     $records = db_query('
 		SELECT galaxy_id, url, api_key, servername
@@ -79,6 +95,30 @@ function cartogratree_analysisapi_create_new_history_for_user($galaxy_id, $histo
         )
     );
     drupal_json_output($history);
+}
+
+function cartogratree_analysisui_convert_workspace_name($workspace_name) {
+    $workspace_name = str_ireplace(' ', '-', $workspace_name);
+    $workspace_name = preg_replace('/[^A-Za-z0-9\-]/', '', $workspace_name); // Removes special chars.
+    return $workspace_name;
+}
+
+function cartogratree_analysisapi_nextflow_create_new_workspace_for_user($workspace_name) {
+    global $user;
+    $results = [
+        'status' => false
+    ];
+    $user_id = $user->uid;
+    $dir_workspaces = '/isg/treegenes/cartograplant_analysis_workspaces/';
+    mkdir($dir_workspaces, 0770, true);
+    @exec('chown tg-nginx:treegenes ' . $dir_workspaces);
+    mkdir($dir_workspaces . $user_id, 0770, true);
+    @exec('chown tg-nginx:treegenes ' . $dir_workspaces . $user_id);
+    $workspace_name = cartogratree_analysisui_convert_workspace_name($workspace_name);
+    mkdir($dir_workspaces . $user_id . '/' . $workspace_name, 0770, true);
+    @exec('chown tg-nginx:treegenes ' . $dir_workspaces . $user_id . '/' . $workspace_name);
+    $results['status'] = true;
+    drupal_json_output($results);
 }
 
 function cartogratree_analysisapi_get_all_workflows_from_galaxy_account($galaxy_id) {
@@ -587,6 +627,7 @@ function cartogratree_analysisapi_upload_file_to_history() {
     
 }
 
+
 function cartogratree_analysisapi_upload_file_raw_data_to_history() {
     require_once (libraries_get_path('blend4php') . '/galaxy.inc');
     
@@ -875,6 +916,77 @@ function cartogratree_analysisapi_initiate_job() {
 
 
 
+}
+
+function cartogratree_analysisapi_upload_nextflow_workspace_file($workspace_name) {
+    $workspace_name = cartogratree_analysisui_convert_workspace_name($workspace_name);
+    global $user;
+    $results = [];
+    $results['status'] = false;
+    $user_id = $user->uid;
+    $dir_workspace = '/isg/treegenes/cartograplant_analysis_workspaces/' . $user_id . '/' . $workspace_name;
+
+    // $results['files'] = $_FILES;
+    // $results['post'] = $_POST;
+    $file_data = file_get_contents($_FILES['file1']['tmp_name']);
+
+    $file = @file_put_contents($dir_workspace . '/' . time() . '-' . $_FILES['file1']['name'], $file_data);
+    if ($file === FALSE) {
+        $results['status'] = false;
+    }
+    else {
+        $results['status'] = true;
+    }
+
+    drupal_json_output($results);
+}
+
+function cartogratree_analysisapi_delete_nextflow_workspace_file($workspace_name, $filename) {
+    $workspace_name = cartogratree_analysisui_convert_workspace_name($workspace_name);
+    global $user;
+    $results = [];
+    $results['status'] = false;
+    $user_id = $user->uid;
+    $dir_workspaces = '/isg/treegenes/cartograplant_analysis_workspaces/' . $user_id . '/' . $workspace_name;
+    if (file_exists($dir_workspaces . '/' . $filename) and ($filename != '' or $filename != NULL)) {
+        unlink($dir_workspaces . '/' . $filename);
+        $results['status'] = true;
+    }
+    drupal_json_output($results);
+}
+
+function cartogratree_analysisapi_download_nextflow_workspace_file($workspace_name, $filename) {
+    $workspace_name = cartogratree_analysisui_convert_workspace_name($workspace_name);
+    global $user;
+    $user_id = $user->uid;
+    $dir_workspaces = '/isg/treegenes/cartograplant_analysis_workspaces/' . $user_id . '/' . $workspace_name;
+    if (file_exists($dir_workspaces . '/' . $filename)) {
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="'.basename($dir_workspaces . '/' . $filename).'"');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($dir_workspaces . '/' . $filename));
+        readfile($dir_workspaces . '/' . $filename);
+        exit;
+    }
+
+}
+
+function cartogratree_analysisapi_get_nextflow_workspace_files($workspace_name) {
+    $workspace_name = cartogratree_analysisui_convert_workspace_name($workspace_name);
+    global $user;
+    $results = [];
+    $user_id = $user->uid;
+    $dir_workspaces = '/isg/treegenes/cartograplant_analysis_workspaces/' . $user_id . '/' . $workspace_name;
+    $items = scandir($dir_workspaces);
+    foreach ($items as $item) {
+        if (is_file($dir_workspaces . '/' . $item)) {
+            $results[] = $item;
+        }
+    }
+    drupal_json_output($results);
 }
 
 function cartogratree_analysisapi_get_history_details($galaxy_id, $history_id) {

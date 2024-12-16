@@ -26,7 +26,9 @@ var ct_ready_mapjs = function() {
 	const datasetClusterId = "tree-cluster";
 	cartograplant.datasetClusterId = datasetClusterId;
 
-	const clusterProps = [[0, "#6082b6"], [250,"#738678"], [1000, "#645452"]];
+	
+	const clusterProps = [[0, "#d4942c"], [250,"#3c8048"], [1000, "#046c64"]];
+	// const clusterProps = [[0, "#6082b6"], [250,"#738678"], [1000, "#645452"]];
 	// const clusterProps = [[0, "#6082b6"], [1000,"#738678"], [2500, "#645452"]];
 	cartograplant.clusterProps = clusterProps;
 
@@ -51,7 +53,7 @@ var ct_ready_mapjs = function() {
 	cartograplant.tree_count_last_filter = 0;
 
 	// This variable has the dataset names and corresponding source_ids
-	var datasetKey = {"treegenes": 0, "treesnap": 1, "datadryad": 2, 'wfid': 4, 'bien': 3};
+	var datasetKey = {"treegenes": 0, "treesnap": 1, "datadryad": 2, 'wfid': 4, 'bien': 3, 'evome': 5};
 	
 	var dynamicDatasetLayersKeys = ['wfid'];
 
@@ -155,7 +157,7 @@ var ct_ready_mapjs = function() {
             "crownAssessment": "Tree Crown Assessment",
             "standDiversity": "Stand Diversity"
 	};
-	var activeDatasets = {0: false, 1: false, 2: false, 4: false};
+	var activeDatasets = {0: false, 1: false, 2: false, 4: false, 5: false};
 	var dataDatasets = {0: null, 4: null}; // 0 is basically going to store all from the api/trees or filter, 4 is wfid
 	
 	cartograplant.activeTrees = {};
@@ -222,6 +224,7 @@ var ct_ready_mapjs = function() {
 
 	$('#map-dataset-loading').slideUp(500);
 	$('#map-summary-loading').slideUp(500);
+	$('#map-opened-layers-container').slideUp(0);
 	$('#pop-struct-options-container').slideUp(500);
 
 	/**************************************************
@@ -2300,7 +2303,8 @@ var ct_ready_mapjs = function() {
 	 
 	 function mapStatusNotification(text = '', type = 'info', clear = false, timeout = 0, ext_timeout = 0) {
 		if(clear == true) {
-			 toastr.clear();
+			// toastr.clear();
+			toastr.remove();
 		}
 		toastr.options = {
 			"closeButton": false,
@@ -2433,7 +2437,7 @@ var ct_ready_mapjs = function() {
 		for (var j=0; j < Object.keys(activeDatasets).length; j++) {
 			var index = Object.keys(activeDatasets)[j];
 			var value_boolean = activeDatasets[Object.keys(activeDatasets)[j]];
-			if (index == 0 || index == 1 || index == 2) { // if any of these are selected, we keep the data by setting to true
+			if (index == 0 || index == 1 || index == 2 || index == 5) { // if any of these are selected, we keep the data by setting to true
 				if(value_boolean == true) {
 					main_datasets_status = true;
 				}
@@ -2526,9 +2530,15 @@ var ct_ready_mapjs = function() {
 				setCurrentDatasetData(0, data);
 
 				//This stores the unique species count per dataset layer enabled
+				//This code was coded before we had additional datasets in an unorganized way
 				for(var i=0; i<3; i++) {
 					updateUniqueSpeciesCount(i, ""); // "" is an empty filter
-				}				
+				}
+				// To cater for new datasetlayers after 2 from the for loop above, we need to also updateUniqueSpeciesCounts
+				// for these layers
+				try {
+					updateUniqueSpeciesCount(5, "");
+				} catch (err) { console.log(err) }
 			});	
 
 				
@@ -3348,6 +3358,22 @@ var ct_ready_mapjs = function() {
 	
 	
 	function updateTreeImgs(imgs, species) {
+		var all_imgs = imgs;
+		console.log('all_imgs', all_imgs);
+		imgs = all_imgs['images'];
+
+		// Add all possible images if these keys exist
+		if (all_imgs['Leaves'] != undefined) {
+			for (var i = 0; i<all_imgs['Leaves'].length; i++) {
+				imgs.push(all_imgs['Leaves'][i]);
+			}
+		}
+		if (all_imgs['Branches'] != undefined) {
+			for (var i = 0; i<all_imgs['Branches'].length; i++) {
+				imgs.push(all_imgs['Branches'][i]);
+			}
+		}
+
 		if(debug) {
 			console.log('updateTreeImgs() function');
 			console.log('-- species:' + species);
@@ -3441,7 +3467,43 @@ var ct_ready_mapjs = function() {
 			}
 		});
 
-
+		// Get all study details using shared_state
+		// https://treegenesdb.org/api/submission/TGDR1243/view/shared_state
+		$.ajax({
+			url: '/api/submission/' + treeId.split("-")[0] + '/view/shared_state',
+			dataType: "json",
+			success: function (data) {
+				console.log('shared_state', data);
+				$('#tree-study-environmental-container').html('');
+				var organism_count = 0;
+				var keys = Object.keys(data['saved_values'][4]);
+				for (var keys_i = 0; keys_i < keys.length; keys_i++) {
+					var key = keys[keys_i];
+					if (key.includes('organism')) {
+						organism_count++;
+					}
+				}
+				var el_html = '<div style="margin-top: 10px;" class="media">';
+				el_html += '<i class="fas fa-layer-group fa-4x align-self-center mr-3" style="position: relative; top: -15px;"></i>'
+				el_html += '<div class="media-body">';
+				el_html += '<h4>Environmental layers associated with study</h4>';
+				console.log('organism_count', organism_count);
+				for (var organism_i = 1; organism_i <= organism_count; organism_i++) {
+					try {
+						var env_layers = Object.keys(data['saved_values'][4]['organism-' + organism_i]['environment']['env_layers']);
+						for (var el_i = 0; el_i < env_layers.length; el_i++) {
+							el_html += '<div>' + env_layers[el_i] + '</div>';
+						}
+					} catch (err) {
+						console.log('env_error', err);
+					}
+				}
+				el_html += '</div>';
+				el_html += '</div>';
+				console.log('el_html', el_html);
+				$('#tree-study-environmental-container').html(el_html);
+			}
+		});	
 
 		// Get publication info for specific tree
 		$.ajax({
@@ -3857,7 +3919,7 @@ var ct_ready_mapjs = function() {
 
 		console.log('tree source_id', data.source_id);
 		console.log('species', data.species);
-		if (data.source_id == 1) {
+		if (data.source_id == 1  || data.source_id == 5) {
 			// If treesnap tree, set the button label to Collection Info (Tree Popup window)
 			$('.btn[data-target="#tree-more-info"]').html('Collection Info');
 			$('.add-all-study-plants').html('Add all collection plants');
@@ -3873,7 +3935,23 @@ var ct_ready_mapjs = function() {
 						console.log('Collection name response: ', data);
 						$("#treesnap-collection-container").removeClass("hidden");					
 						$("#treesnap-collection-container").html('<h2 style="padding: 0px;">Treesnap Collection: ' + data[0]['category'] + '</h2>');
-
+						
+						$.ajax({
+							url: Drupal.settings.base_url + "/cartogratree_uiapi/get_evome_data/" + treeId,
+							dataType: "json",
+							success: function (evome_data) {
+								console.log('evome_data', evome_data);
+								for (var i = 0; i<evome_data.length; i++) {
+									var evome_row = evome_data[i];
+									if (evome_row['name'] == 'willowTreeSampleId') {
+										$("#treesnap-collection-container").append('<div style="color: #FFFFFF;margin-top:10px;margin-left: 3px;background-color: #589a60;display: inline-block;padding: 2px;border-radius: 2px;">EVOME Sample ID: ' + evome_row['value'] + '</div>');
+									}
+								}
+							}
+						});
+						// $("#treesnap-collection-container").append('<div id="sample_id"></div>');
+						
+						
 						// Lookup the number of plants in this collection
 						$.ajax({
 							url: Drupal.settings.ct_nodejs_api + "/v2/trees/treesnap/collection_lookup_by_tree_id?tree_id=" + treeId,
@@ -3901,7 +3979,7 @@ var ct_ready_mapjs = function() {
 						$("#tree-submitter").text("Taken by: " + tsData.submitter);
 						$("#tree-collection-date").text("Collection date: " + tsData.collection_date);
 						try {
-						updateTreeImgs(tsData.data.images.images, data.species);
+						updateTreeImgs(tsData.data.images, data.species);
 						}
 						catch (err) {
 							console.log('ERROR FOR TREESNAP IMAGES:' + err);
@@ -3932,7 +4010,7 @@ var ct_ready_mapjs = function() {
 			else {	
 				$("#tree-submitter").text("Taken by: " + treeImgsStore[treeId]["submitter"]);
 				$("#treesnap-collection-date").text("Collection date: " + treeImgsStore[treeId]["collection_date"]);
-				updateTreeImgs(treeImgsStore[treeId]["images"], data.species);
+				updateTreeImgs(treeImgsStore[treeId], data.species);
 			}
 		}
 		else {
@@ -4116,7 +4194,7 @@ var ct_ready_mapjs = function() {
 							$("#tree-phenotypes").append("    <span class='badge badge-success'>" + data[i].cvterm_name + "</span>");
 							cvtermsSet[data[i].cvterm_name] = true;
 						}
-						if(data[i].name.startsWith('diameterNumeric') || data[i].name.startsWith('otherLabel') || data[i].name.startsWith('heightNumeric') || data[i].value == 'NA' || data[i].value == '' || data[i].value == '-') {
+						if(data[i].name.startsWith('diameterNumeric') || data[i].name.startsWith('willowSample') || data[i].name.startsWith('willowSpecies') || data[i].name.startsWith('otherLabel') || data[i].name.startsWith('heightNumeric') || data[i].value == 'NA' || data[i].value == '' || data[i].value == '-') {
 							//don't add to the list to clean up the list
 							unique_phenotypes_count = unique_phenotypes_count - 1;
 						}
@@ -4334,6 +4412,12 @@ var ct_ready_mapjs = function() {
 		}
 
 		$("#tree-family").text(data.family == null ? "Unidentified" : data.family);
+		if (data.family == null) {
+			$("#tree-family").hide();
+		}
+		else {
+			$("#tree-family").show();
+		}
 		//$("#tree-plant-group").text(data.subkingdom == null ? "Unidentified" : data.subkingdom);
 		$("#tree-species").text(data.species);
 
@@ -4372,7 +4456,7 @@ var ct_ready_mapjs = function() {
 		});
 
 		$.ajax({
-			url: Drupal.settings.base_url + '/cartogratree_uiapi/get_studies_by_species_text/' + 'Picea abies',  //+ data.species,
+			url: Drupal.settings.base_url + '/cartogratree_uiapi/get_studies_by_species_text/' + data.species,
 			method: 'GET',
 			success: function(data) {
 				console.log('get_studies_by_species_text', data);
@@ -5420,7 +5504,8 @@ var ct_ready_mapjs = function() {
 	}
 
 	function filterNotification(result) {
-		toastr.clear();
+		// toastr.clear();
+		toastr.remove();
 		if (result == 0) {
 			toastr.error("Filter successful </br> No trees found that match those parameters.");
 		}
@@ -5452,12 +5537,20 @@ var ct_ready_mapjs = function() {
 				qString = parse_json_query(rules[i], qString); //BUG FIX? The name of the function was named incorrectly?
 			}
 			else {
+				console.log('Rules operator', rules[i]["operator"]);
 				if(rules[i]["field"] == "accession") {
 					console.log('Found accession query in parse_json_query');
 					qString += "uniquename ILIKE '" + rules[i]["value"] + "%'";  // ct_trees_all_view 
 				}
 				else {
+					// Updated on 10/25/2024 to be more flexible with wildcards
 					qString += rules[i]["field"] + " " + opMapping[rules[i]["operator"]] + " '" + rules[i]["value"] + "'";
+					// if (rules[i]["operator"] == 'equal') {
+					// 	qString += rules[i]["field"] + " ILIKE '%" + rules[i]["value"] + "%'";
+					// }
+					// else {
+					// 	qString += rules[i]["field"] + " " + opMapping[rules[i]["operator"]] + " '" + rules[i]["value"] + "'";
+					// }
 				}
 			}
 			
@@ -5467,10 +5560,14 @@ var ct_ready_mapjs = function() {
 			}	
 		}
 		qString += ")";
+		console.log('qString', qString);
 		return qString;
 	}
 	
 	function filterMap(mapInit = true, move = true) {
+		try {
+			clearInterval(Querystatusinterval);
+		} catch (err) {}
 		// Remove if any markers / trees were previously selected
 		if (cartograplant.currMarker != null) {
 			cartograplant.currMarker.remove();
@@ -5489,7 +5586,7 @@ var ct_ready_mapjs = function() {
 			console.log('filterMap function executed:')
 		}
 		mapActivityStatus = 'map-filtering';
-		mapStatusNotification('Updating map, please wait...','info',false, 3000, 0);
+		mapStatusNotification('Updating map, please wait...','info',true, 3000, 0);
 		
 		var active = getActiveDatasets();
 		if (active.length == 0) {
@@ -5639,7 +5736,7 @@ var ct_ready_mapjs = function() {
 				catch (err) {
 					console.log(err);
 				}
-				console.log('jsonData', jsonData);
+				console.log('Query jsonData', jsonData);
 				
 				// Check if data is within cache
 				var filterMapCacheKey = JSON.stringify(jsonData);
@@ -5910,14 +6007,20 @@ var ct_ready_mapjs = function() {
 							
 							try {
 								for(var i=0; i < filterQuery.rules.length; i++) {
-									if(i > 0 && i < (filterQuery.rules.length - 1)) {
-										filter_text_info = filter_text_info + ', ' + filterQuery.rules[i].field + ' (' + filterQuery.rules[i].value + ')';
+									console.log('FilterQuery Rule ' + i, filterQuery.rules[i]);
+									try {
+										if(i > 0 && i < (filterQuery.rules.length - 1)) {
+											filter_text_info = filter_text_info + ', ' + filterQuery.rules[i]['rules'][0].field + ' (' + filterQuery.rules[i]['rules'][0].value + ')';
+										}
+										else if(i > 0 && i == (filterQuery.rules.length - 1)) {
+											filter_text_info = filter_text_info + ' and ' + filterQuery.rules[i]['rules'][0].field + ' (' + filterQuery.rules[i]['rules'][0].value + ')';
+										}
+										else {
+											filter_text_info = filterQuery.rules[i]['rules'][0].field + ' (' + filterQuery.rules[i]['rules'][0].value + ')' + ' ';
+										}
 									}
-									else if(i > 0 && i == (filterQuery.rules.length - 1)) {
-										filter_text_info = filter_text_info + ' and ' + filterQuery.rules[i].field + ' (' + filterQuery.rules[i].value + ')';
-									}
-									else {
-										filter_text_info = filterQuery.rules[i].field + ' (' + filterQuery.rules[i].value + ')' + ' ';
+									catch (err) {
+										console.log('FilterQuery Rule error', err);
 									}
 								}
 							}
@@ -6377,7 +6480,7 @@ var ct_ready_mapjs = function() {
 			}
 			var result = $("#builder").queryBuilder("getRules");
 			if (!$.isEmptyObject(result)) {
-				toastr.info("Filtering...", "Applying Filter", {timeOut: 20000});
+				// toastr.info("Filtering...", "Applying Filter", {timeOut: 20000});
 				filterQuery = result;
 				filterMap();
 			} else {
@@ -6426,7 +6529,8 @@ var ct_ready_mapjs = function() {
 
 	// adding/removing a tree dataset and updating the current map state based on such an action
 	$(document).on("click", ".tree-dataset-btn", function () {
-		mapStatusNotification('Updating map, please wait...','info',false, 4000, 0);
+		toastr.remove();
+		// mapStatusNotification('Updating map, please wait...','info',false, 4000, 0);
 		if(debug) {
 			console.log('Class button tree-dataset-btn click function executed');
 		}
@@ -6646,8 +6750,9 @@ var ct_ready_mapjs = function() {
 			else {
 				activeDatasets[datasetKey[datasetId]] = true;
 			}
-			toastr.clear();	
-			toastr.info("Updating Datasets...", {timeOut: 10000});
+			console.log('Updating datasets');
+			// toastr.clear();	
+			// toastr.info("Updating Datasets...", {timeOut: 10000});
 			filterMap();
 		}
 
@@ -7291,12 +7396,15 @@ var ct_ready_mapjs = function() {
 	cartograplant['get_file_name_caption'] = get_file_name_caption;
 
 	
-
+	cartograplant['analysis_filter_snp_section_loaded'] = false;
 	$('.analysis-filter-snp-section').click(function () {
+		if (cartograplant['analysis_filter_snp_section_loaded'] == true) {
+			return;
+		}
+		cartograplant['analysis_filter_snp_section_loaded'] = true;
 		console.log('Analysis filter snp tab clicked');
 		var studies = Object.keys(cartograplant.detected_studies);
-		console.log(JSON.stringify(studies));
-
+		console.log('studies', JSON.stringify(studies));
 
 		// Check if galaxy_id and history_id has been selected
 		if(cartograplant.galaxy_id == undefined && cartograplant.history_id == undefined) {
@@ -7314,14 +7422,19 @@ var ct_ready_mapjs = function() {
 		html += '<div class="detected_vcf_information"></div>';
 		html += '<div class="detected_vcf_overlaps" style="padding: 20px;"></div>';
 		html += '<div class="none_detected_vcf_information"></div><hr />';
+		html += '<div class="nextflow_variant_filtering_pipeline"></div><hr />';
 		html += '<div class="vcf_snps_quality_filtering_ui">';
 		// html += '	<div style="margin-bottom: 5px;" class="vcf_filtered_snp_files_select_div"><div style="display: inline-block; width: 15%;">Filter SNP Files</div><select></select></div>';
-		html += '	<div style="margin-bottom: 5px;" class="vcf_snp_quality_workflow_select_div"><div style="display: inline-block; width: 15%;">Quality filtering method</div><select></select></div>';
+		html += '	<div style="margin-bottom: 5px;" class="vcf_snp_quality_workflow_select_div"><h3>Galaxy variant filtering</h3><div style="display: inline-block; width: 15%;">Quality filtering method</div><select></select></div>';
 		html += '	<div class="vcf_snps_quality_filtering_ui_form">';
 		html += '	</div>';		
 		html += '</div>';
 
 		$('#analysis-filter-snp-vcf-detection').html(html);
+		$('.nextflow_variant_filtering_pipeline').html('');
+		$('.nextflow_variant_filtering_pipeline').append('<h3>Nextflow variant filtering</h3>');
+
+		
 
 		if (Object.keys(cartograplant['detected_studies']).length == 0) {
 			$('#analysis-filter-snp-vcf-detection').html('⚠️ You must set configure the Filter By Genotype tab before you can use this Filtering & Imputation section');
@@ -7363,12 +7476,34 @@ var ct_ready_mapjs = function() {
 			url: vcf_files_ui_api_url,
 			success: function(data) {
 				
+				// Clear timers
+				var timers = cartograplant['generate_nextflow_variant_filtering_ui'];
+				var timers_keys = Object.keys(timers);
+				for (var i = 0; i<timers_keys.length; i++) {
+					var key = timers_keys[i];
+					try {
+						clearInterval(cartograplant['generate_nextflow_variant_filtering_ui'][key]);
+						delete cartograplant['generate_nextflow_variant_filtering_ui'][key];
+					}
+					catch (err) {
+						console.log(err)
+					}
+				}
+
 				console.log('snp_vcf_files', data);
 				var vcf_found_count = 0;
 				if(data != undefined) {
 					var detected_studies_containing_vcfs = Object.keys(data);
 					var vcf_info = data;
 					console.log('vcf_info', vcf_info);
+					var studies = Object.keys(vcf_info);
+					for (var studies_i = 0; studies_i < studies.length; studies_i++) {
+						cartograplant['generate_nextflow_variant_filtering_ui']({
+							study_accession: studies[studies_i],
+							vcf_location: vcf_info[studies[studies_i]]
+						});
+					}
+
 					var vcf_found_info = {};
 					for(var i=0; i<detected_studies_containing_vcfs.length; i++) {
 						var study_vcf_html = "";
@@ -8312,8 +8447,22 @@ var ct_ready_mapjs = function() {
 		// $("#analysis-env-vals").text(analysis_environmental_data_selected_properties.length);
 	});
 
+	$('body').on('click', '.opened-layer-remove-icon', function() {
+		var classNames = $(this).closest('.row').attr("class").split(/\s+/);
+		for (var i = 0; i < classNames.length; i++) {
+			var className = classNames[i];
+			if (className.includes('opened-layer-')) {
+				var element_id = className.replace('opened-layer-', '');
+				$('#' + element_id).closest('.row').find('.btn-toggle').click();
+			}
+		}
+	});
+
 	//adding and removing layers from the map
 	$(".layers-btn").on("click", function () {
+
+
+
 		var layer = $(this)[0].id.split("-");
 		var layerId = layer[0];
 		var original_layerId = layer[0];
@@ -8374,6 +8523,21 @@ var ct_ready_mapjs = function() {
 		console.log($(this).hasClass("active"));
 		//if layer has already been added and is active, then deactivate it
 		if (!$(this).hasClass("active")) {
+			// Search to make sure the layer isn't already in the UI list container
+			var layer_unique_id = $(this).closest('.inner-layer-header').find('h7[id*="ct-layer-title"]').attr('id');
+			if ($('#map-opened-layers-list .opened-layer-' + layer_unique_id).length != 0) {
+				// This item already exists, so remove it
+				$('#map-opened-layers-list .opened-layer-' + layer_unique_id).remove();
+				// Update the count number in the UI icon
+				var open_layer_count = parseInt($('#map-icon-opened-layers .map-right-counter').html());
+				open_layer_count--;
+				$('#map-icon-opened-layers .map-right-counter').html(open_layer_count);
+			}
+			if (open_layer_count <= 0) {
+				$('#map-opened-layers-list').html('No layers selected');
+				$('#map-opened-layers-list').css('padding', '10%');
+			}
+
 			$('#legend_legend_icon_' + layerNum).hide();
 			if(isMultiLayeredYear > 0) {
 				// Remove the progress container
@@ -8430,6 +8594,31 @@ var ct_ready_mapjs = function() {
 
 		}	
 		else {
+			// Activate the layer
+
+			// Add to to layer list UI
+			var layer_unique_id = $(this).closest('.inner-layer-header').find('h7[id*="ct-layer-title"]').attr('id');
+			var layer_label = $(this).closest('.inner-layer-header').find('h7[id*="ct-layer-title"]').html();
+			var opened_layer_ui_html = '';
+			opened_layer_ui_html += '<div class="row opened-layer-list-item opened-layer-' + layer_unique_id + '">';
+			opened_layer_ui_html += '<div class="col-1"><i class="opened-layer-remove-icon fas fa-times-circle" style="cursor: pointer; font-size: 1.5em !important;!i;!; padding-left: 4px; color: #FFFFFF;"></i></div>';
+			opened_layer_ui_html += '<div class="col-9">' + layer_label + '</div>';
+			opened_layer_ui_html += '</div>';
+
+			if ($('#map-opened-layers-list').html() == 'No layers selected') {
+				$('#map-opened-layers-list').html('');
+				$('#map-opened-layers-list').css('padding', 'unset');
+			}
+			// Search to make sure the layer isn't already in the UI list container
+			if ($('#map-opened-layers-list .opened-layer-' + layer_unique_id).length == 0) {
+				// Add the list item to the UI
+				$('#map-opened-layers-list').append(opened_layer_ui_html);
+				// Update the count number in the UI icon
+				var open_layer_count = parseInt($('#map-icon-opened-layers .map-right-counter').html());
+				open_layer_count++;
+				$('#map-icon-opened-layers .map-right-counter').html(open_layer_count);
+			}
+
 			$('#legend_legend_icon_' + layerNum).show();
 			var currentOpacity = parseInt($("#slider-" + layerNum + "-" + layerHost).val(), 10) / 100;
 

@@ -358,19 +358,20 @@ var ct_ready_map_click_events = function() {
 
 						// Now go through each data row and add it to the container
 						var phenotype_list_html = '';
-						phenotype_list_html += '🅿 <b>' + data.length + ' phenotypes found in study</b>';
-						if (data.length > 0) {
-							phenotype_list_html += ': ';
-						}
-						for(var i = 0; i<data.length; i++) {
-							var row = data[i];
-							phenotype_list_html += row['phenotype'] + ', ';
-						}
+						phenotype_list_html += '<div class="button_view_modal_phenotype_list" style="cursor: pointer;" data-phenotypes="' + btoa(JSON.stringify(data['rows'])) + '">🅿 <b>' + data['rows'].length + ' phenotypes found in study</b></div>';
+						
+						// if (data.length > 0) {
+						// 	phenotype_list_html += ': ';
+						// }
+						// for(var i = 0; i<data.length; i++) {
+						// 	var row = data[i];
+						// 	phenotype_list_html += row['phenotype'] + ', ';
+						// }
 
-						// Remove the last comma if it exists
-						if (phenotype_list_html.endsWith(", "))   {
-							phenotype_list_html = phenotype_list_html.slice(0, -2); 
-						}
+						// // Remove the last comma if it exists
+						// if (phenotype_list_html.endsWith(", "))   {
+						// 	phenotype_list_html = phenotype_list_html.slice(0, -2); 
+						// }
 						phenotype_list_container.html(phenotype_list_html);
 					}
 				});
@@ -380,6 +381,17 @@ var ct_ready_map_click_events = function() {
 			}
 		});
 	});
+
+	$(document).on('click', '.button_view_modal_phenotype_list', function() {
+		var phenotypes_rows = JSON.parse(atob($(this).attr('data-phenotypes')));
+		var phenotype_list_modal_html = '';
+		for (var i = 0; i<phenotypes_rows.length; i++) {
+			var row = phenotypes_rows[i];
+			phenotype_list_modal_html += '<div>' + row['phenotype'] + '</div>';
+		}
+		$('#filter-view-study-phenotypes .phenotypes').html(phenotype_list_modal_html);
+		$('#filter-view-study-phenotypes').modal();
+	})
 
 	$(document).on('change', '.query-builder .rule-filter-container select', function() {
 		var filter_type = $(this).val();
@@ -397,8 +409,17 @@ var ct_ready_map_click_events = function() {
 	$(document).on('click', '.single-tree-more-info', function() {
 		$(this).closest('.row').find('.tree-ids-select').click();
 		$('#tree-more-info').modal('show');
-
 	});
+
+	$(document).on('click', '#map-icon-opened-layers', function() {
+		console.log('Click detected');
+		if ($('#map-opened-layers-container').is(':visible')) {
+			$('#map-opened-layers-container').slideUp(200);
+		}
+		else {
+			$('#map-opened-layers-container').slideDown(100);
+		}
+	})
 
 	$(document).on('change','.rule-filter-container select', function() {
 		console.log('Change detected for filter container select list. Value is now: ' + $(this).val());

@@ -38,32 +38,32 @@
             </li>
 			-->
             <li class="nav-item">
-                <a class="nav-link" href="#" data-toggle="modal" data-target="#about">
-					<i class="fas fa-info-circle"></i> About
+                <a class="nav-link" href="#" data-toggle="modal" data-target="#about" style="margin-right: 15px;">
+					<i class="fas fa-info-circle" style="margin-right: 5px;"></i> About
 				</a>
             </li>
             <li class="nav-item">
 				<?php
                 	if($variables['logged_in']){
-                		echo '<a class="nav-link" id="analysis-btn" href="#">';					
+                		echo '<a class="nav-link" style="margin-right: 15px;" id="analysis-btn" href="#">';					
 					}
 					else{
-                		echo '<a class="nav-link disabled" id="analysis-btn" href="#">';
+                		echo '<a class="nav-link disabled" style="margin-right: 15px;" id="analysis-btn" href="#">';
 					}
 				?>
-                    <i class="fas fa-chart-bar"></i> Analyze
+                    <i class="fas fa-chart-bar" style="margin-right: 5px;"></i> Analyze
                 </a>
             </li>
             <li class="nav-item">
 				<?php
                 	if($variables['logged_in']){
-                		echo '<a class="nav-link" id="jobs-btn" href="#">';					
+                		echo '<a class="nav-link" style="margin-right: 15px;" id="jobs-btn" href="#">';					
 					}
 					else{
-                		echo '<a class="nav-link disabled" id="jobs-btn" href="#">';
+                		echo '<a class="nav-link disabled" style="margin-right: 15px;" id="jobs-btn" href="#">';
 					}
 				?>
-                    <i class="fas fa-flask"></i> Jobs
+                    <i class="fas fa-flask" style="margin-right: 5px;"></i> Jobs
                 </a>
             </li>	
 
@@ -93,7 +93,7 @@
                 <?php
                     if($variables['logged_in']){
                     	echo '<a class="nav-link" href="#" id="#user-nav" data-toggle="dropdown" aria-expanded="false" aria-haspopup="true">';
-                     	echo '<i class="fas fa-user-astronaut fa-2x text-success"></i><b> ' . $variables['username'] . ' </b><i class="fas fa-caret-down"></i></a>';
+                     	echo '<i class="fas fa-user" style="margin-right: 5px;"></i><b> ' . $variables['username'] . ' </b><i class="fas fa-caret-down"></i></a>';
                       	echo '<div class="dropdown-menu" id="user-dropdown-profile" aria-labelledby="user-nav">';
 						echo '<a class="dropdown-item" href="/ct" target="_blank"><i class="fas fa-address-card"></i> Profile Page</a>';
                       	echo '<a class="dropdown-item" href="#" id="view-saved-session"><i class="fas fa-list"></i> Saved Sessions</a>';
@@ -147,6 +147,26 @@
     </div>
 </div>
 
+<div class="modal fade" id="filter-view-study-phenotypes" tabindex="-1" role="dialog" arai-labelledby="filter-view-study-phenotypes" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Phenotypes found in this study</h3>
+                <button type="button" class="close close-user-save-form" data-dismiss="modal" aria-label="close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+				<div class="phenotypes">
+
+				</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary close-user-save-form" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- save queries popup -->
 <div class="modal fade" id="save-user-session" tabindex="-1" role="dialog" arai-labelledby="save-user-session" aria-hidden="true">
@@ -324,9 +344,42 @@
 								<hr />
 							</div>
 							<div style="margin-bottom: 10px;">
+							<div class="row">
+									<div class="col-1">
+										<div class="tag" style="background-color: #036e63; color: #FFFFFF;">Step 2 (Nextflow)</div>
+									</div>
+									<div class="col-11">
+										<div class="d-inline-block">To begin analyzing data, we strongly recommend creating a workspace.</div>
+										<div class="mb-2">A workspace stores all your uploaded files so you can use (or reuse) them when running workflow analyses. Without a workspace, you can't select data files to be used when running analyses.</div>
+										<div style="display: flex; margin-bottom: 10px;">
+											<div style="width: 25%;" id="nextflow-create-analysis-select-history-caption">Select workspace</div>
+											<div style="width: 50%;"><select id="nextflow-create-analysis-select-history"></select></div>
+											<div style="width: 25%;"><button class="btn btn-info" id="nextflow-create-analysis-new-workspace-button">Create new workspace</button></div>
+										</div>
+										<div id="nextflow-create-analysis-new-workspace-configuration" style="display: none; margin-bottom: 10px;">
+											<div style="width: 25%; padding-left: 10px;">Workspace name</div>
+											<div style="width: 75%">
+												<input type="text" id="nextflow-create-analysis-new-workspace-name" />
+												<button id="nextflow-create-analysis-new-workspace-name-button">Create</button>
+											</div>
+										</div>
+										<div style="margin-bottom: 10px;">
+											<div>
+												<div style="display: inline-block;"><h2>Manage workspace files</h2></div>
+												<div style="display: inline-block;"><button  class="nextflow-manage-workspace-files-refresh btn btn-success"><i class="fa fa-refresh" aria-hidden="true"></i></button></div>
+												<div class="nextflow-workspace-nextflow-files-loader" style="margin-left:5px; display: inline-block;"></div>
+											</div>
+											<div id="nextflow-upload-workspace-file-container">
+												<div style="padding-top: 10px; padding-bottom: 10px;"><input id="nextflow-upload-workspace-file" type="file" /><button class="btn btn-info" id="nextflow-upload-workspace-file-button">Upload</button><span style="padding-left: 10px;" id="nextflow-upload-workspace-file-progress"></span></div>
+											</div>
+											<div id="nextflow-manage-workspace-contents">
+											</div>							
+										</div>	
+									</div>
+								</div>
 								<div class="row">
 									<div class="col-1">
-										<div class="tag" style="background-color: #036e63; color: #FFFFFF;">Step 2</div>
+										<div class="tag" style="background-color: #036e63; color: #FFFFFF;">Step 2 (Galaxy)</div>
 									</div>
 									<div class="col-11">
 										<div class="d-inline-block">To begin analyzing data, we strongly recommend creating a workspace.</div>
@@ -498,6 +551,18 @@
 
 					<div id="analysis-popstruct-section" class="tab-pane fade">
 						<div class="analysis-tab-content">
+							<h4>Nextflow Population Structure Workflow</h4>
+							<table id="nextflow-population-structure-workflow-container">
+								<tr>
+									<td style="width: 35%">
+										<div id="nextflow-population-structure-workflow" ></div>
+									</td>
+									<td style="width: 65%">
+										<div id="nextflow-population-structure-visualization" style="vertical-align: top;"></div>
+									</td>
+								</tr>
+							</table>
+							<h4>Galaxy Population Structure Workflow</h4>
 							<div style="text-align: center;">
 								Number of populations<br />
 								<input id="analysis-popstruct-section-k-value" type="text" value="2" style="text-align: center" /><br />
@@ -1610,6 +1675,19 @@
     <div class="col py-3" id="map-container">
         <!-- body-row END -->
         <div id="map"></div>
+		<div id="map-right-icons">
+			<div class="map-right-icon-parent-container" style="">
+				<!-- 
+				<div id="map-icon-opened-layers" class="map-right-icon-square">
+					<i class="fas fa-layer-group fa-lg"></i>
+					<div class="map-right-counter">0</div>
+				</div>
+				-->
+			</div>
+		</div>
+		<div id="map-opened-layers-container" >
+			<div id="map-opened-layers-list" style="padding: 10%">No layers selected</div>
+		</div>
 		<div id="map-right-buttons">
 			<div class="map-right-buttons-parent-container" style="">
 				<button id="map-summary-button" style="" class="map-right-button" data-state="closed">Map Summary <span class="arrow"><i class="fa-solid fa-chevron-up"></i></span></button>
@@ -1713,8 +1791,14 @@
 													<!-- <i class="fas fa-map"></i> --> Number of Layers
 												</h6>
 											</div>
-											<div class="col-3">
+											<div class="col-2">
 												<h6 id="num-layers">0</h6>
+											</div>
+											<div class="col-1">
+												<div id="map-icon-opened-layers" class="map-right-icon-square" style="cursor: pointer; margin-left: 10px; color: #fff000;">
+													<i class="fas fa-layer-group fa-lg"></i>
+													<div class="map-right-counter">0</div>
+												</div>
 											</div>
 										</div>
 									</li>
@@ -1961,6 +2045,20 @@
 										<?php		
 											}
 										?>
+										<li class="list-group-item list-group-item-action d-flex">
+											<div class="" style="width: 100%;">
+												<div class="" style="display: inline-block; width: 60%;">
+													<h6 class="">
+														<i class="fas fa-database" style="margin-right: 5px;"></i> EVOME
+													</h6>
+												</div>
+												<div class="" style="display: inline-block; width: 20%;">
+													<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="evome-data" aria-pressed="false" autocomplete="off">
+														<div class="handle"></div>
+													</button>
+												</div>
+											</div>
+										</li>
 										<!-- WFID TODO -->
 										<?php if( user_access("access cartogratree wfid") ) { ?>
 										
@@ -2244,6 +2342,8 @@
 								<p id="study-download-files" class="hidden" style="margin: 0; padding: 0;"></p>						
 							</div>
 						</div>
+					</div>
+					<div id="tree-study-environmental-container" style="width: 100%;padding-left: 20px;padding-right: 10px;">
 					</div>
 			
 					<div id="tree-phenotypes-container" style="width: 100%; padding-left: 20px; padding-right: 10px;">

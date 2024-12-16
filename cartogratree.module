@@ -155,6 +155,63 @@ function cartogratree_menu()
         ),
     );
 
+    $items['cartogratree_uianalysis/get_nextflow_workspace_files/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: Get Nextflow Workspace files',
+        'title' => 'Cartogratree ANALYSIS API: get nextflow workspace files',
+        'page callback' => 'cartogratree_analysisapi_get_nextflow_workspace_files',
+        'page arguments' => array(
+            2,
+            // 3,
+        ),
+        'file' => 'includes/cartogratree.analysis.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
+    $items['cartogratree_uianalysis/nextflow_delete_workspace_file/%/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: Delete Nextflow Workspace file',
+        'title' => 'Cartogratree ANALYSIS API: Delete nextflow workspace file',
+        'page callback' => 'cartogratree_analysisapi_delete_nextflow_workspace_file',
+        'page arguments' => array(
+            2,
+            3,
+        ),
+        'file' => 'includes/cartogratree.analysis.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
+    $items['cartogratree_uianalysis/nextflow_upload_workspace_file/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: Delete Nextflow Workspace file',
+        'title' => 'Cartogratree ANALYSIS API: Delete nextflow workspace file',
+        'page callback' => 'cartogratree_analysisapi_upload_nextflow_workspace_file',
+        'page arguments' => array(
+            2,
+            // 3,
+        ),
+        'file' => 'includes/cartogratree.analysis.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
+    $items['cartogratree_uianalysis/nextflow_download_workspace_file/%/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: Download Nextflow Workspace file',
+        'title' => 'Cartogratree ANALYSIS API: download nextflow workspace file',
+        'page callback' => 'cartogratree_analysisapi_download_nextflow_workspace_file',
+        'page arguments' => array(
+            2,
+            3,
+        ),
+        'file' => 'includes/cartogratree.analysis.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
+
     $items['cartogratree_uianalysis/get_history_details/%/%'] = array(
         'description' => 'Cartogratree ANALYSIS API: Get history details',
         'title' => 'Cartogratree ANALYSIS API: get history details',
@@ -198,6 +255,19 @@ function cartogratree_menu()
         ),
     );
 
+    $items['cartogratree_uianalysis/nextflow_create_new_workspace_for_user'] = array(
+        'description' => 'Cartogratree ANALYSIS API: Nextflow create new workspace for user',
+        'title' => 'Cartogratree ANALYSIS API: Nextflow create new workspace',
+        'page callback' => 'cartogratree_analysisapi_nextflow_create_new_workspace_for_user',
+        'page arguments' => array(
+            2,
+        ),
+        'file' => 'includes/cartogratree.analysis.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
     $items['cartogratree_uianalysis/get_all_galaxy_accounts'] = array(
         'description' => 'Cartogratree ANALYSIS API: get all galaxy accounts',
         'title' => 'Cartogratree ANALYSIS API: get all galaxy accounts',
@@ -219,6 +289,20 @@ function cartogratree_menu()
         'page arguments' => array(
             2,
         ),
+        'file' => 'includes/cartogratree.analysis.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
+
+    $items['cartogratree_uianalysis/get_all_nextflow_workspaces'] = array(
+        'description' => 'Cartogratree ANALYSIS API: get all nextflow workspaces for user',
+        'title' => 'Cartogratree ANALYSIS API: get all nextflow workspaces for user',
+        'page callback' => 'cartogratree_analysisapi_get_all_nextflow_workspaces',
+        // 'page arguments' => array(
+        //     2,
+        // ),
         'file' => 'includes/cartogratree.analysis.api.inc',
         'access arguments' => array(
             'use cartogratree',
@@ -307,6 +391,20 @@ function cartogratree_menu()
         'description' => 'Cartogratree UI API: Pop Struct Icon',
         'title' => 'Cartogratree UI API: Pop Struct Icon',
         'page callback' => 'cartogratree_uiapi_get_pop_struct_icon',
+        'page arguments' => array(
+            2,
+        ),
+        'file' => 'includes/cartogratree.uiapi.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
+    // cartogratree_uiapi_get_evome_data
+    $items['cartogratree_uiapi/get_evome_data'] = array(
+        'description' => 'Cartogratree UI API: Get Evome Data',
+        'title' => 'Cartogratree UI API: Gat Evome Data',
+        'page callback' => 'cartogratree_uiapi_get_evome_data',
         'page arguments' => array(
             2,
         ),
@@ -1517,7 +1615,7 @@ function cartogratree_get_category_options($api_key) {
         $categories = unserialize($categories->data);
     }
     if ($categories == FALSE) {
-        $results = chado_query('SELECT distinct(LOWER(category)) as category FROM public.ct_trees_treesnap ORDER BY category ASC');
+        $results = chado_query('SELECT distinct(LOWER(category)) as category FROM public.ct_trees_all_view ORDER BY category ASC');
         $categories = [];
         foreach ($results as $row) {
             $categories[] = $row->category;

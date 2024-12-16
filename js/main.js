@@ -123,7 +123,7 @@ var ct_ready_mainjs = function () {
 			cartograplant.buildSelectOption("species", "Species", "string", ["equal", "not_equal"]), // 2
 			// cartograplant.buildSelectOption("marker_type", "Markers", "string", ["equal", "not_equal"]),
 			cartograplant.buildSelectOption("markers", "Markers", "string", ["equal", "not_equal"]), // 3
-			cartograplant.buildSelectOption("category", "Category", "string", ["equal", "not_equal"]), // 4
+			cartograplant.buildSelectOption("category", "Treesnap Category", "string", ["equal", "not_equal"]), // 4
 			// cartograplant.buildSelectOption("structure_name", "Plant Structure", "string", ["equal", "not_equal"]), //5
 			cartograplant.buildAutocompleteOption("structure_name", "Plant Structure", "string", Drupal.settings.options_data["plant_ontology"]), // 5
 			// cartograplant.buildSelectOption("phenotype_name", "Phenotype Attribute", "string", ["equal", "not_equal"]), // 6
