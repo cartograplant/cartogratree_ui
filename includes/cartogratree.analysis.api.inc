@@ -974,6 +974,69 @@ function cartogratree_analysisapi_download_nextflow_workspace_file($workspace_na
 
 }
 
+function cartogratree_analysisapi_get_nextflow_workspace_directory($workspace_name) {
+    $workspace_name = cartogratree_analysisui_convert_workspace_name($workspace_name);
+    global $user;
+    $results = [];
+    $results['status'] = false;
+    $user_id = $user->uid;
+    $dir_workspace = '/isg/treegenes/cartograplant_analysis_workspaces/' . $user_id . '/' . $workspace_name;
+    $results['directory'] = $dir_workspace;
+    $results['status'] = true;
+    drupal_json_output($results);
+}
+
+
+
+
+function cartogratree_analysisapi_nextflow_symlink_workspace_vcf_file($workspace_name, $study_accession) {
+    $workspace_name = cartogratree_analysisui_convert_workspace_name($workspace_name);
+    global $user;
+    $results = [];
+    $user_id = $user->uid;
+
+    $return_results = [];
+    $results_data = chado_query('SELECT * FROM tpps_submission WHERE accession ILIKE :accession LIMIT 1',
+        array(
+            ':accession' => $study_accession
+        )
+    );
+    $data = null;
+    foreach($results_data as $results_row) {
+        $data_all = unserialize($results_row->submission_state);
+        // Debug code for finding the VCF file information
+        // print_r(array_keys($data_all));
+        // print_r($data_all['saved_values'][4]);
+        // print_r($data_all['saved_values']);
+        $data = $data_all['saved_values'];
+    }
+    if($data != null) {
+        // This IF statement actually does not work the way one would expect
+        // An empty vcf field will hold 0 in it, so in theory it always 
+        // should pass this IF condition. But as a good side effect, we want
+        // the null record for the UI to show a VCF file was not found.
+        if($data[4]['organism-1']['genotype']['files']['vcf'] > 0) {
+            $file = file_load($data[4]['organism-1']['genotype']['files']['vcf']);
+            // print_r($file);
+            $uri = $file->uri;
+            $return_results[$study_accession] = $uri;
+        }
+        else if(isset($data[4]['organism-1']['genotype']['files']['local_vcf'])) {
+            $file_location = $data[4]['organism-1']['genotype']['files']['local_vcf'];
+            // print_r($file);
+            $uri = strip_tags($file_location);
+            $return_results[$study_accession] = $uri;
+        }
+    }
+    $dir_workspace = '/isg/treegenes/cartograplant_analysis_workspaces/' . $user_id . '/' . $workspace_name;
+    foreach ($return_results as $study_accession_current => $file_location) {
+        symlink($file_location, $dir_workspace . '/original-' . $study_accession_current . '.vcf');
+    }
+    $results['status'] = true;
+
+    drupal_json_output($results);
+}
+
 function cartogratree_analysisapi_get_nextflow_workspace_files($workspace_name) {
     $workspace_name = cartogratree_analysisui_convert_workspace_name($workspace_name);
     global $user;

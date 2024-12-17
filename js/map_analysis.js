@@ -3976,11 +3976,200 @@ var ct_ready_map_analysis = function() {
 	});
 
 
+	function nextflow_workflow_files_select(pattern = '', input_name= '', classes = '') {
+		var html = '';
+		html += '<div>';
+		html+= '<select class="' + classes + '" data-input-name="' + input_name + '">';
+		var workspace_name = $('#nextflow-create-analysis-select-history').val();
+		var workspace_files_url = Drupal.settings.base_url + '/cartogratree_uianalysis/get_nextflow_workspace_files/' + workspace_name;
+		$.ajax({
+			url: workspace_files_url,
+			method: 'GET',
+			async: false,
+			success: function(data) {
+				for (var i = 0; i < data.length; i++) {
+					html += '<option value="' + data[i] + '">';
+					html += data[i];
+					html += '</option>';
+				}
+			}
+		})
+		html += '</select>';
+		html += '</div>';
+		return html;
+	}
 
 
 	// When the analysis section tab is clicked in the Analysis popup window
 	// populate steps and form items to begin asking user for more input
 	$('#analysis-create-analysis-section-tab').click(function() {
+
+		$('body').off('click', '#nextflow-gwas-interface select[data-input-name="model"]');
+		$('body').on('click', '#nextflow-gwas-interface select[data-input-name="model"]', function() {
+			console.log('GWAS model selected');
+			$('#nextflow-gwas-interface-model-options').html(''); // clear previous model UI
+
+			// Get the ui json
+			var b64_data = $(this).closest('#nextflow_gwas_options_main').attr('data-schema');
+			var data = atob(b64_data);
+			data = JSON.parse(data); // convert json to object
+			console.log('data', data);
+			var model = $(this).val();
+			console.log('model', model);
+
+			var model_data = data['definitions']['input_output_options']['properties']['model']['options'][model];
+			console.log('model_data', model_data);
+			var html = '';
+			html += '<table>';
+			if (typeof model_data === 'object') {
+				var steps = model_data['steps'];
+				console.log('steps', steps);
+				var steps_keys = Object.keys(steps);
+				console.log('steps_keys', steps_keys);
+				for (var sk_i = 0; sk_i < steps_keys.length; sk_i++) {
+					var step_key = steps_keys[sk_i];
+					var step_prefix = steps[step_key];
+					console.log('step_prefix', step_prefix);
+					var step_ui = data['definitions'][step_prefix + '_options'];
+					var step_properties = step_ui['properties'];
+					var step_properties_keys = Object.keys(step_properties);
+					for (var spk_i = 0; spk_i < step_properties_keys.length; spk_i++) {
+						var step_property_key = step_properties_keys[spk_i];
+						var step_property_object = step_properties[step_property_key];
+						var step_property_type = step_property_object['type'];
+						var step_property_description = step_property_object['description'];
+						var step_property_default_value = '';
+						if (step_property_object.hasOwnProperty('default')) {
+							step_property_default_value = step_property_object['default'];
+						}
+						switch (step_property_type) {
+							case 'string':
+								if (step_property_object.hasOwnProperty('options')) {
+									// select list
+									html += '<tr>';
+									html += '<td style="padding-bottom: 10px; text-transform: capitalize;">' + step_property_description + '</td>';
+									html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
+									html += '<select data-input-name="' + step_property_key + '">';
+									var options = step_property_object['options'];
+									var options_keys = Object.keys(options);
+									for (var o_i = 0; o_i < options_keys.length; o_i++) {
+										var option_key = options_keys[o_i];
+										html += '<option value="">';
+										html += options[option_key];
+										html += '</option>';
+									}
+									html += '</select>';
+									html += '</td>';
+									html += '</tr>';
+								}
+								else {
+									// input field
+									html += '<tr>';
+									html += '<td style="padding-bottom: 10px; text-transform: capitalize;">' + step_property_description + '</td>';
+									html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
+									html += '<input type="text" value="' + step_property_default_value + '" data-input-name="' + step_property_key +'" />';
+									html += '</td>';
+									html += '</tr>';
+								}
+								break;
+							case 'float':
+								html += '<tr>';
+								html += '<td style="padding-bottom: 10px; text-transform: capitalize;">' + step_property_description + '</td>';
+								html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
+								html += '<input type="text" value="' + step_property_default_value + '" data-input-name="' + step_property_key +'" />';
+								html += '</td>';
+								html += '</tr>';
+								break;
+							case 'integer':
+								html += '<tr>';
+								html += '<td style="padding-bottom: 10px; text-transform: capitalize;">' + step_property_description + '</td>';
+								html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
+								html += '<input type="text" value="' + step_property_default_value + '" data-input-name="' + step_property_key +'" />';
+								html += '</td>';
+								html += '</tr>';
+								break;
+						}
+					}
+				}
+			}
+			else {
+				html += '<tr>';
+				html += '<td><i>No options available for this model</i></td>';
+				html += '</tr>';
+			}
+			html += '</table>';
+			$('#nextflow-gwas-interface-model-options').html(html);
+		});
+
+
+		// Load Nextflow GWAS UI elements
+		var gwas_ui_url = Drupal.settings.base_url + '/cartogratree/api/v2/gwas/get_ui_json';
+		$.ajax({
+			url: gwas_ui_url,
+			method: 'GET',
+			success: function(data) {
+				console.log('GWAS UI JSON', data);
+				var input_properties = data['definitions']['input_output_options']['properties'];
+				var input_properties_keys = Object.keys(input_properties);
+				var interface_html = '<table id="nextflow_gwas_options_main" data-schema="' + btoa(JSON.stringify(data)) + '">';
+				for (var ipk_i = 0; ipk_i < input_properties_keys.length; ipk_i++) {
+					var property_name = input_properties_keys[ipk_i];
+					console.log('property_name', property_name);
+					var property_type = input_properties[property_name]['type'];
+					console.log('property_type', property_type);
+					var property_format = input_properties[property_name]['format'];
+					console.log('property_format', property_format);
+					var property_options = input_properties[property_name]['options'];
+					console.log('property_options', property_options);
+					switch (property_type) {
+						case 'string':
+							if (property_format == 'file-path') {
+								interface_html += '<tr>';
+								interface_html += '<td style="padding-bottom: 10px; text-transform: capitalize;">' + input_properties[property_name]['description'] + '</td>';
+								interface_html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
+								interface_html += nextflow_workflow_files_select('', property_name, 'nextflow_gwas_property');
+								interface_html += '</td>';
+								interface_html += '</tr>';
+							}
+							else if (property_options != undefined) {
+								interface_html += '<tr>';
+								interface_html += '<td style="padding-bottom: 10px; text-transform: capitalize;">' + input_properties[property_name]['description'] + '</td>';
+								interface_html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
+								// interface_html += '<input type="text" data-input-name="' + property_name + '" />'
+								interface_html += '<select data-input-name="' + property_name + '">';
+								var property_options_keys = Object.keys(property_options);
+								console.log('property_options_keys', property_options_keys);
+								for (var ok_i = 0; ok_i < property_options_keys.length; ok_i++) {
+									var property_option_name = property_options_keys[ok_i];
+									console.log('property_option_name', property_option_name);
+									var property_option_title = '';
+									if (typeof property_options[property_option_name] !== 'object') {
+										property_option_title = property_options[property_option_name];
+									}
+									else {
+										property_option_title = property_options[property_option_name]['title'];
+									}
+									interface_html += '<option value="' + property_option_name + '">';
+									interface_html += property_option_title;
+									interface_html += '</option>';
+								}
+								interface_html += '</select>';
+								interface_html += '</td>';
+								interface_html += '</tr>';
+							}
+							break;
+					}
+				}
+				interface_html += '</table>';
+				interface_html += '<h5>Model options</h5>';
+				interface_html += '<div id="nextflow-gwas-interface-model-options">';
+				interface_html += 'Please choose a model above to configure';
+				interface_html += '</div>';
+				interface_html += '<hr />';
+				$('#nextflow-gwas-interface').html(interface_html);
+			}
+		});
+
 		console.log($('#create-analysis-select-galaxy-account').html());
 		// if($('#create-analysis-select-galaxy-account').html() == "") {
 			var url = Drupal.settings.base_url + "/cartogratree_uianalysis/get_all_galaxy_accounts";

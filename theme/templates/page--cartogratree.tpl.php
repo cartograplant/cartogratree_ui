@@ -377,7 +377,7 @@
 										</div>	
 									</div>
 								</div>
-								<div class="row">
+								<div class="row" style="display: none;">
 									<div class="col-1">
 										<div class="tag" style="background-color: #036e63; color: #FFFFFF;">Step 2 (Galaxy)</div>
 									</div>
@@ -411,6 +411,7 @@
 										</div>	
 									</div>
 								</div>
+								
 							</div>
 															
 						</div>
@@ -562,18 +563,20 @@
 									</td>
 								</tr>
 							</table>
-							<h4>Galaxy Population Structure Workflow</h4>
-							<div style="text-align: center;">
-								Number of populations<br />
-								<input id="analysis-popstruct-section-k-value" type="text" value="2" style="text-align: center" /><br />
-								<div style="display: inline-block;">Select VCF file</div><div style="display: inline-block;" class="select_loading"></div><br />
-								<select style="margin-bottom: 10px; " id="analysis-popstruct-section-vcf-selectfile">
-									<option>SELECT VCF FILE</option>
-								</select><br />
-								<button class="btn btn-info" id="analysis-popstruct-section-button-generate-fast-structure">Generate Fast Structure</button>
+							<div style="display: none;">
+								<h4>Galaxy Population Structure Workflow</h4>
+								<div style="text-align: center;">
+									Number of populations<br />
+									<input id="analysis-popstruct-section-k-value" type="text" value="2" style="text-align: center" /><br />
+									<div style="display: inline-block;">Select VCF file</div><div style="display: inline-block;" class="select_loading"></div><br />
+									<select style="margin-bottom: 10px; " id="analysis-popstruct-section-vcf-selectfile">
+										<option>SELECT VCF FILE</option>
+									</select><br />
+									<button class="btn btn-info" id="analysis-popstruct-section-button-generate-fast-structure">Generate Fast Structure</button>
+								</div>
+								<div id="analysis-popstruct-status" style="text-align: center"></div>
+								<div id="analysis-popstruct-dapc-step1-plot-container"></div>
 							</div>
-							<div id="analysis-popstruct-status" style="text-align: center"></div>
-							<div id="analysis-popstruct-dapc-step1-plot-container"></div>
 							<!--
 							<h3 id="chart-loading" class="hidden">Loading...</h3>
 							<div class="row">
@@ -643,7 +646,11 @@
 					<!-- analysis-create-analysis-section -->
 					<div id="analysis-create-analysis-section" class="tab-pane fade">
 						<div class="analysis-tab-content" >
-
+							<div id="nextflow-gwas-interface-container">
+								<div><h4>Nextflow - GWAS Workflow</h4></div>
+								<div id="nextflow-gwas-interface"></div>
+								<div id="nextflow-gwas-results"></div>
+							</div>
 							<!-- <div style="margin-bottom: 15px;">Note: A workspace must be used to store your input data in case you ever need to rerun the workflow</div>-->
 							<div style="display: flex; margin-bottom: 10px;">
 								<div style="width: 15%;">Step 1 - Select workflow</div>

@@ -7502,6 +7502,17 @@ var ct_ready_mapjs = function() {
 							study_accession: studies[studies_i],
 							vcf_location: vcf_info[studies[studies_i]]
 						});
+						// Create workspace symbolic links
+						var workspace_name = $('#nextflow-create-analysis-select-history').val();
+						var nextflow_vcf_symlink_api_url = Drupal.settings.base_url + '/cartogratree_uianalysis/nextflow_symlink_workspace_vcf_file/' + workspace_name + '/' + studies[studies_i];
+						console.log('nextflow_vcf_symlink_api_url', nextflow_vcf_symlink_api_url);
+						$.ajax({
+							method: 'GET',
+							url: nextflow_vcf_symlink_api_url,
+							success: function(data) {
+								console.log('vcf_symlink', data);
+							}
+						});
 					}
 
 					var vcf_found_info = {};

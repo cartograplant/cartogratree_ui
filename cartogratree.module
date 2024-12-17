@@ -197,6 +197,34 @@ function cartogratree_menu()
         ),
     );
 
+    $items['cartogratree_uianalysis/nextflow_get_workspace_directory/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: Get Nextflow Workspace directory',
+        'title' => 'Cartogratree ANALYSIS API: Get nextflow workspace directory',
+        'page callback' => 'cartogratree_analysisapi_get_nextflow_workspace_directory',
+        'page arguments' => array(
+            2,
+            // 3,
+        ),
+        'file' => 'includes/cartogratree.analysis.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
+    $items['cartogratree_uianalysis/nextflow_symlink_workspace_vcf_file/%/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: Delete Nextflow Workspace file',
+        'title' => 'Cartogratree ANALYSIS API: Delete nextflow workspace file',
+        'page callback' => 'cartogratree_analysisapi_nextflow_symlink_workspace_vcf_file',
+        'page arguments' => array(
+            2, // workspace
+            3, // TGDR Study
+        ),
+        'file' => 'includes/cartogratree.analysis.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
     $items['cartogratree_uianalysis/nextflow_download_workspace_file/%/%'] = array(
         'description' => 'Cartogratree ANALYSIS API: Download Nextflow Workspace file',
         'title' => 'Cartogratree ANALYSIS API: download nextflow workspace file',
