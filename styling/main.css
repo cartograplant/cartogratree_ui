@@ -153,11 +153,11 @@ select {
 #map-right-buttons .map-right-container {
   display: inline-block; 
   background-color: #383c42F2;
-  height: 33%; 
+  height: 45%; 
   vertical-align: top;
   width: 200px;
-  max-height: 30vh;
-  overflow-y: scroll;
+  max-height: 45vh;
+  overflow-y: auto;
 }
 
 #map-right-buttons .map-right-buttons-parent-container {
@@ -649,7 +649,7 @@ select {
 .map-overlay {
   top: 0;   
   height: 50vh;   
-  margin-top: 1vh;   
+  margin-top: 10vh;   
   width: 18vw;
   position: absolute;   
   bottom: 0;   
@@ -806,11 +806,18 @@ select {
 	background-image: url(marker.png);
 	background-color: rgba(0, 0, 0, 0);
 }
+
+.badge-primary {
+  background-color: #e2b448 !important;
+  color: #000000;
+}
+
 .mapboxgl-popup{
 	z-index: 3;
 	padding-bottom: 50px;
   max-width: none !important;
-  width: 45% !important;
+  width: 30% !important;
+  max-height: 200px;
 }
 .mapboxgl-popup-close-button{
 	z-index: 2;
@@ -848,7 +855,7 @@ select {
 }
 
 .mapboxgl-popup-content .card {
-  max-height: 260px;
+  max-height: 200px;
 }
 
 .mapboxgl-popup-content .card-header {

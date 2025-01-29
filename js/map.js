@@ -3488,11 +3488,13 @@ var ct_ready_mapjs = function() {
 				el_html += '<div class="media-body">';
 				el_html += '<h4>Environmental layers associated with study</h4>';
 				console.log('organism_count', organism_count);
+				var el_count = 0;
 				for (var organism_i = 1; organism_i <= organism_count; organism_i++) {
 					try {
 						var env_layers = Object.keys(data['saved_values'][4]['organism-' + organism_i]['environment']['env_layers']);
 						for (var el_i = 0; el_i < env_layers.length; el_i++) {
 							el_html += '<div>' + env_layers[el_i] + '</div>';
+							el_count++;
 						}
 					} catch (err) {
 						console.log('env_error', err);
@@ -3501,7 +3503,9 @@ var ct_ready_mapjs = function() {
 				el_html += '</div>';
 				el_html += '</div>';
 				console.log('el_html', el_html);
-				$('#tree-study-environmental-container').html(el_html);
+				if (el_count > 0) {
+					$('#tree-study-environmental-container').html(el_html);
+				}
 			}
 		});	
 
@@ -4551,7 +4555,8 @@ var ct_ready_mapjs = function() {
 				$.ajax({
 					url:  Drupal.settings.ct_nodejs_api + "/v2/tree?api_key=" + Drupal.settings.ct_api + "&tree_id=" + treeId,
 					dataType: "json",
-					async: false,
+					timeout: 10000,
+					// async: false,
 					success: function (data) {
 						if(debug) {
 							console.log('-- success tree data:');
@@ -5168,7 +5173,7 @@ var ct_ready_mapjs = function() {
 									var featureProps = JSON.parse(data).features[0].properties;
 									console.log(featureProps);
 									console.log(envLayer);
-									var layer_text_element = '<div style="font-size: 11px; text-transform: uppercase;width: 100%; background-color: #18bb70; color: #FFFFFF; padding: 4px;">Environmental layer: ' + envLayer.title + '</div>';
+									var layer_text_element = '<div style="font-size: 9px; text-transform: uppercase;width: 100%; background-color: #18bb70; color: #FFFFFF; padding: 4px;">Environmental layer: ' + envLayer.title + '</div>';
 									$('.environmental-values').append(layer_text_element);
 									var table_container = '<table id="env_layer_' + envLayer.layer_id +  '_values" style="width: 100%;"></table>';
 									$('.environmental-values').append(table_container);
@@ -5972,7 +5977,7 @@ var ct_ready_mapjs = function() {
 								toastr.error("Filter failed: Query timeout");
 							}
 							else {
-								toastr.error("Filter failed");
+								// toastr.error("Filter failed");
 							}
 							console.log(eval("(" + xhr.responseText + ")"));
 						},
@@ -7416,9 +7421,9 @@ var ct_ready_mapjs = function() {
 			return;			
 		}
 
-		var html = '<div style="float: left;" class="vcf_detection_loading"><img style="width: 48px; margin-top: 18px; margin-left: 15px; margin-right: 15px;" src="' + cartograplant.loading_icon_src + '"/></div>';
+		var html = '<div style="float: left;" class="vcf_detection_loading"><!-- <img style="width: 48px; margin-top: 18px; margin-left: 15px; margin-right: 15px;" src="' + cartograplant.loading_icon_src + '"/> --></div>';
 		
-		html += '<div class="status">Detecting if VCF data exists for SNPs...</div>';
+		html += '<div class="status"></div>';
 		html += '<div class="detected_vcf_information"></div>';
 		html += '<div class="detected_vcf_overlaps" style="padding: 20px;"></div>';
 		html += '<div class="none_detected_vcf_information"></div><hr />';
@@ -7515,6 +7520,8 @@ var ct_ready_mapjs = function() {
 						});
 					}
 
+					// RISH: Removed on 2025/01/05 since we now have nextflow workflows to take care of this
+					/*
 					var vcf_found_info = {};
 					for(var i=0; i<detected_studies_containing_vcfs.length; i++) {
 						var study_vcf_html = "";
@@ -7549,6 +7556,8 @@ var ct_ready_mapjs = function() {
 					// So now we need to send all this data to the CT API endpoint
 					// that will work to filter the VCF files and produce a single merged
 					// VCF file
+					
+					
 					$('#analysis-filter-snp-vcf-detection .status').css('padding', '20px');
 					$('#analysis-filter-snp-vcf-detection .status').html('Filtering VCF files by genotype subsets selected... <br />Please wait, workflow interface will appear once files have finished uploading... <img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" />');
 					if(vcf_found_count > 0) {
@@ -7585,6 +7594,7 @@ var ct_ready_mapjs = function() {
 								}
 							}
 							$('#analysis-filter-snp-vcf-detection .detected_vcf_overlaps').html(detected_vcf_overlaps_html);
+							
 							$.ajax({
 								method: 'POST',
 								url: Drupal.settings.ct_nodejs_api + "/v2/genotypes/snp_vcf_filtering",
@@ -7637,6 +7647,7 @@ var ct_ready_mapjs = function() {
 									});
 								}
 							});
+							
 						
 					}
 					else {
@@ -7646,6 +7657,7 @@ var ct_ready_mapjs = function() {
 						$('#analysis-filter-snp-vcf-detection .detected_vcf_information').html('');
 						$('#analysis-filter-snp-vcf-detection .detected_vcf_overlaps').html('');
 					}
+					*/
 				}
 				else {
 					$('#analysis-filter-snp-vcf-detection .status').html('No VCF files detected<br />To continue, select studies that contain VCF files.');
@@ -8469,10 +8481,51 @@ var ct_ready_mapjs = function() {
 		}
 	});
 
+
+	/**
+	 * Layers state stores the layer settings object of enabled layers
+	 * Saves these objects in layers_state
+	 */
+	var layers_state = [];
+	cartograplant['layers_state'] = layers_state;
+
+
+	function addLayerToLayersState(layer_settings_object) {
+		cartograplant['layers_state'].push(layer_settings_object);
+		return true;
+	}
+
+	function getLayersState() {
+		return cartograplant['layers_state'];
+	}
+
+	cartograplant['findLayerInLayersState'] = findLayerInLayersState;
+	function findLayerInLayersState(layer_id) {
+		var object = undefined;
+		for (var i = 0; i < cartograplant['layers_state'].length; i++) {
+			var layer_settings_object = cartograplant['layers_state'][i];
+			var layer_id_tmp = layer_settings_object['layer_id'];
+			if (layer_id == layer_id_tmp) {
+				return layer_settings_object;
+			}
+		}
+		return object;
+	}
+
+	function removeLayerFromLayersState(layer_id) {
+		for (var i = 0; i < cartograplant['layers_state'].length; i++) {
+			var layer_settings_object = cartograplant['layers_state'][i];
+			var layer_id_tmp = layer_settings_object['layer_id'];
+			if (layer_id == layer_id_tmp) {
+				cartograplant['layers_state'].splice(i, 1); // the 1 represents removing a single item
+				return true;
+			}
+		}
+		return false;
+	}
+
 	//adding and removing layers from the map
 	$(".layers-btn").on("click", function () {
-
-
 
 		var layer = $(this)[0].id.split("-");
 		var layerId = layer[0];
@@ -8480,6 +8533,7 @@ var ct_ready_mapjs = function() {
 		var layerHost = layer[1];
 		
 		var layerObjectSettings = Drupal.settings.layers[layerId];
+		console.log('Layer object settings', layerObjectSettings);
 
 		console.log('Layer ID:' + layerId);
 		console.log('Layer Host:' + layerHost);
@@ -8534,6 +8588,10 @@ var ct_ready_mapjs = function() {
 		console.log($(this).hasClass("active"));
 		//if layer has already been added and is active, then deactivate it
 		if (!$(this).hasClass("active")) {
+
+			removeLayerFromLayersState(layerNum);
+			console.log('[LAYERS-STATE]', getLayersState());
+
 			// Search to make sure the layer isn't already in the UI list container
 			var layer_unique_id = $(this).closest('.inner-layer-header').find('h7[id*="ct-layer-title"]').attr('id');
 			if ($('#map-opened-layers-list .opened-layer-' + layer_unique_id).length != 0) {
@@ -8603,9 +8661,12 @@ var ct_ready_mapjs = function() {
 				layersList.deactivateLayer(layerId);
 			}
 
+
 		}	
 		else {
 			// Activate the layer
+			addLayerToLayersState(layerObjectSettings);
+			console.log('[LAYERS-STATE]', getLayersState());
 
 			// Add to to layer list UI
 			var layer_unique_id = $(this).closest('.inner-layer-header').find('h7[id*="ct-layer-title"]').attr('id');

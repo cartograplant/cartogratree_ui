@@ -145,16 +145,107 @@ var ct_ready_map_analysis = function() {
 		}
 	}
 
+	$('body').off('click', '.variant-filtering-study-interface .checkboxes input[type="checkbox"]');
+	$('body').on('click', '.variant-filtering-study-interface .checkboxes input[type="checkbox"]', function() {
+		console.log('CLICK');
+		var variable_name = $(this).attr('data-statistic-variable');
+		console.log('variable_name', variable_name);
+		var study_accession = $(this).closest('.variant-filtering-study-interface').attr('data-study-accession');
+		console.log('study_accession', study_accession);
+		var histogram_container = 'histogram_' + study_accession + '_' + variable_name;
+		var interface = $(this).closest('.variant-filtering-study-interface');
+		if ($(this).is(':checked')) {
+			var container_object = $('.' + histogram_container);
+			console.log('container_object', container_object);
+			try {
+				container_object.remove();
+			}
+			catch (err) {
+				console.log(err);
+			}
+			// create container object
+			$(interface).find('.statistics-histograms').append('<div style="display: inline-block; padding: 10px;" class="' + histogram_container + '"><i class="fa-solid fa-sync fa-spin"></i> Retrieving ' + variable_name + '... </div>')
+
+			$.ajax({
+				url: Drupal.settings.ct_nodejs_api + '/v2/genotypes/variant_filtering_panel_get_statistics',
+				method: 'POST',
+				data: {
+					user_id: Drupal.settings.user.user_id,
+					workspace_name: $('#nextflow-create-analysis-select-history').val(),
+					analysis_id: cartograplant['current_analysis_id'],
+					variable_name: variable_name,
+					study_accession: study_accession
+				},
+				success: function (data) {
+
+					console.log('variable data', data);
+					var data_object = JSON.parse(data);
+					console.log('data_object', data_object);
+					var values = [];
+					for (var i = 0; i < data_object['values'].length; i++) {
+						values.push({
+							value: data_object['values'][i]
+						})
+					}
+					console.log('values', values);
+
+					$(interface).find('.statistics-histograms').find('.' + histogram_container).html('');
+
+					
+					interactive_histogram_create_v5(
+						'.' + histogram_container, 
+						variable_name,//unique_id
+						variable_name, 
+						250, 250, 
+						values,['value'], 
+						false
+					);
+				}
+			});
+		}
+		else {
+			// uncheck
+			// remove the histogram
+			$(interface).find('.statistics-histograms').find('.' + histogram_container).remove();
+		}
+	});
+
+
+	$('#analysis-form').off("hidden.bs.modal");
+	$('#analysis-form').on("hidden.bs.modal", function () {
+		// put your default event here
+		console.log('analysis form closed');
+		console.log('performing cleanup');
+		try {
+			var timer_keys = Object.keys(cartograplant['generate_nextflow_variant_filtering_ui']);
+			for (var i = 0; i <= timer_keys.length; i++) {
+				var timer_name = timer_keys[i];
+				console.log('Removing timer for variant filtering: ' + timer_name);
+				clearInterval(cartograplant['generate_nextflow_variant_filtering_ui'][timer_name]);
+				delete cartograplant['generate_nextflow_variant_filtering_ui'][timer_name];
+			}
+		} catch (err) { console.log(err) }
+		try {
+			console.log('Reset current UI tab');
+			cartograplant['analysis_filter_snp_section_loaded'] = false;
+		} catch (err) {
+			console.log(err);
+		}
+	});
+
 	var generate_nextflow_variant_filtering_ui_timers = {};
 	cartograplant['generate_nextflow_variant_filtering_ui'] = generate_nextflow_variant_filtering_ui_timers;
 	function generate_nextflow_variant_filtering_ui(options) {
 		var study_accession = options['study_accession'];
 		var vcf_location = options['vcf_location'];
 		html = '<div style="bottom: 10px;" class="variant-filtering-study-interface" data-study-accession="' + study_accession + '" data-vcf-location="' + vcf_location + '">';
+		html += '<table>';
+		html += '<tr>';
+		html += '<td style="width: 50%;vertical-align: top;">';
 		html += '<h4>Variant filtering - ' + study_accession + '</h4>';
 		html += '<div class="row" style="margin: 0px;">';
-		html += '	<button class="tag" style="background-color: rgb(16, 166, 137); color: white; border: 0px; padding: 10px; margin-right: 5px;">Generate Site Statistics</button> ';
-		html += '	<button class="tag" style="background-color: rgb(16, 166, 137); color: white; border: 0px; padding: 10px; margin-right: 5px;">Generate Sample Statistics</button>';
+		// html += '	<button class="tag" style="background-color: rgb(16, 166, 137); color: white; border: 0px; padding: 10px; margin-right: 5px;">Generate Site Statistics</button> ';
+		// html += '	<button class="tag" style="background-color: rgb(16, 166, 137); color: white; border: 0px; padding: 10px; margin-right: 5px;">Generate Sample Statistics</button>';
 		html += '	<button class="tag filter_and_imputation" style="background-color: rgb(16, 166, 137); color: white; border: 0px; padding: 10px; margin-right: 5px;">Filter and Imputation</button>';
 		html += '</div>';
 		html += '<div class="status-process" style="padding: 5px"></div>';
@@ -163,7 +254,11 @@ var ct_ready_map_analysis = function() {
 		html += '<h5>Filter and imputation rules</h5>';
 		html += '<div class="rules_ui" style="padding: 5px"></div>';
 		html += '</div>';
-
+		html += '</td>';;
+		html += '<td style="vertical-align: top;" class="statistics-histograms">';
+		html += '</td>';
+		html += '</tr>';
+		html += '</table>';
 		$('.nextflow_variant_filtering_pipeline').append(html);
 
 		// Perform Nextflow Workflow to get the options for this particular VCF
@@ -432,6 +527,8 @@ var ct_ready_map_analysis = function() {
 			url: Drupal.settings.ct_nodejs_api + '/v2/genotypes/variant_filtering_panel_filter_by_genotypes',
 			method: 'POST',
 			data: {
+				user_id: Drupal.settings.user.user_id,
+				workspace_name: $('#nextflow-create-analysis-select-history').val(),
 				analysis_id: cartograplant['current_analysis_id'],
 				study_accession: study_accession,
 				vcf_location: vcf_location
@@ -440,6 +537,17 @@ var ct_ready_map_analysis = function() {
 
 				data = JSON.parse(data);
 				console.log('data', data);
+				if (data['status'] != undefined) {
+					var study_accession = data['study_accession'];
+					if (data['status'] == 'failed') {
+						try {
+							clearInterval(cartograplant['generate_nextflow_variant_filtering_ui'][study_accession]);
+							delete cartograplant['generate_nextflow_variant_filtering_ui'][study_accession];
+						} catch (err) { console.log(err) }
+						$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .status-process')
+						.html('Filtering by genotypes sub process has failed<br />' + JSON.stringify(data['error_msg']));
+					}
+				}
 
 				/*
 				// Generate the statistics checkboxes
@@ -678,6 +786,7 @@ var ct_ready_map_analysis = function() {
 	cartograplant['generate_nextflow_variant_filtering_ui'] = generate_nextflow_variant_filtering_ui;
 
 
+	$('body').off('click', '.nextflow_variant_filter_ui_remove_rule');
 	$('body').on('click', '.nextflow_variant_filter_ui_remove_rule', function() {
 		if ($(this).closest('.variant-filtering-study-interface').find('.nextflow_variant_filtering_ui_rule').length >= 2) {
 			$(this).closest('.nextflow_variant_filtering_ui_rule').fadeOut(100).remove();
@@ -705,6 +814,8 @@ var ct_ready_map_analysis = function() {
 			url: Drupal.settings.ct_nodejs_api + '/v2/genotypes/variant_filtering_panel_filter_and_imputation',
 			method: 'POST',
 			data: {
+				user_id: Drupal.settings.user.user_id,
+				workspace_name: $('#nextflow-create-analysis-select-history').val(),
 				analysis_id: cartograplant['current_analysis_id'],
 				study_accession: study_accession,
 				vcf_location: vcf_location,
@@ -712,7 +823,7 @@ var ct_ready_map_analysis = function() {
 			},
 			success: function (data) {
 				$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .status-process')
-				.html('Imputation has completed.');
+				.html('Filtering has completed.');
 			}
 		});
 
@@ -1226,6 +1337,47 @@ var ct_ready_map_analysis = function() {
 		// 	{ name: 'S3', elems: [0,2,4] },
 		// ];
 
+		// Lookup reference genomes for each study
+		$('#analysis-overlapping-genotypes-refgenome').html('');
+		
+		for(var i=0; i<studies.length; i++) {
+			var study_name = studies[i];
+			console.log('study_name', study_name);
+			var ref_genome_url = Drupal.settings.base_url + '/cartogratree_uianalysis/cartogratree_analysisapi_lookup_study_ref_genome/' + study_name;
+			$.ajax({
+				method: 'GET',
+				url: ref_genome_url,
+				success: function(data) {
+					// var data = JSON.parse(data);
+					console.log('ref_genome data', data);
+
+					var ref_genomes_string = '';
+					for(var i = 0; i < data['ref_genomes'].length; i++) {
+						if (data['ref_genomes'][i] != null && data['ref_genomes'][i] != undefined) {
+							if (i == 0) {
+								ref_genomes_string += data['organism_names'][i] + ' has reference genome: ' + data['ref_genomes'][i];
+							}
+							else {
+								ref_genomes_string += ', ' + data['organism_names'][i] + ' has reference genome: ' + data['ref_genomes'][i];	
+							}
+						}
+						else {
+							if (i == 0) {
+								ref_genomes_string += data['organism_names'][i] + ' has no reference genome';
+							}
+							else {
+								ref_genomes_string += ', ' + data['organism_names'][i] + ' has no reference genome';
+							}
+						}
+					}
+
+					var set_html = "<div>";
+					set_html += data['study_accession'] + ': ' + ref_genomes_string;
+					set_html += "</div>";
+					$('#analysis-overlapping-genotypes-refgenome').append(set_html);
+				}
+			});
+		}
 
 		
 
@@ -2403,8 +2555,20 @@ var ct_ready_map_analysis = function() {
 								}
 								// Now add this study to the key: studies
 								phenotypes_all[phenotype]['studies'][accession] = true;
-								
 							}
+
+							// RISH 1/8/2025: Emily recoded a view and so logic changed
+							// var phenotype = row.phenotype;
+							// var accession = row.accession;
+							// if(phenotypes_all[phenotype] == undefined) {
+							// 	//add it to phenotypes_all
+							// 	phenotypes_all[phenotype] = {
+							// 		studies: {},
+							// 		units: "NA"
+							// 	};
+							// }
+							// // Now add this study to the key: studies
+							// phenotypes_all[phenotype]['studies'][accession] = true;
 						}
 
 						// Now output the list of phenotypes to the UI
@@ -2761,20 +2925,21 @@ var ct_ready_map_analysis = function() {
 					// Upload to history / workspace
 					// Upload to history
 					var formData = new FormData();
-					formData.append('galaxy_id', cartograplant.galaxy_id);
-					formData.append('workflow_id', workflow_id);
-					formData.append('history_id', cartograplant.history_id);
+					// formData.append('galaxy_id', cartograplant.galaxy_id);
+					// formData.append('workflow_id', workflow_id);
+					// formData.append('history_id', cartograplant.history_id);
 					// var file_upload_element = document.getElementById(file_id);
 					formData.append('raw_data', csv_data);
-					formData.append('file_name', 'AN' + cartograplant.current_analysis_id + '_PHENOVER' + phenotype_name + '_adjusted-overlaps.csv');
-					
+					formData.append('file_name', 'AN' + cartograplant.current_analysis_id + '_PHENOVER_' + phenotype_name + '_adjusted-overlaps.csv');
+					formData.append('workspace_name', $('#nextflow-create-analysis-select-history').val());
 					if(cartograplant.history_id == null) {
 						alert('Cannot upload a file without selecting a workspace to store the file, please visit the Begin tab to select or create a workspace');
 						return;
 					}
 			
 					
-					var url = Drupal.settings.base_url + "/cartogratree_uianalysis/upload_file_raw_data_to_history";
+					// var url = Drupal.settings.base_url + "/cartogratree_uianalysis/upload_file_raw_data_to_history";
+					var url = Drupal.settings.base_url + "/cartogratree_uianalysis/upload_file_raw_data_to_nextflow_workspace";
 					$.ajax({
 						xhr: function() {
 							var xhr = new window.XMLHttpRequest();
@@ -2803,8 +2968,8 @@ var ct_ready_map_analysis = function() {
 						processData: false,
 						success: function (data) {
 							console.log(data);
-							if(data.result != undefined) {
-								if(data.result == "uploaded") {
+							if(data['status'] != undefined) {
+								if(data['status'] == true) {
 									alert('Phenotype ' + phenotype_name + ' overlaps adjusted uploaded to workspace')
 									// $('#' + status_container).html('<br /><div style="padding: 5px; border-radius: 3px; background-color: #fffd9c;">Successfully uploaded! Please refresh workflow until it appears in the select list</div>');
 									// Refresh the history files by reloading the entire submit form
@@ -2928,20 +3093,21 @@ var ct_ready_map_analysis = function() {
 
 						// Upload to history
 						var formData = new FormData();
-						formData.append('galaxy_id', cartograplant.galaxy_id);
-						formData.append('workflow_id', workflow_id);
-						formData.append('history_id', cartograplant.history_id);
+						//formData.append('galaxy_id', cartograplant.galaxy_id);
+						//formData.append('workflow_id', workflow_id);
+						//formData.append('history_id', cartograplant.history_id);
 						// var file_upload_element = document.getElementById(file_id);
 						formData.append('raw_data', csv_data);
-						formData.append('file_name', 'AN' + cartograplant.current_analysis_id + '_PHENOVER' + phenotype_name + '_all-overlaps.csv');
-						
+						formData.append('file_name', 'AN' + cartograplant.current_analysis_id + '_PHENOVER_' + phenotype_name + '_all-overlaps.csv');
+						formData.append('workspace_name', $('#nextflow-create-analysis-select-history').val());
 						if(cartograplant.history_id == null) {
 							alert('Cannot upload a file without selecting a workspace to store the file, please visit the Begin tab to select or create a workspace');
 							return;
 						}
 				
 						
-						var url = Drupal.settings.base_url + "/cartogratree_uianalysis/upload_file_raw_data_to_history";
+						// var url = Drupal.settings.base_url + "/cartogratree_uianalysis/upload_file_raw_data_to_history";
+						var url = Drupal.settings.base_url + "/cartogratree_uianalysis/upload_file_raw_data_to_nextflow_workspace";
 						$.ajax({
 							xhr: function() {
 								var xhr = new window.XMLHttpRequest();
@@ -2970,8 +3136,8 @@ var ct_ready_map_analysis = function() {
 							processData: false,
 							success: function (data) {
 								console.log(data);
-								if(data.result != undefined) {
-									if(data.result == "uploaded") {
+								if(data['status'] != undefined) {
+									if(data['status'] == true) {
 										alert('Phenotype '  + phenotype_name + ' overlaps uploaded to workspace')
 										// $('#' + status_container).html('<br /><div style="padding: 5px; border-radius: 3px; background-color: #fffd9c;">Successfully uploaded! Please refresh workflow until it appears in the select list</div>');
 										// Refresh the history files by reloading the entire submit form
@@ -3359,6 +3525,7 @@ var ct_ready_map_analysis = function() {
 	/**
 	 * On clicking phenotype checkbox from phenotype / traits tab, perform function
 	 */
+	$(document).off('click', '.trait_select_checkbox');
 	$(document).on('click', '.trait_select_checkbox', function() {
 		// alert('click detected');
 		console.log($(this)[0]);
@@ -3749,6 +3916,7 @@ var ct_ready_map_analysis = function() {
 	});
 
 
+	$('body').off('click', '#nextflow-population-structure-button-generate-popstruct');
 	$('body').on('click', '#nextflow-population-structure-button-generate-popstruct', function() {
 		// Perform the nextflow population structure
 		$('#nextflow-population-structure-workflow .status_output').html('<i class="fa-solid fa-sync fa-spin"></i> Running Nextflow Population Structure...');
@@ -3766,6 +3934,8 @@ var ct_ready_map_analysis = function() {
 			url: Drupal.settings.base_url + '/cartogratree/api/v2/popstruct/nextflow_workflow',
 			method: 'POST',
 			data: {
+				user_id: Drupal.settings.user.user_id,
+				workspace_name: $('#nextflow-create-analysis-select-history').val(),
 				properties: JSON.stringify(properties),
 				analysis_id: cartograplant.current_analysis_id
 			},
@@ -3829,8 +3999,12 @@ var ct_ready_map_analysis = function() {
 							default_value = property_data['default'];
 						}
 						if (property_data['format'] == 'file-path') {
+							// $('#nextflow-population-structure-workflow .property[data-property-name="' + property_name + '"] .property_form_field_container')
+							// .append('<select class="' + property_name + ' property_form_field"></select>')
+
 							$('#nextflow-population-structure-workflow .property[data-property-name="' + property_name + '"] .property_form_field_container')
-							.append('<select class="' + property_name + ' property_form_field"></select>')
+							.append(nextflow_workflow_files_select('', property_name, 'nextflow_gwas_property property_form_field ' + property_name))
+							// nextflow_workflow_files_select('', property_name, 'nextflow_gwas_property property_form_field');
 							var detected_studies = Object.keys(cartograplant.detected_studies);
 							console.log('detected_studies', detected_studies);
 							for (var ds_i = 0; ds_i < detected_studies.length; ds_i++) {
@@ -3989,7 +4163,10 @@ var ct_ready_map_analysis = function() {
 			success: function(data) {
 				for (var i = 0; i < data.length; i++) {
 					html += '<option value="' + data[i] + '">';
-					html += data[i];
+					// file_location_parts
+					var file_location_parts = data[i].split('/');
+					var filename = file_location_parts[file_location_parts.length - 1];
+					html += filename;
 					html += '</option>';
 				}
 			}
@@ -3998,6 +4175,58 @@ var ct_ready_map_analysis = function() {
 		html += '</div>';
 		return html;
 	}
+
+
+	$('body').off('click', '.gwas_button_run_step');
+	$('body').on('click', '.gwas_button_run_step', function() {
+		console.log('GWAS Run Step button clicked');
+		var vis_file = $(this).attr('data-vis-file');
+		console.log('VIS FILE:' + vis_file);
+		// Get flags from the main form (not the models)
+		var flags = {};
+		var form_field_elements = $('#nextflow_gwas_options_main .property_form_field');
+		for (var i = 0; i < form_field_elements.length; i++) {
+			var form_field_element = $(form_field_elements[i]);
+			var flag_name = $(form_field_element).attr('data-input-name');
+			var flag_value = $(form_field_element).val();
+			flags[flag_name] = flag_value;
+		}
+
+		// Get flags from the step form
+		var form_field_elements = $(this).closest('table').find('.property_form_field');
+		for (var i = 0; i < form_field_elements.length; i++) {
+			var form_field_element = $(form_field_elements[i]);
+			var flag_name = $(form_field_element).attr('data-input-name');
+			var flag_value = $(form_field_element).val();
+			flags[flag_name] = flag_value;
+		}
+
+		var url = Drupal.settings.base_url + '/cartogratree/api/v2/gwas/step_execution';
+		$('#nextflow-gwas-results').html('<i class="fa-solid fa-sync fa-spin"></i> Performing GWAS processing...');
+		$.ajax({
+			url: url,
+			method: 'POST',
+			data: {
+				workspace_name: $('#nextflow-create-analysis-select-history').val(),
+				user_id: Drupal.settings.user.user_id,
+				analysis_id: cartograplant.current_analysis_id,
+				flags: JSON.stringify(flags),
+			},
+			success: function(data) {
+				console.log('gwas response', data);
+				$('#nextflow-gwas-results').html('Finished!');
+				var workspace_name = $('#nextflow-create-analysis-select-history').val();
+				var vis_file_url = Drupal.settings.base_url + '/cartogratree_uianalysis/nextflow_download_workspace_file/' + workspace_name + '/' + vis_file;
+				$('.gwas_vis_container').html('<img style="width: 100%;" src="' + vis_file_url + '" />');
+			},
+			error: function (err) {
+				$('#nextflow-gwas-results').html('An error occurred during processing of GWAS: ' + JSON.stringify(err));
+			}
+
+		});
+		console.log('Flags', flags);
+		// $('#nextflow-gwas-flags').html(JSON.stringify(flags));
+	});
 
 
 	// When the analysis section tab is clicked in the Analysis popup window
@@ -4020,23 +4249,28 @@ var ct_ready_map_analysis = function() {
 			var model_data = data['definitions']['input_output_options']['properties']['model']['options'][model];
 			console.log('model_data', model_data);
 			var html = '';
-			html += '<table>';
+			
 			if (typeof model_data === 'object') {
 				var steps = model_data['steps'];
 				console.log('steps', steps);
 				var steps_keys = Object.keys(steps);
 				console.log('steps_keys', steps_keys);
 				for (var sk_i = 0; sk_i < steps_keys.length; sk_i++) {
+					html += '<table>';
 					var step_key = steps_keys[sk_i];
 					var step_prefix = steps[step_key];
 					console.log('step_prefix', step_prefix);
 					var step_ui = data['definitions'][step_prefix + '_options'];
 					var step_properties = step_ui['properties'];
 					var step_properties_keys = Object.keys(step_properties);
+					html += '<tr>';
+					html += '<td class="gwas_step" style="padding-bottom: 10px;"><img style="height: 16px;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiYAAAAAXNSR0IArs4c6QAAAaxJREFUWEftl+1RwzAMhtVNYBJgEmASYBJgEmAS2AT6cBEoiSNLqdLrj/qu117qj8ev9MrOTk6s7U6MR85Ak4jcicjF/tmjPq9Q6NoJ+5f5j4X5XIkIY/g941gDxERMeDt8V6ThH0cGCHkfJjurgGGOFBCKPBeq0dpEGOgYMCmF3jZWJpXUWJGc2brhxMue7QnVZ5DkRUQ+hr44T+0dHC4hoJ46CsH3oe5jjvueQqhjC5f2ZzcMfi8A0TmfepV6KVw6sNp5N8MGfwFbhbEFhCpIS4WmJrXUi+bMtN+IIQJklYkmehSO0KPQ/FCbHIK6sE24LWrSKH+WQsbz733SWjv2XBdVxPYb2T3istch+zM1KQM2U8dTCEX00nQ0dTwgu1PCV92a6kSAqMLYvLKNKrNbAxqrVodrZvMsUGW4ujC9kFW6a3Q8ePH37tQcExRDGjWDj/eG0VrHzZfWAA/I5o/KPX3baJ1pejVhjH0NChkjCuTtVKHSi2cVwu7YnrZYN0LbTnTyFLKHqV4/ElOv6+oB2Vtj2CXrMP5HeUC2BmXecA9iOtpCUcozUE+pH044UCXaTAPGAAAAAElFTkSuQmCC"/> Step ' + (sk_i + 1) + ' - '  + step_prefix.toUpperCase() + '</td><td></td>';
+					html += '</tr>';
 					for (var spk_i = 0; spk_i < step_properties_keys.length; spk_i++) {
 						var step_property_key = step_properties_keys[spk_i];
 						var step_property_object = step_properties[step_property_key];
 						var step_property_type = step_property_object['type'];
+						// var step_property_format = step_property_object['format'];
 						var step_property_description = step_property_object['description'];
 						var step_property_default_value = '';
 						if (step_property_object.hasOwnProperty('default')) {
@@ -4049,12 +4283,12 @@ var ct_ready_map_analysis = function() {
 									html += '<tr>';
 									html += '<td style="padding-bottom: 10px; text-transform: capitalize;">' + step_property_description + '</td>';
 									html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
-									html += '<select data-input-name="' + step_property_key + '">';
+									html += '<select class="property_form_field" data-input-name="' + step_property_key + '">';
 									var options = step_property_object['options'];
 									var options_keys = Object.keys(options);
 									for (var o_i = 0; o_i < options_keys.length; o_i++) {
 										var option_key = options_keys[o_i];
-										html += '<option value="">';
+										html += '<option value="' + option_key + '">';
 										html += options[option_key];
 										html += '</option>';
 									}
@@ -4062,12 +4296,22 @@ var ct_ready_map_analysis = function() {
 									html += '</td>';
 									html += '</tr>';
 								}
+								else if (step_property_object.hasOwnProperty('format')) {
+									if (step_property_object['format'] == 'file-path') {
+										html += '<tr>';
+										html += '<td style="padding-bottom: 10px; text-transform: capitalize;">' + step_property_description + '</td>';
+										html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
+										html += nextflow_workflow_files_select('', step_property_key, 'nextflow_gwas_step_property property_form_field');
+										html += '</td>';
+										html += '</tr>';
+									}
+								}
 								else {
 									// input field
 									html += '<tr>';
 									html += '<td style="padding-bottom: 10px; text-transform: capitalize;">' + step_property_description + '</td>';
 									html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
-									html += '<input type="text" value="' + step_property_default_value + '" data-input-name="' + step_property_key +'" />';
+									html += '<input class="property_form_field" type="text" value="' + step_property_default_value + '" data-input-name="' + step_property_key +'" />';
 									html += '</td>';
 									html += '</tr>';
 								}
@@ -4076,7 +4320,7 @@ var ct_ready_map_analysis = function() {
 								html += '<tr>';
 								html += '<td style="padding-bottom: 10px; text-transform: capitalize;">' + step_property_description + '</td>';
 								html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
-								html += '<input type="text" value="' + step_property_default_value + '" data-input-name="' + step_property_key +'" />';
+								html += '<input class="property_form_field" type="text" value="' + step_property_default_value + '" data-input-name="' + step_property_key +'" />';
 								html += '</td>';
 								html += '</tr>';
 								break;
@@ -4084,22 +4328,33 @@ var ct_ready_map_analysis = function() {
 								html += '<tr>';
 								html += '<td style="padding-bottom: 10px; text-transform: capitalize;">' + step_property_description + '</td>';
 								html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
-								html += '<input type="text" value="' + step_property_default_value + '" data-input-name="' + step_property_key +'" />';
+								html += '<input class="property_form_field" type="text" value="' + step_property_default_value + '" data-input-name="' + step_property_key +'" />';
 								html += '</td>';
 								html += '</tr>';
 								break;
 						}
 					}
+					html += '<tr>';
+					var data_vis_file = '';
+					if (sk_i == step_properties_keys.length - 1) {
+						data_vis_file = 'gwasVis.png';
+					}
+					html += '<td><button class="btn btn-primary gwas_button_run_step" data-vis-file="' + data_vis_file + '" style="margin-bottom: 10px;">Run step</button></td><td></td>';
+					html += '</tr>';
+					html += '</table>';
 				}
+				html += '<div class="gwas_vis_container"></div>';
 			}
 			else {
+				html += '<table>';
 				html += '<tr>';
 				html += '<td><i>No options available for this model</i></td>';
 				html += '</tr>';
+				html += '</table>';
 			}
-			html += '</table>';
 			$('#nextflow-gwas-interface-model-options').html(html);
 		});
+
 
 
 		// Load Nextflow GWAS UI elements
@@ -4127,7 +4382,7 @@ var ct_ready_map_analysis = function() {
 								interface_html += '<tr>';
 								interface_html += '<td style="padding-bottom: 10px; text-transform: capitalize;">' + input_properties[property_name]['description'] + '</td>';
 								interface_html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
-								interface_html += nextflow_workflow_files_select('', property_name, 'nextflow_gwas_property');
+								interface_html += nextflow_workflow_files_select('', property_name, 'nextflow_gwas_property property_form_field');
 								interface_html += '</td>';
 								interface_html += '</tr>';
 							}
@@ -4136,7 +4391,7 @@ var ct_ready_map_analysis = function() {
 								interface_html += '<td style="padding-bottom: 10px; text-transform: capitalize;">' + input_properties[property_name]['description'] + '</td>';
 								interface_html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
 								// interface_html += '<input type="text" data-input-name="' + property_name + '" />'
-								interface_html += '<select data-input-name="' + property_name + '">';
+								interface_html += '<select class="property_form_field" data-input-name="' + property_name + '">';
 								var property_options_keys = Object.keys(property_options);
 								console.log('property_options_keys', property_options_keys);
 								for (var ok_i = 0; ok_i < property_options_keys.length; ok_i++) {
@@ -4400,12 +4655,14 @@ var ct_ready_map_analysis = function() {
 					div += '<div style="display: flex;"></div>';
 					div += '<div style="margin-bottom: 5px;">';
 					// id, history_id, dataset_id
-					div += '<button style="display: inline-block; vertical-align: top;" class="btn btn-danger" id="nextflow-manage-workspace-files-delete" data-filename="' + data[i] + '" data-toggle="tooltip" title="Delete"><i class="fa fa-trash" aria-hidden="true"></i></button>';
-					div += '<button style="display: inline-block; vertical-align: top;" class="btn btn-info" id="nextflow-manage-workspace-file-download" data-toggle="tooltip" title="Download"><a href="' + Drupal.settings.base_url + '/cartogratree_uianalysis/nextflow_download_workspace_file/' +  workspace_name + '/' + data[i] + '"><i class="fa fa-download" aria-hidden="true"></i></a></button>';
+					var file_location_parts = data[i].split('/');
+					var filename = file_location_parts[file_location_parts.length - 1];
+					div += '<button style="display: inline-block; vertical-align: top;" class="btn btn-danger" id="nextflow-manage-workspace-files-delete" data-filename="' + filename + '" data-toggle="tooltip" title="Delete"><i class="fa fa-trash" aria-hidden="true"></i></button>';
+					div += '<button style="display: inline-block; vertical-align: top;" class="btn btn-info" id="nextflow-manage-workspace-file-download" data-toggle="tooltip" title="Download"><a href="' + Drupal.settings.base_url + '/cartogratree_uianalysis/nextflow_download_workspace_file/' +  workspace_name + '/' + filename + '"><i class="fa fa-download" aria-hidden="true"></i></a></button>';
 					// <i class="fa fa-download" aria-hidden="true"></i>
 					// div += '<button class="btn btn-info" id="manage-history-contents-delete-' + history_item['dataset_id'] + '" style=""><i class="fa fa-download" aria-hidden="true"></i></button>';
 					
-					div += ' <div style="display: inline-block; vertical-align: top; width: 80%;"><a href="' + Drupal.settings.base_url + '/cartogratree_uianalysis/nextflow_download_workspace_file/' +  workspace_name + '/' + data[i] + '">' + data[i] + '</a></div>';
+					div += ' <div style="display: inline-block; vertical-align: top; width: 80%;"><a href="' + Drupal.settings.base_url + '/cartogratree_uianalysis/nextflow_download_workspace_file/' +  workspace_name + '/' + filename + '">' + filename + '</a></div>';
 					div += '</div>';
 				}
 				$('#nextflow-manage-workspace-contents').append(div);
@@ -4977,7 +5234,8 @@ var ct_ready_map_analysis = function() {
 	});
 
 
-	$('#analysis-retrieve-envdata-section-tab').click(function() {
+	$(document).off('click', '#analysis-retrieve-envdata-section-tab');
+	$(document).on('click', '#analysis-retrieve-envdata-section-tab', function() {
 		// window.alert("Nice");
 		if($('#analysis-retrieve-envdata-section-layers-list').html() == "") {
 			var url = Drupal.settings.base_url + "/cartogratree_uiapi/get_analysis_categories_list";
@@ -4992,7 +5250,9 @@ var ct_ready_map_analysis = function() {
 						item_html += "<div id='analysis_category_groups_" + data[i]['category_id'] + "'></div>";
 						$('#analysis-retrieve-envdata-section-layers-list').append(item_html);
 					}
+					$('#analysis-retrieve-envdata-section-layers-list .analysis_category_checkbox').click();
 				}
+
 			});
 		}
 		else {
@@ -5118,6 +5378,7 @@ var ct_ready_map_analysis = function() {
 						$('#analysis_category_' + category_id + '_groups_' + data[i]['group_id'] + '_search_box_container').hide();
 						$('#analysis_category_' + category_id + '_groups_' + data[i]['group_id'] + '_select_all').hide();
 					}
+					// $('#analysis-retrieve-envdata-section-layers-list .analysis_category_group_checkbox').click();
 
 				}
 			});				
@@ -5201,38 +5462,33 @@ var ct_ready_map_analysis = function() {
 						console.log('[map_analysis.js] layer_list_names',layer_list_names);
 						console.log('[map_analysis.js] Creating all layers checkbox lists for this grouping');
 						for(var k=0; k<layer_list_ids.length; k++)  {
+							var layer_id_k = layer_list_ids[k];
+
 							// var item_html = "<div style='padding-left: 5px;'><div style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪ </div><input id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + data[i]['layer_id'] + "_checkbox' class='analysis_category_groups_layer_checkbox' type='checkbox' /><div style='display: inline-block; color:#FFFFFF; background-color: #0984ec; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>layer</div>" + data[i]['title'] + "</div>";
 							// item_html += "<div style='padding-left: 10px;' id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + data[i]['layer_id'] + "'></div>";
 							var item_html = "<div class='property_container' style='padding-left: 5px;' layer_title='" + data[i]['title'] + "'>"
 							item_html += "<div class='env_layer_meta' style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪ </div>";
-							item_html += "<input id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_list_ids[k] + "_checkbox' class='analysis_category_groups_layer_checkbox env_layer_meta' type='checkbox' />";
+							item_html += "<input id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id_k + "_checkbox' class='analysis_category_groups_layer_checkbox env_layer_meta' type='checkbox' />";
 							item_html += "<div class='env_layer_meta' style='display: inline-block; color:#FFFFFF; background-color: #0984ec; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>layer</div>";
 							item_html += "<div class='env_layer_meta' style='display: inline-block;'>" + data[i]['title'] + "</div>";
 							item_html += "<div class='env_layer_meta' style='display: inline-block;'><img style='width: 16px;' src='" + loading_icon_src + "' /></div>";
-							item_html += "<div style='padding-left: 10px;' id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_list_ids[k] + "'></div>";
+							item_html += "<div style='padding-left: 10px;' id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id_k + "'></div>";
 							item_html += "</div>";							
 							$('#analysis_category_' + category_id + '_groups_' + group_id + '_layers').append(item_html);
 
-
-
-
 							// Click to open the layer to get the list of possible fields
 							console.log('[map_analysis.js] automated layer checkbox clicked');
-							$('#' + "analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_list_ids[k] + "_checkbox").click();
+							$('#' + "analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id_k + "_checkbox").click();
 						}
-
-
 						// $('#analysis_category_groups_' + category_id).fadeIn(500);
 					}
-          
 				}
 			});
-      			
 		}
 		else {
-      // hide search
-      $('#analysis_category_' + category_id + '_groups_' + group_id + '_search_box_container').hide();
-      $('#analysis_category_' + category_id + '_groups_' + group_id + '_select_all').hide();
+			// hide search
+			$('#analysis_category_' + category_id + '_groups_' + group_id + '_search_box_container').hide();
+			$('#analysis_category_' + category_id + '_groups_' + group_id + '_select_all').hide();
 
 			// clear the div
 			$('#analysis_category_' + category_id + '_groups_' + group_id + '_layers').html("");			
@@ -5326,10 +5582,18 @@ var ct_ready_map_analysis = function() {
 												layer_title_cleaned_up = layer_title_dash_parts[0];
 											}
 
+											// Check if this layer is a layer that has been enabled on the map by using LayersState
+											var layer_settings_object = cartograplant['findLayerInLayersState'](layer_id);
+											// Checkbox_state will be used in the checkbox input field to make it checked or not
+											var checkbox_state = '';
+											if (layer_settings_object != undefined) {
+												console.log('[LAYER IS CHECKED]');
+												checkbox_state = 'checked';
+											}
 
 											// Create a checkbox element for this key / property
 											// var item_html = "<div style='padding-left: 5px;'><div style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪</div><input id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id + "_property_" + i + "_checkbox' class='analysis_category_groups_layer_property_checkbox' type='checkbox' data-value='" + key_name + "' /><div style='display: inline-block; color:#FFFFFF; background-color: #12ae68; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>property</div>" + key_name +  "</div>";
-											var item_html = "<div style='padding-left: 5px;'><div style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪</div><input id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id + "_property_" + i + "_checkbox' class='analysis_category_groups_layer_property_checkbox' type='checkbox' data-value='" + key_name + "' /><div style='display: inline-block; color:#FFFFFF; background-color: #12ae68; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>property</div>" + layer_title_cleaned_up +  "</div>";
+											var item_html = "<div style='padding-left: 5px;'><div style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪</div><input id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id + "_property_" + i + "_checkbox' class='analysis_category_groups_layer_property_checkbox' type='checkbox' " + checkbox_state + " data-value='" + key_name + "' /><div style='display: inline-block; color:#FFFFFF; background-color: #12ae68; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>property</div>" + layer_title_cleaned_up +  "</div>";
 											if (key_name_original != undefined && key_name_original != "") {
 												item_html += "<div style='display: inline-block; font-size: 9px; padding: 3px; margin-left: 92px;'>Variable</div>"
 												item_html += "<div style='display: inline-block; font-size: 9px; margin-right: 20px;'>" + key_name_original + "</div>";
@@ -6205,9 +6469,9 @@ var ct_ready_map_analysis = function() {
 							// Push to csv_data_full (all columns) to galaxy history
 							// Upload to history / workspace
 							var formData = new FormData();
-							formData.append('galaxy_id', cartograplant.galaxy_id);
-							formData.append('workflow_id', workflow_id);
-							formData.append('history_id', cartograplant.history_id);
+							// formData.append('galaxy_id', cartograplant.galaxy_id);
+							// formData.append('workflow_id', workflow_id);
+							// formData.append('history_id', cartograplant.history_id);
 							// var file_upload_element = document.getElementById(file_id);
 							formData.append('raw_data', csv_data_full);
 							var env_property_text_list = "";
@@ -6223,14 +6487,17 @@ var ct_ready_map_analysis = function() {
 								env_property_text_list = 'Numerous Properties';
 							}
 							formData.append('file_name', 'AN' + cartograplant.current_analysis_id + '_ENVDATA_' + env_property_text_list + '.csv');
-							
+							formData.append('workspace_name', $('#nextflow-create-analysis-select-history').val());
 							if(cartograplant.history_id == null) {
 								alert('Cannot upload a file without selecting a workspace to store the file, please visit the Begin tab to select or create a workspace');
 								return;
 							}
 					
 							
-							var url = Drupal.settings.base_url + "/cartogratree_uianalysis/upload_file_raw_data_to_history";
+							// [RISH] 2025/1/2 - Changed the original endpoint for galaxy
+							// var url = Drupal.settings.base_url + "/cartogratree_uianalysis/upload_file_raw_data_to_history";
+							// [RISH] 2025/1/2 - New endpoint to work with nextflow workspace
+							var url = Drupal.settings.base_url + "/cartogratree_uianalysis/upload_file_raw_data_to_nextflow_workspace";
 							$.ajax({
 								xhr: function() {
 									var xhr = new window.XMLHttpRequest();
@@ -6259,8 +6526,8 @@ var ct_ready_map_analysis = function() {
 								processData: false,
 								success: function (data) {
 									console.log(data);
-									if(data.result != undefined) {
-										if(data.result == "uploaded") {
+									if(data['status'] != undefined) {
+										if(data['status'] == true) {
 											alert('Environmental data uploaded to workspace!');
 											// $('#' + status_container).html('<br /><div style="padding: 5px; border-radius: 3px; background-color: #fffd9c;">Successfully uploaded! Please refresh workflow until it appears in the select list</div>');
 											// Refresh the history files by reloading the entire submit form

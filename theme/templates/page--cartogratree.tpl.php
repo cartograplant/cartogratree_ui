@@ -291,7 +291,7 @@
 						<a id="analysis-popstruct-section-tab" class="nav-link analysis-nav-tab analysis-popstruct-section-tab" data-toggle="tab" href="#analysis-popstruct-section">Population Structure</a>
 					</li>
 					<li class="nav-item">
-						<a id='analysis-retrieve-envdata-section-tab' class="nav-link analysis-nav-tab analysis-retrieve-envdata-section" data-toggle="tab" href="#analysis-retrieve-envdata-section">Add environmental data</a>
+						<a id='analysis-retrieve-envdata-section-tab' class="nav-link analysis-nav-tab analysis-retrieve-envdata-section" data-toggle="tab" href="#analysis-retrieve-envdata-section">Add Environmental Data</a>
 					</li>
 					<li class="nav-item">
 						<a id='analysis-create-analysis-section-tab' class="nav-link analysis-nav-tab analysis-create-analysis-section" data-toggle="tab" href="#analysis-create-analysis-section">Run Analysis</a>
@@ -481,11 +481,11 @@
 										<td style="width: 100%; vertical-align: top;">
 											<div id="analysis-overlapping-genotypes-detected-studies"></div>
 											<div id="analysis-overlapping-genotypes-across-studies"></div>
-											<hr />
 											<div id="analysis-overlapping-genotypes-upset-1" class="d-inline-block"></div>
 											<div id="analysis-overlapping-genotypes-upset-2-status" class="d-inline-block"></div>
 											<div id="analysis-overlapping-genotypes-upset-2" class="d-inline-block"></div>
 											<div id="analysis-overlapping-genotypes-metadata"></div>
+											<div id="analysis-overlapping-genotypes-refgenome"></div>
 											<div id="analysis-overlapping-genotypes-summary-insights"></div>
 											
 											<!--
@@ -650,8 +650,10 @@
 								<div><h4>Nextflow - GWAS Workflow</h4></div>
 								<div id="nextflow-gwas-interface"></div>
 								<div id="nextflow-gwas-results"></div>
+								<div id="nextflow-gwas-flags"></div>
 							</div>
 							<!-- <div style="margin-bottom: 15px;">Note: A workspace must be used to store your input data in case you ever need to rerun the workflow</div>-->
+							<!--
 							<div style="display: flex; margin-bottom: 10px;">
 								<div style="width: 15%;">Step 1 - Select workflow</div>
 								<div style="width: 50%;"><select id="create-analysis-select-workflow"></select></div>
@@ -666,6 +668,7 @@
 								<div style="width: 15%;">Step 2 - Setup analysis</div><div id="create-analysis-workflow-submit-form" style="width: 75%;"></div>
 							</div>							
 							<hr />
+							-->
 							<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>																			
 						</div>
 

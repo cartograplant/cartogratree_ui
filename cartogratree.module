@@ -324,6 +324,20 @@ function cartogratree_menu()
     );
 
 
+    $items['cartogratree_uianalysis/cartogratree_analysisapi_lookup_study_ref_genome/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: lookup study ref genome',
+        'title' => 'Cartogratree ANALYSIS API: lookup study ref genome',
+        'page callback' => 'cartogratree_analysisapi_lookup_study_ref_genome',
+        'page arguments' => array(
+            2,
+        ),
+        'file' => 'includes/cartogratree.analysis.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
+
     $items['cartogratree_uianalysis/get_all_nextflow_workspaces'] = array(
         'description' => 'Cartogratree ANALYSIS API: get all nextflow workspaces for user',
         'title' => 'Cartogratree ANALYSIS API: get all nextflow workspaces for user',
@@ -401,6 +415,16 @@ function cartogratree_menu()
         ),
     );
 
+    $items['cartogratree_uianalysis/upload_file_raw_data_to_nextflow_workspace'] = array(
+        'description' => 'Cartogratree ANALYSIS API: upload_file_raw_data_to_nextflow_workspace',
+        'title' => 'Cartogratree ANALYSIS API: upload file to history',
+        'page callback' => 'cartogratree_analysisapi_upload_file_raw_data_to_nextflow_workspace',
+        'page arguments' => array(),
+        'file' => 'includes/cartogratree.analysis.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
 
     $items['cartogratree_uianalysis/initiate_job'] = array(
         'description' => 'Cartogratree ANALYSIS API: initiate job',

@@ -1,5 +1,7 @@
 <?php
 
+
+
 function cartogratree_analysisapi_lookup_study_info($study_accession) {
     $results = chado_query("SELECT * FROM chado.tpps_study_summary WHERE accession = :study_accession LIMIT 1", [
         ':study_accession' => $study_accession
@@ -9,6 +11,28 @@ function cartogratree_analysisapi_lookup_study_info($study_accession) {
         $result = $row;
     }
     drupal_json_output($result);
+}
+
+function cartogratree_analysisapi_lookup_study_ref_genome($study_accession) {
+    include_once('/var/www/Drupal/sites/all/modules/TGDR/includes/submissions.inc');
+    $state = tpps_submission($study_accession)->getState();
+    $organism_count = $state['saved_values']['1']['organism']['number'];
+    $results = [];
+    $results['study_accession'] = $study_accession;
+    $results['ref_genomes'] = [];
+    $results['organism_names'] = [];
+    for ($i = 1; $i <= $organism_count; $i++) {
+        $organism_name = $state['saved_values']['1']['organism'][$i]['name'];
+        $results['organism_names'][] = $organism_name;
+        $ref_genome = $state['saved_values']['4']['organism-' . $i]['genotype']['ref-genome'];
+        $results['ref_genomes'][] = $ref_genome;
+    }
+
+    // DEBUG CODE
+    // print_r($organism_count);
+    //drupal_json_output($state);
+
+    drupal_json_output($results);
 }
 
 function cartogratree_analysisapi_get_all_galaxy_accounts() {
@@ -670,6 +694,32 @@ function cartogratree_analysisapi_upload_file_raw_data_to_history() {
     
 }
 
+function cartogratree_analysisapi_upload_file_raw_data_to_nextflow_workspace() {
+    global $user;
+
+    // GET FILE CONTENTS
+    $file_data = $_POST['raw_data'];
+    $file_name = $_POST['file_name'];
+    $workspace_name = $_POST['workspace_name'];
+    
+    $workspace_name = cartogratree_analysisui_convert_workspace_name($workspace_name);
+    $results = [];
+    $results['status'] = false;
+    $user_id = $user->uid;
+    $dir_workspace = '/isg/treegenes/cartograplant_analysis_workspaces/' . $user_id . '/' . $workspace_name;
+
+
+    $file = @file_put_contents($dir_workspace . '/' . time() . '-' . $file_name, $file_data);
+    if ($file === FALSE) {
+        $results['status'] = false;
+    }
+    else {
+        $results['status'] = true;
+    }
+
+    drupal_json_output($results); 
+}
+
 function cartogratree_analysisapi_initiate_job() {
     require_once (libraries_get_path('blend4php') . '/galaxy.inc');
 
@@ -1046,7 +1096,7 @@ function cartogratree_analysisapi_get_nextflow_workspace_files($workspace_name) 
     $items = scandir($dir_workspaces);
     foreach ($items as $item) {
         if (is_file($dir_workspaces . '/' . $item)) {
-            $results[] = $item;
+            $results[] = $dir_workspaces . '/' . $item;
         }
     }
     drupal_json_output($results);
