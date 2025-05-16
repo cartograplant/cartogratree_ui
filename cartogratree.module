@@ -570,6 +570,19 @@ function cartogratree_menu()
         ),
     );
 
+    $items['cartogratree_uiapi/vcf_files_indexed/%'] = array(
+        'description' => 'Cartogratree UI API: VCF Files Indexed',
+        'title' => 'Cartogratree UI API: VCF Files',
+        'page callback' => 'cartogratree_uiapi_get_vcf_studies_indexed',
+        'page arguments' => array(
+            2,
+        ),
+        'file' => 'includes/cartogratree.uiapi.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
 
     $items['cartogratree_uiapi/study_files/%'] = array(
         'description' => 'Cartogratree UI API: Study Files',
@@ -1155,11 +1168,25 @@ function cartogratree_preprocess_page(&$variables)
         //     unset($fields_data['markers'][$key]);
         // }
         if (($key = array_search('genetic_marker', $fields_data['markers'])) !== false) {
-            unset($fields_data['markers'][$key]);
+            try {
+                if (is_array($fields_data['markers'])) {
+                    unset($fields_data['markers'][$key]);
+                }
+                
+            } catch (Exception $ex) {
+            
+            }
+            // unset($fields_data['markers'][$key]);
         }
         if (($key = array_search('microsatellite', $fields_data['markers'])) !== false) {
-            unset($fields_data['markers'][$key]);
+            try {
+                if (is_array($fields_data['markers'])) {
+                    unset($fields_data['markers'][$key]);
+                }
+            } catch (Exception $ex) {
+            }
         }
+
         // if (($key = array_search('Indel Mutation', $fields_data['marker_type'])) !== false) {
         //     unset($fields_data['marker_type'][$key]);
         // }
@@ -1178,6 +1205,7 @@ function cartogratree_preprocess_page(&$variables)
         if (user_is_logged_in()) {
             $user_info['email'] = $user->mail;
             $user_info['user_id'] = $user->uid;
+            $user_info['cpapi_token'] = base64_encode($user->pass);
             $variables['username'] = $user->name;
             $variables['email'] = $user->mail;
             $variables['token'] = cartogratree_get_user_key($user->uid);

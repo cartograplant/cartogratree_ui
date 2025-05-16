@@ -310,6 +310,52 @@ function cartogratree_uiapi_get_vcf_studies($tgdr_numbers_csv) {
     drupal_json_output($return_results);
 }
 
+function cartogratree_uiapi_get_vcf_studies_indexed($tgdr_numbers_csv) {
+    $tgdr_numbers = explode(',',$tgdr_numbers_csv);
+    $tgdr_count = count($tgdr_numbers);
+    $return_results = array();
+    $where_clause = '';
+    $study_count = 0;
+    foreach($tgdr_numbers as $tgdr_number) {
+        // Find per study submission values
+        if ($study_count > 0) {
+            $where_clause .= ' OR ';
+        }
+        $where_clause .= "tgdr_accession LIKE '" . $tgdr_number . "'";
+        $study_count = $study_count + 1;
+    }
+
+    $return_results['study_count'] = $study_count;
+    $sql = 'SELECT * FROM chado.vcf_locations WHERE (' . $where_clause . ') ORDER BY analysis_name DESC';
+    // echo $sql;
+    $results_data = chado_query($sql, []);
+    $analysis_name = "";
+    $found_counter = 0;
+    // This goes through the results where the analysis_name is in descending order
+    foreach ($results_data as $row) {
+        if ($row->analysis_name != $analysis_name) {
+            $analysis_name = $row->analysis_name;
+            $found_counter = 1;
+            $return_results['vcf_locations'] = [];
+            $return_results['vcf_locations'][$row->tgdr_accession] = $row->vcf_path;
+        }
+        else {
+            $found_counter = $found_counter + 1;
+            $return_results['vcf_locations'][$row->tgdr_accession] = $row->vcf_path;
+        }
+        if ($found_counter == $study_count) {
+            $return_results['shared_analysis'] = $analysis_name;
+            $return_results['success'] = true;
+            break; // exit the for
+        }
+    }
+    if (!isset($return_results['success'])) {
+        $return_results['shared_analysis'] = "";
+        $return_results['success'] = false;
+    }
+    drupal_json_output($return_results);
+}
+
 function cartogratree_uiapi_get_study_files($tgdr_number) {
     $results_data = chado_query('SELECT * FROM tpps_submission WHERE accession ILIKE :accession LIMIT 1',
         array(

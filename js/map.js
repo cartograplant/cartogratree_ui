@@ -53,7 +53,7 @@ var ct_ready_mapjs = function() {
 	cartograplant.tree_count_last_filter = 0;
 
 	// This variable has the dataset names and corresponding source_ids
-	var datasetKey = {"treegenes": 0, "treesnap": 1, "datadryad": 2, 'wfid': 4, 'bien': 3, 'evome': 5};
+	var datasetKey = {"treegenes": 0, "treesnap": 1, "datadryad": 2, 'wfid': 4, 'bien': 3, 'evome': 5, 'mamaeab': 6};
 	
 	var dynamicDatasetLayersKeys = ['wfid'];
 
@@ -2811,7 +2811,7 @@ var ct_ready_mapjs = function() {
 	function getAllTrees(handler) {
 		console.log('getAllTrees()');
 		$.ajax({
-			url: Drupal.settings.ct_nodejs_api + "/v2/trees",
+			url: Drupal.settings.ct_nodejs_api + "/v2/trees?cpapi_token=" + Drupal.settings.user.cpapi_token,
 			dataType: "json",		
 			async: true,
 			xhr: xhr_progress,
@@ -3357,7 +3357,7 @@ var ct_ready_mapjs = function() {
 	
 	
 	
-	function updateTreeImgs(imgs, species) {
+	async function updateTreeImgs(imgs, species) {
 		var all_imgs = imgs;
 		console.log('all_imgs', all_imgs);
 		imgs = all_imgs['images'];
@@ -3388,36 +3388,41 @@ var ct_ready_mapjs = function() {
 			console.log('updateTreeImgs');
 		}
 		if (imgs == undefined || imgs.length == 0) {
-			var speciesSplit = species.split(" ");
-			var treeImg = speciesSplit[0].toLowerCase() + "_" + speciesSplit[1] + ".jpg";
-			var imgFileName = Drupal.settings.basePath + "sites/default/files/treepictures/" + treeImg;
-			// hide arrows
-			$('#tree-img-carousel .carousel-control-prev').hide();
-			$('#tree-img-carousel .carousel-control-next').hide();
-			$.ajax({
-				url:imgFileName,
-				type:'HEAD',
-				error:function() {
-					$("#tree-img-carousel").css('display','none');
-					if(debug) {
-						console.log('Could not find image:' + imgFileName);
-					}
-					$("#expand-image-view-button").hide();
-				},
-				success: function() {
-					$("#expand-image-view-button").show();
-					$("#tree-img-carousel").css('display','block');
-					if(debug) {
-						console.log('Found image:' + imgFileName);
-					}
-					$("#tree-img-carousel .carousel-indicators").eq(0).append("<li data-target='#tree-img-carousel' data-slide-to='0'></li>");
-					$("#tree-img-carousel .carousel-inner").eq(0).append("<div class='carousel-item tree-img'><img onclick=\"show_full_image('" + imgFileName + "');\" class='d-block w-100' id='tree-view-img0' src='" + imgFileName + "' alt='First image'></div>");
-					$("#tree-imgs-container").append("<div class='row'><div class='col img-full'><img onclick=\"show_full_image('" + imgFileName + "');\" src='" + imgFileName + "'/></div></div>");					
+			try {
+				var speciesSplit = species.split(" ");
+				var treeImg = speciesSplit[0].toLowerCase() + "_" + speciesSplit[1] + ".jpg";
+				var imgFileName = Drupal.settings.basePath + "sites/default/files/treepictures/" + treeImg;
+				// hide arrows
+				$('#tree-img-carousel .carousel-control-prev').hide();
+				$('#tree-img-carousel .carousel-control-next').hide();
+				$.ajax({
+					url:imgFileName,
+					type:'HEAD',
+					error:function() {
+						$("#tree-img-carousel").css('display','none');
+						if(debug) {
+							console.log('Could not find image:' + imgFileName);
+						}
+						$("#expand-image-view-button").hide();
+					},
+					success: function() {
+						$("#expand-image-view-button").show();
+						$("#tree-img-carousel").css('display','block');
+						if(debug) {
+							console.log('Found image:' + imgFileName);
+						}
+						$("#tree-img-carousel .carousel-indicators").eq(0).append("<li data-target='#tree-img-carousel' data-slide-to='0'></li>");
+						$("#tree-img-carousel .carousel-inner").eq(0).append("<div class='carousel-item tree-img'><img onclick=\"show_full_image('" + imgFileName + "');\" class='d-block w-100' id='tree-view-img0' src='" + imgFileName + "' alt='First image'></div>");
+						$("#tree-imgs-container").append("<div class='row'><div class='col img-full'><img onclick=\"show_full_image('" + imgFileName + "');\" src='" + imgFileName + "'/></div></div>");					
 
-					$(".carousel-item").first().addClass("active");
-					$(".carousel-indicators > li").first().addClass("active");
-				}
-			});
+						$(".carousel-item").first().addClass("active");
+						$(".carousel-indicators > li").first().addClass("active");
+					}
+				});
+			}
+			catch (err) {	
+				console.log('updateTreeImgs error', err);
+			}
 
 		}	
 		else {
@@ -3460,7 +3465,7 @@ var ct_ready_mapjs = function() {
 
 		// Get basic information about the tree
 		$.ajax({
-			url: Drupal.settings.ct_nodejs_api + "/v2/tree?api_key=" + Drupal.settings.ct_api + "&tree_acc=" + treeId,
+			url: Drupal.settings.ct_nodejs_api + "/v2/tree?api_key=" + Drupal.settings.ct_api + "&tree_acc=" + treeId + "&cpapi_token=" + Drupal.settings.user.cpapi_token,
 			dataType: "json",
 			success: function (data) {
 				console.log(data);
@@ -3904,7 +3909,7 @@ var ct_ready_mapjs = function() {
 	}
 
 
-	function renderTreeDetails(data) {
+	async function renderTreeDetails(data) {
 
 		$('#tree-coord-type').html('Approximate');
 		$('#tree-details .btn-primary[data-target="#tree-more-info"]').show();
@@ -3923,8 +3928,12 @@ var ct_ready_mapjs = function() {
 
 		console.log('tree source_id', data.source_id);
 		console.log('species', data.species);
+		$('.btn[data-target="#tree-more-info"]').parent().addClass("hidden");
+		$('.btn[data-target="#mama-project-more-info"]').parent().addClass("hidden");
+		// await updateTreeImgs([], data.species);
 		if (data.source_id == 1  || data.source_id == 5) {
 			// If treesnap tree, set the button label to Collection Info (Tree Popup window)
+			$('.btn[data-target="#tree-more-info"]').parent().removeClass("hidden");
 			$('.btn[data-target="#tree-more-info"]').html('Collection Info');
 			$('.add-all-study-plants').html('Add all collection plants');
 			sourceName = "TreeSnap";
@@ -3978,6 +3987,7 @@ var ct_ready_mapjs = function() {
 					url: Drupal.settings.ct_nodejs_api + "/v2/tree/treesnap?api_key=" + Drupal.settings.ct_api + "&tree_id=" + treeId,
 					dataType: "json",
 					async: false,
+					timeout: 4000,
 					success: function (tsData) {
 						console.log('treesnap-data', tsData);
 						$("#tree-submitter").text("Taken by: " + tsData.submitter);
@@ -4017,12 +4027,64 @@ var ct_ready_mapjs = function() {
 				updateTreeImgs(treeImgsStore[treeId], data.species);
 			}
 		}
+		// else for mama
+		else if (data.source_id == 6) {
+			updateTreeImgs([], data.species);
+			$('.btn[data-target="#mama-project-more-info"]').parent().removeClass("hidden");
+			$('.btn[data-target="#mama-project-more-info"]').html('Project Info');
+			$('#project-tree-id').html(treeId.toUpperCase());
+			
+			try {
+				// treeId = treeId.split("--")[1];	
+				console.log("TREE ID: " + treeId);
+				
+
+				$.ajax({
+					url: Drupal.settings.ct_nodejs_api + "/v2/trees/mama/get_tree_phenotypes?api_key=" + Drupal.settings.ct_api + "&tree_id=" + treeId,
+					method: 'GET',
+					success: function (data) {
+						$('#project-tree-species').html($('#tree-species').html());
+						console.log('phenotype data', data);
+						var html = "";
+						var imgs_html = "";
+						html += "<h2>Phenotypes</h2>";
+						html += "<table style='width: 100%;' id='more_info_phenotype_table'>";
+						html += "<tr>";
+						html += "<th style='width: 50%;'>Phenotype</th>";
+						html += "<th style='width: 50%;'>Value</th>";
+						html += "</tr>";
+						for (var i = 0; i<data.length; i++) {
+							var row = data[i];
+							if (row['value'].includes("https://anecdata.org")) {
+								imgs_html += '<div style="text-align: center; display: inline-block; margin-right: 20px; color: #589a60; font-weight: bold;">';
+								imgs_html += '<img src="' + row['value'] + '" style="width: 250px; height: 250px; border-radius: 4px;"/>';
+								imgs_html += '<div style="margin-top: -4px;padding-top: 10px;padding-bottom: 5px;background-color: #589a60;border-radius: 0px 0px 5px 5px;color: #FFFFFF;">' + row['name'].replaceAll('Add photo of ', '').replaceAll('if possible', '').replaceAll(',', '').replaceAll('.', '').toUpperCase() + '</div>';
+								imgs_html += '</div>';
+							}
+							else {
+								html += '<tr>';
+								html += '<td>' + row['name'] + '</td>';
+								html += '<td>' + row['value'] + '</td>';
+								html += '</tr>';
+							}
+						}
+						html += "</table>";
+						$('#project-info-phenotypes').html(html);
+						$('#project-info-phenotypes-images').html(imgs_html);
+					}
+				})
+			}
+			catch (err) {
+				console.log(err);
+			}
+		}
 		else {
 			// If not a treesnap tree, set the button label to Study Info (Tree Popup window)
+			$('.btn[data-target="#tree-more-info"]').parent().removeClass("hidden");
 			$('.btn[data-target="#tree-more-info"]').html('Study Info');
 			$('.add-all-study-plants').html('Add all study plants');
 			$("#treesnap-collection-container").addClass("hidden");
-			updateTreeImgs([], data.species);
+			// updateTreeImgs([], data.species);
 			/*
 			if(data.source_id == 2) {
 				sourceName = "Data Dryad";
@@ -4425,6 +4487,23 @@ var ct_ready_mapjs = function() {
 		//$("#tree-plant-group").text(data.subkingdom == null ? "Unidentified" : data.subkingdom);
 		$("#tree-species").text(data.species);
 
+		console.log('data.species', data.species);
+		console.log('TreeID', treeId);
+		if (data.species != null || data.species != undefined) {
+			if (data.species.includes("Fraxinus Fraxinus")) {
+				data.species = data.species.replace('Fraxinus Fraxinus', 'Fraxinus');
+				$("#tree-species").text(data.species);
+			}	
+		}
+		else {
+			if (treeId.includes("mama")) {
+				data.species = "Fraxinus sp."
+				$("#tree-species").text(data.species);
+			}
+		}
+
+		
+
 		// Lookup species information to populate the species-details-info modal
 		$('#species-details-info-title').html('<h2>' + data.species + ' overview' + '</h2>');
 		$.ajax({
@@ -4553,7 +4632,7 @@ var ct_ready_mapjs = function() {
 			if (searchTreeDataStore(treeId) == undefined) {
 				console.log("searchTreeDataStore function found an undefined tree with tree_id:" + treeId);
 				$.ajax({
-					url:  Drupal.settings.ct_nodejs_api + "/v2/tree?api_key=" + Drupal.settings.ct_api + "&tree_id=" + treeId,
+					url:  Drupal.settings.ct_nodejs_api + "/v2/tree?api_key=" + Drupal.settings.ct_api + "&tree_id=" + treeId + "&cpapi_token=" + Drupal.settings.user.cpapi_token,
 					dataType: "json",
 					timeout: 10000,
 					// async: false,
@@ -5751,7 +5830,7 @@ var ct_ready_mapjs = function() {
 				else { // cache does not exist, perform manual pull from CT API
 
 					ajax_requests['map_filtering'] = $.ajax({ 
-						url: Drupal.settings.ct_nodejs_api + "/v2/trees/q?api_key=" + Drupal.settings.ct_api, 
+						url: Drupal.settings.ct_nodejs_api + "/v2/trees/q?api_key=" + Drupal.settings.ct_api + "&cpapi_token=" + Drupal.settings.user['cpapi_token'],
 						type: "POST",
 						timeout: 120000,
 						//async: mapInit ? true : false,
@@ -6804,7 +6883,7 @@ var ct_ready_mapjs = function() {
 
 		if(source_ids_string != "") {
 			// perform query
-			var url = Drupal.settings.ct_nodejs_api + "/v2/fields/trees/dynamic?api_key=" + Drupal.settings.ct_api + "&sids=" + source_ids_string;
+			var url = Drupal.settings.ct_nodejs_api + "/v2/fields/trees/dynamic?api_key=" + Drupal.settings.ct_api + "&sids=" + source_ids_string + '&cpapi_token=' + Drupal.settings.user.cpapi_token;
 			console.log("Dynamic fields query url:", url);
 			$.ajax({
 				url: url,
@@ -7148,7 +7227,7 @@ var ct_ready_mapjs = function() {
 					*/
 					console.log('Loading ' + tree_id + ' asynchronously');
 					$.ajax({
-						url: Drupal.settings.ct_nodejs_api + "/v2/tree?api_key=" + Drupal.settings.ct_api + "&tree_id=" + tree_id,
+						url: Drupal.settings.ct_nodejs_api + "/v2/tree?api_key=" + Drupal.settings.ct_api + "&tree_id=" + tree_id + "&cpapi_token=" + Drupal.settings.user.cpapi_token,
 						dataType: "json",
 						async: true,
 						success: function (data) {
@@ -7241,6 +7320,7 @@ var ct_ready_mapjs = function() {
 				url: url,
 				dataType: "script",
 				async: false,
+				timeout: 4000,
 				success: function() {
 					console.log('[GOOD] Analysis scripts loaded');
 				},
@@ -7261,6 +7341,7 @@ var ct_ready_mapjs = function() {
 				url: url,
 				dataType: "script",
 				async: false,
+				timeout: 4000,
 				success: function() {
 					console.log('[GOOD] Venn script loaded');
 				},
@@ -7281,6 +7362,7 @@ var ct_ready_mapjs = function() {
 				url: url,
 				dataType: "script",
 				async: false,
+				timeout: 4000,
 				success: function() {
 					console.log('[GOOD] Scatterplot Basic script loaded');
 				},
@@ -7301,6 +7383,7 @@ var ct_ready_mapjs = function() {
 				url: url,
 				dataType: "script",
 				async: false,
+				timeout: 4000,
 				success: function() {
 					console.log('[GOOD] Interactive Histogram V5 script loaded');
 				},
@@ -7412,14 +7495,14 @@ var ct_ready_mapjs = function() {
 		console.log('studies', JSON.stringify(studies));
 
 		// Check if galaxy_id and history_id has been selected
-		if(cartograplant.galaxy_id == undefined && cartograplant.history_id == undefined) {
-			alert('You must choose a workspace before you can use genotype filtering workflows. Go to the Manage tab to set this up.')
-			return;
-		} 
-		if(cartograplant.history_id == null) {
-			alert('You must choose a workspace before you can use genotype filtering workflows. Go to the Manage tab to set this up.')
-			return;			
-		}
+		// if(cartograplant.galaxy_id == undefined && cartograplant.history_id == undefined) {
+		// 	alert('You must choose a workspace before you can use genotype filtering workflows. Go to the Manage tab to set this up.')
+		// 	return;
+		// } 
+		// if(cartograplant.history_id == null) {
+		// 	alert('You must choose a workspace before you can use genotype filtering workflows. Go to the Manage tab to set this up.')
+		// 	return;			
+		// }
 
 		var html = '<div style="float: left;" class="vcf_detection_loading"><!-- <img style="width: 48px; margin-top: 18px; margin-left: 15px; margin-right: 15px;" src="' + cartograplant.loading_icon_src + '"/> --></div>';
 		
@@ -7442,7 +7525,7 @@ var ct_ready_mapjs = function() {
 		
 
 		if (Object.keys(cartograplant['detected_studies']).length == 0) {
-			$('#analysis-filter-snp-vcf-detection').html('⚠️ You must set configure the Filter By Genotype tab before you can use this Filtering & Imputation section');
+			$('#analysis-filter-snp-vcf-detection').html('⚠️ You must configure the Filter By Genotype tab before you can use this Filtering & Imputation section');
 			return;
 		}
 
@@ -7450,37 +7533,43 @@ var ct_ready_mapjs = function() {
 		$('.vcf_detection_loading').fadeIn(500);
 
 		// Populate the snp_quality_workflow_select select list
-		var url = Drupal.settings.base_url + "/cartogratree_uianalysis/get_all_workflows_from_galaxy_account/" + cartograplant.galaxy_id;
-		$.ajax({
-			method: "GET",
-			url: url,
-			dataType: "json",
-			success: function (data) {
-				console.log('vcf_snp_quality_workflow_select', data);
-				data.sort((a,b)=> (a.workflow_name > b.workflow_name ? 1 : -1));
-				console.log('vcf_snp_quality_workflow_select sorted', data);
-				var snps_workflows_html = '';
+		// NO MORE GALAXY
+		// var url = Drupal.settings.base_url + "/cartogratree_uianalysis/get_all_workflows_from_galaxy_account/" + cartograplant.galaxy_id;
+		// $.ajax({
+		// 	method: "GET",
+		// 	url: url,
+		// 	dataType: "json",
+		// 	success: function (data) {
+		// 		console.log('vcf_snp_quality_workflow_select', data);
+		// 		data.sort((a,b)=> (a.workflow_name > b.workflow_name ? 1 : -1));
+		// 		console.log('vcf_snp_quality_workflow_select sorted', data);
+		// 		var snps_workflows_html = '';
 				
-				for(var i=0; i<data.length; i++) {
-					if(data[i].workflow_name.includes('SNP Quality Filtering Step') || data[i].workflow_name.includes('LinkImputeR')) {
-						snps_workflows_html = snps_workflows_html +  '<option value="' + data[i].workflow_id + '">' + data[i].workflow_name +  '</option>';
-					}
-				}
-				$('.vcf_snp_quality_workflow_select_div select').html(snps_workflows_html);
-			}
-		});			
+		// 		for(var i=0; i<data.length; i++) {
+		// 			if(data[i].workflow_name.includes('SNP Quality Filtering Step') || data[i].workflow_name.includes('LinkImputeR')) {
+		// 				snps_workflows_html = snps_workflows_html +  '<option value="' + data[i].workflow_id + '">' + data[i].workflow_name +  '</option>';
+		// 			}
+		// 		}
+		// 		$('.vcf_snp_quality_workflow_select_div select').html(snps_workflows_html);
+		// 	}
+		// });	
+				
 
 
 
 
 		// Process VCF files in studies
-		var vcf_files_ui_api_url = Drupal.settings.base_url + '/cartogratree_uiapi/vcf_files/' + Object.keys(cartograplant['detected_studies']).join(',');
+		// VERSION 1 which uses Form State lookups
+		// var vcf_files_ui_api_url = Drupal.settings.base_url + '/cartogratree_uiapi/vcf_files/' + Object.keys(cartograplant['detected_studies']).join(',');
+		// VERSION 2 which uses Gabe's vcf_locations table
+		var vcf_files_ui_api_url = Drupal.settings.base_url + '/cartogratree_uiapi/vcf_files_indexed/' + Object.keys(cartograplant['detected_studies']).join(',');
 		console.log('vcf_files_ui_api_url', vcf_files_ui_api_url);
 		$.ajax({
 			method: 'GET',
 			url: vcf_files_ui_api_url,
 			success: function(data) {
-				
+				var all_data = data;
+				data = data['vcf_locations'];
 				// Clear timers
 				var timers = cartograplant['generate_nextflow_variant_filtering_ui'];
 				var timers_keys = Object.keys(timers);
@@ -7502,23 +7591,52 @@ var ct_ready_mapjs = function() {
 					var vcf_info = data;
 					console.log('vcf_info', vcf_info);
 					var studies = Object.keys(vcf_info);
-					for (var studies_i = 0; studies_i < studies.length; studies_i++) {
-						cartograplant['generate_nextflow_variant_filtering_ui']({
-							study_accession: studies[studies_i],
-							vcf_location: vcf_info[studies[studies_i]]
-						});
-						// Create workspace symbolic links
+					// Version 1
+					// for (var studies_i = 0; studies_i < studies.length; studies_i++) {
+					// 	cartograplant['generate_nextflow_variant_filtering_ui']({
+					// 		study_accession: studies[studies_i],
+					// 		vcf_location: vcf_info[studies[studies_i]]
+					// 	});
+					// 	// Create workspace symbolic links
+					// 	var workspace_name = $('#nextflow-create-analysis-select-history').val();
+					// 	var nextflow_vcf_symlink_api_url = Drupal.settings.base_url + '/cartogratree_uianalysis/nextflow_symlink_workspace_vcf_file/' + workspace_name + '/' + studies[studies_i];
+					// 	console.log('nextflow_vcf_symlink_api_url', nextflow_vcf_symlink_api_url);
+					// 	$.ajax({
+					// 		method: 'GET',
+					// 		url: nextflow_vcf_symlink_api_url,
+					// 		success: function(data) {
+					// 			console.log('vcf_symlink', data);
+					// 		}
+					// 	});
+					// }
+					// Version 2
+					var structured_json = {
+						studies: {},
+						markers: [],
+					};
+					var detected_studies = Object.keys(cartograplant['detected_studies']);
+					for (var studies_i = 0; studies_i < detected_studies.length; studies_i++) {
+						structured_json.studies[detected_studies[studies_i]] = [null];
+						if (vcf_info[detected_studies[studies_i]] != null && vcf_info[detected_studies[studies_i]] != undefined) {
+							structured_json.studies[detected_studies[studies_i]] = [vcf_info[detected_studies[studies_i]]];
+						}
 						var workspace_name = $('#nextflow-create-analysis-select-history').val();
 						var nextflow_vcf_symlink_api_url = Drupal.settings.base_url + '/cartogratree_uianalysis/nextflow_symlink_workspace_vcf_file/' + workspace_name + '/' + studies[studies_i];
 						console.log('nextflow_vcf_symlink_api_url', nextflow_vcf_symlink_api_url);
-						$.ajax({
-							method: 'GET',
-							url: nextflow_vcf_symlink_api_url,
-							success: function(data) {
-								console.log('vcf_symlink', data);
-							}
-						});
+						if (studies[studies_i] != undefined) {
+							$.ajax({
+								method: 'GET',
+								url: nextflow_vcf_symlink_api_url,
+								success: function(data) {
+									console.log('vcf_symlink', data);
+								}
+							});
+						}
+
 					}
+					// This function now handles multiple studies using a different options compared to the previous version
+					console.log('Structured JSON', structured_json);
+					cartograplant['generate_nextflow_variant_filtering_ui'](structured_json);
 
 					// RISH: Removed on 2025/01/05 since we now have nextflow workflows to take care of this
 					/*
@@ -8691,7 +8809,13 @@ var ct_ready_mapjs = function() {
 				$('#map-icon-opened-layers .map-right-counter').html(open_layer_count);
 			}
 
-			$('#legend_legend_icon_' + layerNum).show();
+			if(Drupal.settings.layers['cartogratree_layer_' + layerNum]['layer_legend_hide_default'] == "1") {
+				$('#legend_legend_icon_' + layerNum).hide();
+			}
+			else {
+				$('#legend_legend_icon_' + layerNum).show();
+			}
+			
 			var currentOpacity = parseInt($("#slider-" + layerNum + "-" + layerHost).val(), 10) / 100;
 
 			if(isMultiLayeredYear > 0) {
@@ -9149,6 +9273,7 @@ var ct_ready_mapjs = function() {
 			contentType: "application/json", 
 			data: JSON.stringify({"data": sessionState}),
 			async: false,
+			timeout: 4000,
 			success: function (data) {
 				console.log(data);
 			},
@@ -9168,6 +9293,7 @@ var ct_ready_mapjs = function() {
 		$.ajax({
 			method: "GET",
 			async: false,
+			timeout: 4000,
 			url: Drupal.settings.ct_nodejs_api + "/v2/user/session/by-user?api_key=" + Drupal.settings.ct_api + "&user_id=" + Drupal.settings.user.user_id + "&session_id=" + Drupal.settings.session.session_id,
 			success: function (data) {
 				Drupal.settings.session.curr_sess_title = data.length > 0 ? data[0]["title"] : null;	

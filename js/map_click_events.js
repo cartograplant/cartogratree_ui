@@ -92,7 +92,7 @@ var ct_ready_map_click_events = function() {
 		for (var i=0; i<mapState.includedTrees.length; i++) {
 			var tree_id = mapState.includedTrees[i];
 			$.ajax({
-				url: Drupal.settings.ct_nodejs_api + "/v2/tree?api_key=" + Drupal.settings.ct_api + "&tree_id=" + tree_id,
+				url: Drupal.settings.ct_nodejs_api + "/v2/tree?api_key=" + Drupal.settings.ct_api + "&tree_id=" + tree_id + "&cpapi_token=" + Drupal.settings.user.cpapi_token,
 				dataType: "json",
 				async: true,
 				success: function (data) {

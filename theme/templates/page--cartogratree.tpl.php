@@ -2069,6 +2069,20 @@
 												</div>
 											</div>
 										</li>
+										<li class="list-group-item list-group-item-action d-flex">
+											<div class="" style="width: 100%;">
+												<div class="" style="display: inline-block; width: 60%;">
+													<h6 class="">
+														<i class="fas fa-database" style="margin-right: 5px;"></i> MAMA EAB
+													</h6>
+												</div>
+												<div class="" style="display: inline-block; width: 20%;">
+													<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="mamaeab-data" aria-pressed="false" autocomplete="off">
+														<div class="handle"></div>
+													</button>
+												</div>
+											</div>
+										</li>
 										<!-- WFID TODO -->
 										<?php if( user_access("access cartogratree wfid") ) { ?>
 										
@@ -2193,15 +2207,15 @@
 					<div style="padding: .75rem 0.75rem;" class="card-header" id="headingOne">
 						<table>
 							<tr>
-							<td><i style="margin: 10px; cursor: pointer;" id="tree-details-prev-tree" class="fas fa-arrow-left"></i></td>
-							<td>
+							<td class="col-2"><i style="margin: 10px; cursor: pointer;" id="tree-details-prev-tree" class="fas fa-arrow-left"></i></td>
+							<td class="col">
 							<h4 class="mb-0" id="tree-id">
 							Unknown
 							</h4>
 							<h6 id="tree-coordinates">Unknown</h6>
 							<h6 id="tree-elevation">Unknown</h6>
 							</td>
-							<td><i style="margin: 10px; cursor: pointer;" id="tree-details-next-tree" class="fas fa-arrow-right"></i></td>
+							<td class="col-2"><i style="margin: 10px; cursor: pointer;" id="tree-details-next-tree" class="fas fa-arrow-right"></i></td>
 							</tr>
 						</table>
 					</div>
@@ -2261,6 +2275,9 @@
 							<div class="row">
 								<div class="col">
 									<button class="btn btn-primary w-100" data-toggle="modal" data-target="#tree-more-info" style='margin-bottom: 3px; font-size: 10px;'>Study Info</button>
+								</div>
+								<div class="col">
+									<button class="btn btn-primary w-100" data-toggle="modal" data-target="#mama-project-more-info" style='margin-bottom: 3px; font-size: 10px;'>Project Info</button>
 								</div>
 								<div class="col">
 									<button class="btn btn-primary w-100" data-toggle="modal" data-target="#species-details-info" style='margin-bottom: 3px; font-size: 10px;'>Species Info</button>
@@ -2400,6 +2417,35 @@
 					<div id="tree-more-info-genotype-container" style="margin-left: 22px; margin-top: 10px; width: 100%;">
 						
 					</div>					
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="mama-project-more-info" tabindex="-1" role="dialog" aria-labelledby="project-more-info-label" aria-hidden="true">	
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<!-- <h3 class="modal-title" id="project-more-info-label">Project Info</h3> -->
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div id="project-info-container">
+					<!-- <div id="project-info-header" style="display: inline-block; margin-left: 22px; padding: 2px; background: #589a60; color: #FFFFFF; border-radius: 2px;">Project Information</div> -->
+					<!-- <div id="biome-number" style="display: inline-block; margin-left: 10px;"></div> -->
+					
+					<div id="project-info-desc" style="margin-left: 5px; "></div>
+					<h2 id="project-tree-id"></h2>
+					<div id="project-tree-species" style="padding: 5px 10px 5px 10px; background-color: #589a60; border-radius: 5px; color: #FFFFFF; display: inline-block;"></div>
+					<h2>Plant specific details</h2>
+					<div id="project-info-phenotypes-images" style="margin-left: 5px; "></div>
+					<div id="project-info-phenotypes" style="margin-left: 5px; "></div>
 				</div>
 			</div>
 			<div class="modal-footer">
