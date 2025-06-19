@@ -19,6 +19,35 @@ select {
 }
 
 
+#analysis-form .nav-pills .nav-item {
+  width: 100% !important;
+  margin-left: 0px !important;
+  background-color: #FFFFFF !important;
+  border: 0px solid #FFFFFF !important;
+}
+
+#analysis-form .nav-pills .nav-item:hover {
+  border: 1px solid #e4e4e4 !important;
+}
+
+
+
+
+#analysis-form .nav-pills .nav-link {
+  background-color: #FFFFFF !important;
+  border: 0px solid #FFFFFF !important;
+}
+
+#analysis-form .nav-pills .nav-link.active {
+  border: 1px solid #307d44 !important;
+  background-color: rgb(16, 166, 137) !important;
+  color: #FFFFFF;
+}
+
+#analysis-form .nav-pills .nav-link:hover {
+  border: 1px solid #e4e4e4 !important;
+  border-bottom: 1px solid #e4e4e4 !important;
+}
 
 
 
@@ -1372,6 +1401,16 @@ line {
   border-radius: 2px; 
   padding-left: 4px;
   padding-right: 4px;
+}
+
+.tag-header {
+  display: inline-block;
+  padding: 2px;
+  border-radius: 5px;
+  padding-left: 8px;
+  padding-right: 8px;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
 #analysis_detections_study_summary table, #analysis_detections_study_summary th, #analysis_detections_study_summary tr, #analysis_detections_study_summary td {

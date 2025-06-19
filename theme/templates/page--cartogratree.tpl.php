@@ -57,14 +57,14 @@
             <li class="nav-item">
 				<?php
                 	if($variables['logged_in']){
-                		echo '<a class="nav-link" style="margin-right: 15px;" id="jobs-btn" href="#">';					
+                		//echo '<a class="nav-link" style="margin-right: 15px;" id="jobs-btn" href="#">';					
 					}
 					else{
-                		echo '<a class="nav-link disabled" style="margin-right: 15px;" id="jobs-btn" href="#">';
+                		//echo '<a class="nav-link disabled" style="margin-right: 15px;" id="jobs-btn" href="#">';
 					}
 				?>
-                    <i class="fas fa-flask" style="margin-right: 5px;"></i> Jobs
-                </a>
+                    <!-- <i class="fas fa-flask" style="margin-right: 5px;"></i> Jobs -->
+                <!-- </a> -->
             </li>	
 
             <!-- <li class="nav-item">
@@ -272,483 +272,515 @@
                 </button>
             </div>
             <div class="modal-body">
-				<ul class="nav nav-tabs nav-fill">
-					<li class="nav-item">
-						<a id='analysis-initial-configuration-tab' class="nav-link analysis-nav-tab analysis-initial-configuration active" data-toggle="tab" href="#analysis-initial-configuration">Manage</a>
-					</li>				
-					<li class="nav-item">
-						<a id="analysis-overlapping-traits-tab" class="nav-link analysis-nav-tab analysis-overlapping-traits" data-toggle="tab" href="#analysis-overlapping-traits">Filter By Traits</a>
-					</li>	
-					<li class="nav-item">
-						<a id="analysis-overlapping-genotypes-tab" class="nav-link analysis-nav-tab analysis-overlapping-genotypes" data-toggle="tab" href="#analysis-overlapping-genotypes">Filter By Genotypes</a>
-					</li>				
-					<!-- analysis-overlapping-genotypes -->
+				<div class="row">
 					
-					<li class="nav-item">
-						<a id="analysis-filter-snp-section-tab" class="nav-link analysis-nav-tab analysis-filter-snp-section" data-toggle="tab" href="#analysis-filter-snp">Filtering & Imputation</a>
-					</li>
-					<li class="nav-item">
-						<a id="analysis-popstruct-section-tab" class="nav-link analysis-nav-tab analysis-popstruct-section-tab" data-toggle="tab" href="#analysis-popstruct-section">Population Structure</a>
-					</li>
-					<li class="nav-item">
-						<a id='analysis-retrieve-envdata-section-tab' class="nav-link analysis-nav-tab analysis-retrieve-envdata-section" data-toggle="tab" href="#analysis-retrieve-envdata-section">Add Environmental Data</a>
-					</li>
-					<li class="nav-item">
-						<a id='analysis-create-analysis-section-tab' class="nav-link analysis-nav-tab analysis-create-analysis-section" data-toggle="tab" href="#analysis-create-analysis-section">Run Analysis</a>
-					</li>					
+					<div class="col-2" style="border-right: 1px solid #d9fbd3;">
+						<!-- <ul class="nav nav-tabs nav-fill" aria-orientations="vertical"> -->
+						<ul class="nav nav-pills" aria-orientations="vertical">
+							<li class="nav-item">
+								<a id='analysis-initial-configuration-tab' class="nav-link analysis-nav-tab analysis-initial-configuration active" data-toggle="tab" href="#analysis-initial-configuration">Manage analysis</a>
+							</li>
+							<li class="nav-item">
+								<a id='analysis-study-context-tab' class="nav-link study-context-nav-tab analysis-study-context" data-toggle="tab" href="#analysis-study-context">Study context</a>
+							</li>	
+							<li class="nav-item">
+								<a id="analysis-overlapping-traits-tab" class="nav-link analysis-nav-tab analysis-overlapping-traits" data-toggle="tab" href="#analysis-overlapping-traits">Filter By Traits</a>
+							</li>	
+							<li class="nav-item">
+								<a id="analysis-overlapping-genotypes-tab" class="nav-link analysis-nav-tab analysis-overlapping-genotypes" data-toggle="tab" href="#analysis-overlapping-genotypes">Study markers overlap</a>
+							</li>				
+							
+							<li class="nav-item">
+								<a id="analysis-filter-snp-section-tab" class="nav-link analysis-nav-tab analysis-filter-snp-section" data-toggle="tab" href="#analysis-filter-snp">Filtering & Imputation</a>
+							</li>
+							<li class="nav-item">
+								<a id="analysis-popstruct-section-tab" class="nav-link analysis-nav-tab analysis-popstruct-section-tab" data-toggle="tab" href="#analysis-popstruct-section">Population Structure</a>
+							</li>
+							<li class="nav-item">
+								<a id='analysis-retrieve-envdata-section-tab' class="nav-link analysis-nav-tab analysis-retrieve-envdata-section" data-toggle="tab" href="#analysis-retrieve-envdata-section">Environmental Data</a>
+							</li>
+							<li class="nav-item">
+								<a id='analysis-create-analysis-section-tab' class="nav-link analysis-nav-tab analysis-create-analysis-section" data-toggle="tab" href="#analysis-create-analysis-section">Run Analysis</a>
+							</li>					
+							<li class="nav-item">
+								<a id="analysis-confirm-section-tab" class="nav-link analysis-nav-tab analysis-confirm-section" data-toggle="tab" href="#analysis-confirm">Summary and Confirm</a>
+							</li>
+						</ul>
+					</div>
+					
 					<!-- 
-					<li class="nav-item">
-						<a class="nav-link analysis-nav-tab analysis-options-section" data-toggle="tab" href="#analysis-options">Additional Options</a>
-					</li>
+					<div class="col-3">
+						<div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+						<button class="nav-link active" id="v-pills-home-tab" data-toggle="pill" data-target="#v-pills-home" type="button" role="tab" aria-controls="v-pills-home" aria-selected="true">Home</button>
+						<button class="nav-link" id="v-pills-profile-tab" data-toggle="pill" data-target="#v-pills-profile" type="button" role="tab" aria-controls="v-pills-profile" aria-selected="false">Profile</button>
+						<button class="nav-link" id="v-pills-messages-tab" data-toggle="pill" data-target="#v-pills-messages" type="button" role="tab" aria-controls="v-pills-messages" aria-selected="false">Messages</button>
+						<button class="nav-link" id="v-pills-settings-tab" data-toggle="pill" data-target="#v-pills-settings" type="button" role="tab" aria-controls="v-pills-settings" aria-selected="false">Settings</button>
+						</div>
+					</div>
 					-->
-					<li class="nav-item">
-						<a id="analysis-confirm-section-tab" class="nav-link analysis-nav-tab analysis-confirm-section" data-toggle="tab" href="#analysis-confirm">Summary and Confirm</a>
-					</li>
-				</ul>
-	
-				<div class="tab-content">
-					<div id="analysis-initial-configuration" class="tab-pane fade in active">	
-						<div class="analysis-tab-content">
-							<div style="margin-bottom: 10px;">
-								<h4 class="mb-2">Welcome to the Analysis Panel</h4>
-								<div id="analysis_detections" class="mb-2">
+					<div class="col-10">
+						<div class="tab-content">
+							<div id="analysis-initial-configuration" class="tab-pane fade in active">	
+								<div class="analysis-tab-content">
+									<div style="margin-bottom: 10px;">
+										<!-- <h4 class="mb-2">Welcome to the Analysis Panel</h4> -->
 
-								</div>
-								<hr />
-								<div>
-									<div class="row">
-										<div class="col-sm-1">
-											<div class="tag" style="background-color: #036e63; color: #FFFFFF;">Step 1</div>
+							
+										<div>
+											<div class="row">
+												<div class="col-sm-2">
+													<div class="tag-header" style="width: 100%;background-color: #fff3d7;color: #75736e;"><div style="text-transform: uppercase; font-size: 10px;">Step 1</div>Specify analysis details</div>
+												</div>
+												<div class="col-sm-10">
+													<div class="mb-2">Update the details for this analysis</div>
+													<fieldset>
+														<div id="analysis_id" class="mb-2" value="-1"></div>
+														<div>
+															<div style="display: inline-block; margin-right: 10px;">Analysis name: <input id="analysis_name" type="text" value="Untitled" /></div>
+															<div style="display: inline-block; margin-right: 10px;">Analysis type: <select id="analysis_type">
+																<option value="GxPxE" selected>Genotype x Phenotype x Environmental</option>
+																<option value="GxP">Genotype x Phenotype</option>
+																<option value="GxE">Genotype x Environmental</option>
+															</select>
+															</div>
+															<div class="mt-2" style="margin-right: 10px;">
+															<button class="btn btn-info" id="btn_update_analysis_name">Update</button>
+															</div>
+														</div>
+													</fieldset>
+												</div>
+											</div>
 										</div>
-										<div class="col-sm-11">
-											<div class="mb-2">Update the details for this analysis</div>
-											<fieldset>
-												<div id="analysis_id" class="mb-2" value="-1"></div>
-												<div>
-													<div style="display: inline-block; margin-right: 10px;">Analysis name: <input id="analysis_name" type="text" value="Untitled" /></div>
-													<div style="display: inline-block; margin-right: 10px;">Analysis type: <select id="analysis_type">
-														<option value="GxPxE" selected>Genotype x Phenotype x Environmental</option>
-														<option value="GxP">Genotype x Phenotype</option>
-														<option value="GxE">Genotype x Environmental</option>
-													</select>
-													</div>
-													<div class="mt-2" style="margin-right: 10px;">
-													<button class="btn btn-info" id="btn_update_analysis_name">Update</button>
+
+										<hr />
+									</div>
+									<div style="margin-bottom: 10px;">
+									<div class="row">
+											<div class="col-2">
+												<div class="tag-header" style="width: 100%;background-color: #fff3d7;color: #75736e;"><div style="text-transform: uppercase; font-size: 10px;">Step 2</div>Select a workspace to store analysis results</div>
+											</div>
+											<div class="col-10">
+												<div class="d-inline-block">To begin analyzing data, we strongly recommend creating a workspace.</div>
+												<div class="mb-2">A workspace stores all your uploaded files so you can use (or reuse) them when running workflow analyses. Without a workspace, you can't select data files to be used when running analyses.</div>
+												<div style="display: flex; margin-bottom: 10px;">
+													<div style="width: 25%;" id="nextflow-create-analysis-select-history-caption">Select workspace</div>
+													<div style="width: 50%;"><select id="nextflow-create-analysis-select-history"></select></div>
+													<div style="width: 25%;"><button class="btn btn-info" id="nextflow-create-analysis-new-workspace-button">Create new workspace</button></div>
+												</div>
+												<div id="nextflow-create-analysis-new-workspace-configuration" style="display: none; margin-bottom: 10px;">
+													<div style="width: 25%; padding-left: 10px;">Workspace name</div>
+													<div style="width: 75%">
+														<input type="text" id="nextflow-create-analysis-new-workspace-name" />
+														<button id="nextflow-create-analysis-new-workspace-name-button">Create</button>
 													</div>
 												</div>
-											</fieldset>
-										</div>
-									</div>
-								</div>
-
-								<hr />
-							</div>
-							<div style="margin-bottom: 10px;">
-							<div class="row">
-									<div class="col-1">
-										<div class="tag" style="background-color: #036e63; color: #FFFFFF;">Step 2 (Nextflow)</div>
-									</div>
-									<div class="col-11">
-										<div class="d-inline-block">To begin analyzing data, we strongly recommend creating a workspace.</div>
-										<div class="mb-2">A workspace stores all your uploaded files so you can use (or reuse) them when running workflow analyses. Without a workspace, you can't select data files to be used when running analyses.</div>
-										<div style="display: flex; margin-bottom: 10px;">
-											<div style="width: 25%;" id="nextflow-create-analysis-select-history-caption">Select workspace</div>
-											<div style="width: 50%;"><select id="nextflow-create-analysis-select-history"></select></div>
-											<div style="width: 25%;"><button class="btn btn-info" id="nextflow-create-analysis-new-workspace-button">Create new workspace</button></div>
-										</div>
-										<div id="nextflow-create-analysis-new-workspace-configuration" style="display: none; margin-bottom: 10px;">
-											<div style="width: 25%; padding-left: 10px;">Workspace name</div>
-											<div style="width: 75%">
-												<input type="text" id="nextflow-create-analysis-new-workspace-name" />
-												<button id="nextflow-create-analysis-new-workspace-name-button">Create</button>
+												<div style="margin-bottom: 10px;">
+													<div>
+														<div style="display: inline-block;"><h2>Manage workspace files</h2></div>
+														<div style="display: inline-block;"><button  class="nextflow-manage-workspace-files-refresh btn btn-success"><i class="fa fa-refresh" aria-hidden="true"></i></button></div>
+														<div class="nextflow-workspace-nextflow-files-loader" style="margin-left:5px; display: inline-block;"></div>
+													</div>
+													<div id="nextflow-upload-workspace-file-container">
+														<div style="padding-top: 10px; padding-bottom: 10px;"><input id="nextflow-upload-workspace-file" type="file" /><button class="btn btn-info" id="nextflow-upload-workspace-file-button">Upload</button><span style="padding-left: 10px;" id="nextflow-upload-workspace-file-progress"></span></div>
+													</div>
+													<div id="nextflow-manage-workspace-contents">
+													</div>							
+												</div>	
 											</div>
 										</div>
-										<div style="margin-bottom: 10px;">
-											<div>
-												<div style="display: inline-block;"><h2>Manage workspace files</h2></div>
-												<div style="display: inline-block;"><button  class="nextflow-manage-workspace-files-refresh btn btn-success"><i class="fa fa-refresh" aria-hidden="true"></i></button></div>
-												<div class="nextflow-workspace-nextflow-files-loader" style="margin-left:5px; display: inline-block;"></div>
+										<div class="row" style="display: none;">
+											<div class="col-2">
+												<div class="tag-header" style="width: 100%;background-color: #effffb;color: #57c2a2;">Step 2 (Galaxy)</div>
 											</div>
-											<div id="nextflow-upload-workspace-file-container">
-												<div style="padding-top: 10px; padding-bottom: 10px;"><input id="nextflow-upload-workspace-file" type="file" /><button class="btn btn-info" id="nextflow-upload-workspace-file-button">Upload</button><span style="padding-left: 10px;" id="nextflow-upload-workspace-file-progress"></span></div>
-											</div>
-											<div id="nextflow-manage-workspace-contents">
-											</div>							
-										</div>	
-									</div>
-								</div>
-								<div class="row" style="display: none;">
-									<div class="col-1">
-										<div class="tag" style="background-color: #036e63; color: #FFFFFF;">Step 2 (Galaxy)</div>
-									</div>
-									<div class="col-11">
-										<div class="d-inline-block">To begin analyzing data, we strongly recommend creating a workspace.</div>
-										<div class="mb-2">A workspace stores all your uploaded files so you can use (or reuse) them when running workflow analyses. Without a workspace, you can't select data files to be used when running analyses.</div>
-										<div style="display: flex; margin-bottom: 10px;" id="create-analysis-select-galaxy-account-container">
-											<div style="width: 25%;" id="create-analysis-select-galaxy-account-caption">Select analysis account</div>
-											<div style="width: 75%;"><select id="create-analysis-select-galaxy-account"></select></div>
-										</div>
-										<div style="display: flex; margin-bottom: 10px;">
-											<div style="width: 25%;" id="create-analysis-select-history-caption">Select workspace</div>
-											<div style="width: 50%;"><select id="create-analysis-select-history"></select></div>
-											<div style="width: 25%;"><button class="btn btn-info" id="create-analysis-new-history-button">Create new workspace</button></div>
-										</div>
-										<div id="create-analysis-new-history-configuration" style="display: none; margin-bottom: 10px;">
-											<div style="width: 25%; padding-left: 10px;">Workspace name</div>
-											<div style="width: 75%">
-												<input type="text" id="create-analysis-new-history-name" />
-												<button id="create-analysis-new-history-name-button">Create</button>
+											<div class="col-10">
+												<div class="d-inline-block">To begin analyzing data, we strongly recommend creating a workspace.</div>
+												<div class="mb-2">A workspace stores all your uploaded files so you can use (or reuse) them when running workflow analyses. Without a workspace, you can't select data files to be used when running analyses.</div>
+												<div style="display: flex; margin-bottom: 10px;" id="create-analysis-select-galaxy-account-container">
+													<div style="width: 25%;" id="create-analysis-select-galaxy-account-caption">Select analysis account</div>
+													<div style="width: 75%;"><select id="create-analysis-select-galaxy-account"></select></div>
+												</div>
+												<div style="display: flex; margin-bottom: 10px;">
+													<div style="width: 25%;" id="create-analysis-select-history-caption">Select workspace</div>
+													<div style="width: 50%;"><select id="create-analysis-select-history"></select></div>
+													<div style="width: 25%;"><button class="btn btn-info" id="create-analysis-new-history-button">Create new workspace</button></div>
+												</div>
+												<div id="create-analysis-new-history-configuration" style="display: none; margin-bottom: 10px;">
+													<div style="width: 25%; padding-left: 10px;">Workspace name</div>
+													<div style="width: 75%">
+														<input type="text" id="create-analysis-new-history-name" />
+														<button id="create-analysis-new-history-name-button">Create</button>
+													</div>
+												</div>
+												<div style="margin-bottom: 10px;">
+													<div>
+														<div style="display: inline-block;"><h2>Manage workspace files</h2></div>
+														<div style="display: inline-block;"><button  class="manage-workspace-files-refresh btn btn-success"><i class="fa fa-refresh" aria-hidden="true"></i></button></div>
+														<div class="workspace-files-loader" style="margin-left:5px; display: inline-block;"></div>
+													</div>
+													<div id="manage-history-contents">
+													</div>							
+												</div>	
 											</div>
 										</div>
-										<div style="margin-bottom: 10px;">
-											<div>
-												<div style="display: inline-block;"><h2>Manage workspace files</h2></div>
-												<div style="display: inline-block;"><button  class="manage-workspace-files-refresh btn btn-success"><i class="fa fa-refresh" aria-hidden="true"></i></button></div>
-												<div class="workspace-files-loader" style="margin-left:5px; display: inline-block;"></div>
-											</div>
-											<div id="manage-history-contents">
-											</div>							
-										</div>	
-									</div>
-								</div>
-								
-							</div>
-															
-						</div>
-						<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
-					</div>				
-					<div id="analysis-overlapping-traits" class="tab-pane fade in inactive">	
-						<div class="analysis-tab-content">
-							<div style="margin-bottom: 10px;">
-								<div id="analysis-overlapping-traits-studies"></div>
-							</div>
-							
-							<div id="analysis-overlapping-traits-traits-list-container" style="margin-bottom: 10px;">
-								<div style="display: none;">
-									<div id="analysis-overlapping-traits-traits-list-summary" style="width: 25%; margin-bottom: 10px;"></div>
-									<div style="width: 75%;" id="studies_intersecting_traits_timer_div"></div>
-								</div>
-								<div id="analysis-overlapping-traits-traits-operation-container" style="margin-bottom: 10px;">
-									<!-- <div style="margin-bottom: 10px;">
-										<i class="fas fa-filter"></i> Filter trees using 
-										<select id="analysis-overlapping-traits-traits-operation">
-											<option value="union">UNION (combination)</option>
-										</select> on traits:
-									</div>
-									<div style="margin-bottom: 10px;">
-										<span id="analysis-overlapping-traits-status"></span>
-									</div>	
-									-->
-									
-								
-									<div style="margin-bottom: 10px;  vertical-align: top;" id="analysis-overlapping-traits-traits-left-container">
-										<div style="margin-bottom: 10px; vertical-align: top; display: inline-block; vertical-align: top; width: 65%;" id="analysis-overlapping-traits-traits-list">
-									
-										</div>
-										<div style="max-width: 30%; display: inline-block; vertical-align: top; width: 30%;" id="analysis-overlapping-traits-visual-elements">
-											
-											<div id="analysis-overlapping-traits-pca" style=""></div>								
-										</div>	
 										
-										<div style="margin-bottom: 10px; vertical-align: top; display: inline-block; width: 65%;" id="analysis-overlapping-traits-traits-histogram-grid">
-										<!-- Contains divs of each histogram of traits that overlap -->
-										</div>	
-										<div id="analysis-overlapping-traits-histogram" style="margin-bottom: 10px; vertical-align: top; display: inline-block; width: 30%;"></div>	
-																			
 									</div>
-								
-
-									<!--
-									<div style="margin-bottom: 10px;">
-										<button id="analysis-overlapping-traits-filter-by-selected-phenotypes"><i class="fas fa-filter"></i> Filter</button>
-										<button id="analysis-overlapping-traits-download-by-selected-phenotypes"><i class="fas fa-download"></i> Download</button>
-									</div>
-									<div style="margin-bottom: 10px;" id="analysis-overlapping-traits-filter-by-selected-phenotypes-results">
-
-									</div>
-									-->									
+																	
 								</div>
+								<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
 							</div>
-						</div>
-						<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
-					</div>
-					<div id="analysis-overlapping-genotypes" class="tab-pane fade in inactive">	
-						<div class="analysis-tab-content">
-							<div style="margin-bottom: 10px;">
-								<div><span style="float: right;" id="analysis_genotypes_overall_status"></span></div>
-								<table style="width: 100%;">
-									<tr>
-										<td style="width: 100%; vertical-align: top;">
-											<div id="analysis-overlapping-genotypes-detected-studies"></div>
-											<div id="analysis-overlapping-genotypes-across-studies"></div>
-											<div id="analysis-overlapping-genotypes-upset-1" class="d-inline-block"></div>
-											<div id="analysis-overlapping-genotypes-upset-2-status" class="d-inline-block"></div>
-											<div id="analysis-overlapping-genotypes-upset-2" class="d-inline-block"></div>
-											<div id="analysis-overlapping-genotypes-metadata"></div>
-											<div id="analysis-overlapping-genotypes-refgenome"></div>
-											<div id="analysis-overlapping-genotypes-summary-insights"></div>
-											
-											<!--
-											<span id="analysis-overlapping-genotypes-algorithm-status"><i class="fas fa-clock"></i> Awaiting download to begin calculations...</span><hr />
-											<input type="checkbox" id="analysis_genotypes_select_snps" /> <span>SNPs found</span> <span id="analysis-overlapping-genotypes-snps-tree-count">Querying...</span><br />
-											<input type="checkbox" id="analysis_genotypes_select_ssrs" /> <span>SSRS found</span> <span id="analysis-overlapping-genotypes-ssrs-tree-count">Querying...</span><br />
-											-->
-											<!--
-											<hr />
-											<span>Study types found</span> <span id="analysis-overlapping-genotypes-study-types">...</span>
-											<hr />
-											<span>Overlapping genotypes</span> <span id="analysis-overlapping-genotypes-overlapped">Awaiting data...</span>
-											-->
-										</td>
-										<td style="width: 0%; vertical-align: top;">
-											<div id="analysis-overlapping-genotypes-snp-venn-diagram">
+							<div id="analysis-study-context" class="tab-pane fade in inactive">
+								<div class="analysis-tab-content">
+									<div id="analysis_detections" class="mb-2">
 
-											</div>										
-											<div id="analysis-overlapping-genotypes-snp-grid-filter">
+									</div>
+								</div>
+							</div>			
+							<div id="analysis-overlapping-traits" class="tab-pane fade in inactive">	
+								<div class="analysis-tab-content">
+									<div style="margin-bottom: 10px;">
+										<div id="analysis-overlapping-traits-studies"></div>
+									</div>
+									
+									<div id="analysis-overlapping-traits-traits-list-container" style="margin-bottom: 10px;">
+										<div style="display: none;">
+											<div id="analysis-overlapping-traits-traits-list-summary" style="width: 25%; margin-bottom: 10px;"></div>
+											<div style="width: 75%;" id="studies_intersecting_traits_timer_div"></div>
+										</div>
+										<div id="analysis-overlapping-traits-traits-operation-container" style="margin-bottom: 10px;">
+											<!-- <div style="margin-bottom: 10px;">
+												<i class="fas fa-filter"></i> Filter trees using 
+												<select id="analysis-overlapping-traits-traits-operation">
+													<option value="union">UNION (combination)</option>
+												</select> on traits:
+											</div>
+											<div style="margin-bottom: 10px;">
+												<span id="analysis-overlapping-traits-status"></span>
+											</div>	
+											-->
+											
+										
+											<div style="margin-bottom: 10px;  vertical-align: top;" id="analysis-overlapping-traits-traits-left-container">
+												<div style="margin-bottom: 10px; vertical-align: top; display: inline-block; vertical-align: top; width: 65%;" id="analysis-overlapping-traits-traits-list">
+											
+												</div>
+												<div style="max-width: 30%; display: inline-block; vertical-align: top; width: 30%;" id="analysis-overlapping-traits-visual-elements">
+													
+													<div id="analysis-overlapping-traits-pca" style=""></div>								
+												</div>	
+												
+												<div style="margin-bottom: 10px; vertical-align: top; display: inline-block; width: 65%;" id="analysis-overlapping-traits-traits-histogram-grid">
+												<!-- Contains divs of each histogram of traits that overlap -->
+												</div>	
+												<div id="analysis-overlapping-traits-histogram" style="margin-bottom: 10px; vertical-align: top; display: inline-block; width: 30%;"></div>	
+																					
+											</div>
+										
+
+											<!--
+											<div style="margin-bottom: 10px;">
+												<button id="analysis-overlapping-traits-filter-by-selected-phenotypes"><i class="fas fa-filter"></i> Filter</button>
+												<button id="analysis-overlapping-traits-download-by-selected-phenotypes"><i class="fas fa-download"></i> Download</button>
+											</div>
+											<div style="margin-bottom: 10px;" id="analysis-overlapping-traits-filter-by-selected-phenotypes-results">
 
 											</div>
-										</td>
-									</tr>
-								</table>
+											-->									
+										</div>
+									</div>
+								</div>
+								<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
+							</div>
+							<div id="analysis-overlapping-genotypes" class="tab-pane fade in inactive">	
+								<div class="analysis-tab-content">
+									<div style="margin-bottom: 10px;">
+										<div><span style="float: right;" id="analysis_genotypes_overall_status"></span></div>
+										<table style="width: 100%;">
+											<tr>
+												<td style="width: 100%; vertical-align: top;">
+													<div id="analysis-overlapping-genotypes-detected-studies"></div>
+													<div id="analysis-overlapping-genotypes-across-studies"></div>
+													<div id="analysis-overlapping-genotypes-upset-1" class="d-inline-block"></div>
+													<div id="analysis-overlapping-genotypes-upset-2-status" class="d-inline-block"></div>
+													<div id="analysis-overlapping-genotypes-upset-2" class="d-inline-block"></div>
+													<div id="analysis-overlapping-genotypes-metadata"></div>
+													<div id="analysis-overlapping-genotypes-refgenome"></div>
+													<div id="analysis-overlapping-genotypes-summary-insights"></div>
+													<div id="analysis-overlapping-genotypes-gt-check"></div>
+													<div id="analysis-overlapping-genotypes-merge-vcfs"></div>
+													
+													<!--
+													<span id="analysis-overlapping-genotypes-algorithm-status"><i class="fas fa-clock"></i> Awaiting download to begin calculations...</span><hr />
+													<input type="checkbox" id="analysis_genotypes_select_snps" /> <span>SNPs found</span> <span id="analysis-overlapping-genotypes-snps-tree-count">Querying...</span><br />
+													<input type="checkbox" id="analysis_genotypes_select_ssrs" /> <span>SSRS found</span> <span id="analysis-overlapping-genotypes-ssrs-tree-count">Querying...</span><br />
+													-->
+													<!--
+													<hr />
+													<span>Study types found</span> <span id="analysis-overlapping-genotypes-study-types">...</span>
+													<hr />
+													<span>Overlapping genotypes</span> <span id="analysis-overlapping-genotypes-overlapped">Awaiting data...</span>
+													-->
+												</td>
+												<td style="width: 0%; vertical-align: top;">
+													<div id="analysis-overlapping-genotypes-snp-venn-diagram">
+
+													</div>										
+													<div id="analysis-overlapping-genotypes-snp-grid-filter">
+
+													</div>
+												</td>
+											</tr>
+										</table>
+
+									</div>
+									<div style="margin-bottom: 10px;">
+										<div id="analysis-overlapping-genotypes"></div>
+									</div>
+								</div>
+								<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
+							</div>
+							<div id="analysis-filter-snp" class="tab-pane fade in">
+								<div class="analysis-tab-content">
+									<div class="row">
+										<div class="col">
+											
+											<div id="analysis-filter-snp-vcf-detection">Please return to the begin tab and ensure you have set up your workspace.</div>
+											<div id="snp-chart"></div>
+										</div>
+										<!--
+										<div class="col">
+											<div class="form-row align-items-center">
+												<div class="col-9 my-1">
+													<h3 id="chart-loading" class="hidden">Loading...</h3>
+													<div id="analysis-filter-snp-progressbar"></div>
+													<div id="analysis-filter-snp-progressbar-status" style="text-align: center; font-size: 12px; margin-bottom: 10px;"></div>
+													<label class="mr-sm-2" for="inlineFormCustomSelect">Choose threshold to keep</label>
+													<select class="custom-select mr-sm-2" id="snp-threshold-missing" style="width: 80% !important">
+													</select>
+													<button style="margin-top: 10px; " id="filter-chart" class="btn btn-primary">Submit</button>
+												</div>
+												<div class="col my-1">
+													
+												</div>
+											</div>
+										</div>
+										-->
+									</div>
+								</div>
+								<hr />
+								<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
+							</div>
+
+							<div id="analysis-popstruct-section" class="tab-pane fade">
+								<div class="analysis-tab-content">
+									<h4>Nextflow Population Structure Workflow</h4>
+									<table id="nextflow-population-structure-workflow-container">
+										<tr>
+											<td style="width: 35%">
+												<div id="nextflow-population-structure-workflow" ></div>
+											</td>
+											<td style="width: 65%">
+												<div id="nextflow-population-structure-visualization" style="vertical-align: top;"></div>
+											</td>
+										</tr>
+									</table>
+									<div style="display: none;">
+										<h4>Galaxy Population Structure Workflow</h4>
+										<div style="text-align: center;">
+											Number of populations<br />
+											<input id="analysis-popstruct-section-k-value" type="text" value="2" style="text-align: center" /><br />
+											<div style="display: inline-block;">Select VCF file</div><div style="display: inline-block;" class="select_loading"></div><br />
+											<select style="margin-bottom: 10px; " id="analysis-popstruct-section-vcf-selectfile">
+												<option>SELECT VCF FILE</option>
+											</select><br />
+											<button class="btn btn-info" id="analysis-popstruct-section-button-generate-fast-structure">Generate Fast Structure</button>
+										</div>
+										<div id="analysis-popstruct-status" style="text-align: center"></div>
+										<div id="analysis-popstruct-dapc-step1-plot-container"></div>
+									</div>
+									<!--
+									<h3 id="chart-loading" class="hidden">Loading...</h3>
+									<div class="row">
+										<div class="col">
+											<div id="snp-study-vcf-detection"></div>
+											<div id="snp-chart"></div>
+											
+										</div>
+										<div class="col">
+											<div class="form-row align-items-center">
+												<div class="col-9 my-1">
+													<label class="mr-sm-2" for="inlineFormCustomSelect">Choose threshold to keep</label>
+													<select class="custom-select mr-sm-2" id="snp-threshold-missing" style="width: 80% !important">
+													</select>
+												</div>
+												<div class="col my-1">
+													<button id="filter-chart" class="btn btn-primary">Submit</button>
+												</div>
+											</div>
+										</div>
+									</div>
+									-->
+								</div>
+								<hr />
+								<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
+							</div>
+
+							<div id="analysis-retrieve-envdata-section" class="tab-pane fade">
+								<div class="analysis-tab-content">
+									<div class="row">
+										<div class="col">
+											<!-- class: align-items-center -->
+											<div class="form-row" style="height: 100%;">
+												<div class="col-md-8 my-1">
+													<label class="mr-sm-2">Choose environmental layers</label>
+													<div id="analysis-retrieve-envdata-section-layers-list"></div>
+												</div>
+												<div class="col-md-4 my-1" style="vertical-align: top; height: 100%;">
+													<!-- <button id="analysis-retrieve-envdata-section-button" class="btn btn-primary">Submit</button> -->
+													<?php
+														global $user;
+														if (in_array('administrator', $user->roles)) {
+															// do fancy stuff
+													?>
+													<div style="border: 1px solid #c3b113; background-color: #fff2be; padding: 10px; text-align: center; margin-bottom: 10px;">
+													<i class="fa-solid fa-circle-info"></i> By adjusting your selected environmental layers, the PCA scatterplot will (re)generate after you click Gather and upload to workspace button. 
+													</div>
+													<div style="text-align: center;"><button id="analysis-generateoutput-envdata-section-button" class="btn btn-primary">Precache values</button><div id="analysis-generateoutput-elapsed-time" style="display: inline-block;"></div></div><br />
+													<?php } ?>
+													<div style="text-align: center;"><button id="analysis-generateoutput-envdata-section-from-db-button" class="btn btn-primary">Gather and upload to workspace</button></div>
+													<div style="text-align: center;" id="analysis-generateoutput-envdata-section-from-db-status"></div>
+													<div id="analysis-envdata-section-progressbar" style="margin-top: 10px; height: 20px;"></div>
+													<div id="analysis-envdata-section-progressbar-description" style='text-align: center; font-size: 12px;'></div>
+													<div id="analysis-envdata-section-progressbar2" style="margin-top: 10px; height: 20px;"></div>
+													<div id="analysis-envdata-section-progressbar2-description" style='text-align: center; font-size: 10px; text-align: center;'></div>
+													<div id="download_analysis_envdata_csv_data_button_container" style="text-align: center; margin-top: 10px;"></div>
+													<div id="envdata_scatter_plot" style="text-align: center; margin-top: 10px;"></div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<hr />
+								<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
+							</div>
+
+							<!-- analysis-create-analysis-section -->
+							<div id="analysis-create-analysis-section" class="tab-pane fade">
+								<div class="analysis-tab-content" >
+									<div id="nextflow-gwas-interface-container">
+										<div><h4>Nextflow - GWAS Workflow</h4></div>
+										<table width="100%">
+											<tr>
+												<td width="100%" style="vertical-align: top;">
+													<div id="nextflow-gwas-interface"></div>
+													<div id="nextflow-gwas-results"></div>
+													<div id="nextflow-gwas-visualization" style="vertical-align: top;"></div>
+													<div id="nextflow-gwas-flags"></div>
+												</td>
+												<!-- <td width="50%" style="vertical-align: top;">
+													
+												</td>
+												-->
+										</table>
+									</div>
+									<!-- <div style="margin-bottom: 15px;">Note: A workspace must be used to store your input data in case you ever need to rerun the workflow</div>-->
+									<!--
+									<div style="display: flex; margin-bottom: 10px;">
+										<div style="width: 15%;">Step 1 - Select workflow</div>
+										<div style="width: 50%;"><select id="create-analysis-select-workflow"></select></div>
+										<div style="width: 35%;">
+											<button class="btn btn-success manage-workspace-files-refresh d-inline-block">Refresh file list</button>
+											<div class="workspace-files-loader d-inline-block" style="margin-left:5px;"></div>
+											<button class="d-inline-block btn btn-primary button-refresh-workflow">Reload workflow</button>
+											<span class="button-refresh-workflow-status d-inline-block"></span>
+										</div>
+									</div>
+									<div style="display: flex; margin-bottom: 10px;">
+										<div style="width: 15%;">Step 2 - Setup analysis</div><div id="create-analysis-workflow-submit-form" style="width: 75%;"></div>
+									</div>							
+									<hr />
+									-->
+									<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>																			
+								</div>
 
 							</div>
-							<div style="margin-bottom: 10px;">
-								<div id="analysis-overlapping-genotypes"></div>
-							</div>
-						</div>
-						<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
-					</div>
-					<div id="analysis-filter-snp" class="tab-pane fade in">
-						<div class="analysis-tab-content">
-							<div class="row">
-								<div class="col">
+
+							<div id="analysis-options" class="tab-pane fade">
+								<div class="analysis-tab-content">
+									<h5><b>Analysis type</b></h5>
+									<select class="analysis-select">
+										<option value="GxE">Landscape GxE</option>
+										<option value="PxG">Associative Genetics PxG</option>
+										<option value="G">Population Structure G</option>
+									</select>
+
+									<hr />
+
+									<h5><b>Publications Selected</b></h5>
+									<table class="table">
+										<thead>
+											<tr>
+												<th>ID</th>
+												<th>Title</th>
+												<th>Author</th>
+												<th>Year</th>
+												<!--<th>Species</th>-->
+												<th># Trees</th>
+												<th>Study type</th>
+												<th>Status</th>
+											</tr>
+										</thead>
+										<tbody class="pub-selected-container" id="map-publications-data"> 
+										</tbody>
+									</table>
 									
-									<div id="analysis-filter-snp-vcf-detection">Please return to the begin tab and ensure you have set up your workspace.</div>
-									<div id="snp-chart"></div>
+									<hr />
+
+									<h5><b>Environmental variables</b></h5>
+									<table class="table">
+										<thead>
+											<tr>
+												<th>Layer name</th>
+												<th>Source</th>
+												<th>Environmental values</th>
+											</tr>
+										</thead>
+										<tbody class="env-selected-container" id="map-environmental-data"> 
+										</tbody>
+									</table>
 								</div>
-								<!--
-								<div class="col">
-									<div class="form-row align-items-center">
-										<div class="col-9 my-1">
-											<h3 id="chart-loading" class="hidden">Loading...</h3>
-											<div id="analysis-filter-snp-progressbar"></div>
-											<div id="analysis-filter-snp-progressbar-status" style="text-align: center; font-size: 12px; margin-bottom: 10px;"></div>
-											<label class="mr-sm-2" for="inlineFormCustomSelect">Choose threshold to keep</label>
-											<select class="custom-select mr-sm-2" id="snp-threshold-missing" style="width: 80% !important">
-											</select>
-											<button style="margin-top: 10px; " id="filter-chart" class="btn btn-primary">Submit</button>
-										</div>
-										<div class="col my-1">
-											  
-										</div>
-									</div>
+								<button type="button" class="btn btn-secondary left-btn analysis-form-prev">Back</button>
+								<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
+							</div>
+							<div id="analysis-confirm" class="tab-pane fade">
+								<div class="analysis-tab-content">
+									<h4>Map Summary</h4>
+									<ul class="list-group">						
+										<li class="list-group-item d-flex justify-content-between align-items-center">
+											<h5><b>Number of trees</b></h5>
+											<span id="analysis-num-trees">0</span>
+										</li>
+										<li class="list-group-item d-flex justify-content-between align-items-center">
+											<h5><b>Species</b></h5>
+											<span id="analysis-num-species">0</span>
+										</li>
+										<li class="list-group-item d-flex justify-content-between align-items-center">
+											<h5><b>Studies</b></h5>
+											<span id="analysis-num-pub">0</span>
+										</li>
+										<li class="list-group-item d-flex justify-content-between align-items-center">
+											<h5><b>Phenotypes</b></h5>
+											<span id="analysis-phenotypes">No</span>
+										</li>
+										<li class="list-group-item d-flex justify-content-between align-items-center">
+											<h5><b>Environmental values</b></h5>
+											<span id="analysis-env-vals">0</span>
+										</li>
+									</ul>
 								</div>
-								-->
+								<button type="button" class="btn btn-secondary left-btn analysis-form-prev">Back</button>
+								<button type="submit" class="btn btn-success right-btn analysis-form-submit">Submit</button>
 							</div>
 						</div>
-						<hr />
-						<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
-					</div>
-
-					<div id="analysis-popstruct-section" class="tab-pane fade">
-						<div class="analysis-tab-content">
-							<h4>Nextflow Population Structure Workflow</h4>
-							<table id="nextflow-population-structure-workflow-container">
-								<tr>
-									<td style="width: 35%">
-										<div id="nextflow-population-structure-workflow" ></div>
-									</td>
-									<td style="width: 65%">
-										<div id="nextflow-population-structure-visualization" style="vertical-align: top;"></div>
-									</td>
-								</tr>
-							</table>
-							<div style="display: none;">
-								<h4>Galaxy Population Structure Workflow</h4>
-								<div style="text-align: center;">
-									Number of populations<br />
-									<input id="analysis-popstruct-section-k-value" type="text" value="2" style="text-align: center" /><br />
-									<div style="display: inline-block;">Select VCF file</div><div style="display: inline-block;" class="select_loading"></div><br />
-									<select style="margin-bottom: 10px; " id="analysis-popstruct-section-vcf-selectfile">
-										<option>SELECT VCF FILE</option>
-									</select><br />
-									<button class="btn btn-info" id="analysis-popstruct-section-button-generate-fast-structure">Generate Fast Structure</button>
-								</div>
-								<div id="analysis-popstruct-status" style="text-align: center"></div>
-								<div id="analysis-popstruct-dapc-step1-plot-container"></div>
-							</div>
-							<!--
-							<h3 id="chart-loading" class="hidden">Loading...</h3>
-							<div class="row">
-								<div class="col">
-									<div id="snp-study-vcf-detection"></div>
-									<div id="snp-chart"></div>
-									
-								</div>
-								<div class="col">
-									<div class="form-row align-items-center">
-										<div class="col-9 my-1">
-											<label class="mr-sm-2" for="inlineFormCustomSelect">Choose threshold to keep</label>
-											<select class="custom-select mr-sm-2" id="snp-threshold-missing" style="width: 80% !important">
-											</select>
-										</div>
-										<div class="col my-1">
-											  <button id="filter-chart" class="btn btn-primary">Submit</button>
-										</div>
-									</div>
-								</div>
-							</div>
-							-->
-						</div>
-						<hr />
-						<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
-					</div>
-
-					<div id="analysis-retrieve-envdata-section" class="tab-pane fade">
-						<div class="analysis-tab-content">
-							<div class="row">
-								<div class="col">
-									<!-- class: align-items-center -->
-									<div class="form-row" style="height: 100%;">
-										<div class="col-md-8 my-1">
-											<label class="mr-sm-2">Choose environmental layers</label>
-											<div id="analysis-retrieve-envdata-section-layers-list"></div>
-										</div>
-										<div class="col-md-4 my-1" style="vertical-align: top; height: 100%;">
-											  <!-- <button id="analysis-retrieve-envdata-section-button" class="btn btn-primary">Submit</button> -->
-											  <?php
-												global $user;
-												if (in_array('administrator', $user->roles)) {
-													// do fancy stuff
-											  ?>
-											  <div style="border: 1px solid #c3b113; background-color: #fff2be; padding: 10px; text-align: center; margin-bottom: 10px;">
-											  <i class="fa-solid fa-circle-info"></i> By adjusting your selected environmental layers, the PCA scatterplot will (re)generate after you click Gather and upload to workspace button. 
-											  </div>
-											  <div style="text-align: center;"><button id="analysis-generateoutput-envdata-section-button" class="btn btn-primary">Precache values</button><div id="analysis-generateoutput-elapsed-time" style="display: inline-block;"></div></div><br />
-											  <?php } ?>
-											  <div style="text-align: center;"><button id="analysis-generateoutput-envdata-section-from-db-button" class="btn btn-primary">Gather and upload to workspace</button></div>
-											  <div style="text-align: center;" id="analysis-generateoutput-envdata-section-from-db-status"></div>
-											  <div id="analysis-envdata-section-progressbar" style="margin-top: 10px; height: 20px;"></div>
-											  <div id="analysis-envdata-section-progressbar-description" style='text-align: center; font-size: 12px;'></div>
-											  <div id="analysis-envdata-section-progressbar2" style="margin-top: 10px; height: 20px;"></div>
-											  <div id="analysis-envdata-section-progressbar2-description" style='text-align: center; font-size: 10px; text-align: center;'></div>
-											  <div id="download_analysis_envdata_csv_data_button_container" style="text-align: center; margin-top: 10px;"></div>
-											  <div id="envdata_scatter_plot" style="text-align: center; margin-top: 10px;"></div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-						<hr />
-						<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
-					</div>
-
-					<!-- analysis-create-analysis-section -->
-					<div id="analysis-create-analysis-section" class="tab-pane fade">
-						<div class="analysis-tab-content" >
-							<div id="nextflow-gwas-interface-container">
-								<div><h4>Nextflow - GWAS Workflow</h4></div>
-								<div id="nextflow-gwas-interface"></div>
-								<div id="nextflow-gwas-results"></div>
-								<div id="nextflow-gwas-flags"></div>
-							</div>
-							<!-- <div style="margin-bottom: 15px;">Note: A workspace must be used to store your input data in case you ever need to rerun the workflow</div>-->
-							<!--
-							<div style="display: flex; margin-bottom: 10px;">
-								<div style="width: 15%;">Step 1 - Select workflow</div>
-								<div style="width: 50%;"><select id="create-analysis-select-workflow"></select></div>
-								<div style="width: 35%;">
-									<button class="btn btn-success manage-workspace-files-refresh d-inline-block">Refresh file list</button>
-									<div class="workspace-files-loader d-inline-block" style="margin-left:5px;"></div>
-									<button class="d-inline-block btn btn-primary button-refresh-workflow">Reload workflow</button>
-									<span class="button-refresh-workflow-status d-inline-block"></span>
-								</div>
-							</div>
-							<div style="display: flex; margin-bottom: 10px;">
-								<div style="width: 15%;">Step 2 - Setup analysis</div><div id="create-analysis-workflow-submit-form" style="width: 75%;"></div>
-							</div>							
-							<hr />
-							-->
-							<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>																			
-						</div>
-
-					</div>
-
-					<div id="analysis-options" class="tab-pane fade">
-						<div class="analysis-tab-content">
-							<h5><b>Analysis type</b></h5>
-							<select class="analysis-select">
-								<option value="GxE">Landscape GxE</option>
-								<option value="PxG">Associative Genetics PxG</option>
-								<option value="G">Population Structure G</option>
-							</select>
-
-							<hr />
-
-							<h5><b>Publications Selected</b></h5>
-							<table class="table">
-								<thead>
-									<tr>
-										<th>ID</th>
-										<th>Title</th>
-										<th>Author</th>
-										<th>Year</th>
-										<!--<th>Species</th>-->
-										<th># Trees</th>
-										<th>Study type</th>
-										<th>Status</th>
-									</tr>
-								</thead>
-								<tbody class="pub-selected-container" id="map-publications-data"> 
-								</tbody>
-							</table>
-							
-							<hr />
-
-							<h5><b>Environmental variables</b></h5>
-							<table class="table">
-								<thead>
-									<tr>
-										<th>Layer name</th>
-										<th>Source</th>
-										<th>Environmental values</th>
-									</tr>
-								</thead>
-								<tbody class="env-selected-container" id="map-environmental-data"> 
-								</tbody>
-							</table>
-						</div>
-						<button type="button" class="btn btn-secondary left-btn analysis-form-prev">Back</button>
-						<button type="button" class="btn btn-info right-btn analysis-form-next">Next</button>
-					</div>
-					<div id="analysis-confirm" class="tab-pane fade">
-						<div class="analysis-tab-content">
-							<h4>Map Summary</h4>
-							<ul class="list-group">						
-								<li class="list-group-item d-flex justify-content-between align-items-center">
-									<h5><b>Number of trees</b></h5>
-									<span id="analysis-num-trees">0</span>
-								</li>
-								<li class="list-group-item d-flex justify-content-between align-items-center">
-									<h5><b>Species</b></h5>
-									<span id="analysis-num-species">0</span>
-								</li>
-								<li class="list-group-item d-flex justify-content-between align-items-center">
-									<h5><b>Studies</b></h5>
-									<span id="analysis-num-pub">0</span>
-								</li>
-								<li class="list-group-item d-flex justify-content-between align-items-center">
-									<h5><b>Phenotypes</b></h5>
-									<span id="analysis-phenotypes">No</span>
-								</li>
-								<li class="list-group-item d-flex justify-content-between align-items-center">
-									<h5><b>Environmental values</b></h5>
-									<span id="analysis-env-vals">0</span>
-								</li>
-							</ul>
-						</div>
-						<button type="button" class="btn btn-secondary left-btn analysis-form-prev">Back</button>
-						<button type="submit" class="btn btn-success right-btn analysis-form-submit">Submit</button>
 					</div>
 				</div>
             </div>

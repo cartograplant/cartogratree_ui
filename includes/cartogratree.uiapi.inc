@@ -313,7 +313,9 @@ function cartogratree_uiapi_get_vcf_studies($tgdr_numbers_csv) {
 function cartogratree_uiapi_get_vcf_studies_indexed($tgdr_numbers_csv) {
     $tgdr_numbers = explode(',',$tgdr_numbers_csv);
     $tgdr_count = count($tgdr_numbers);
-    $return_results = array();
+    $return_results = [
+        'vcf_locations' => []
+    ];
     $where_clause = '';
     $study_count = 0;
     foreach($tgdr_numbers as $tgdr_number) {
@@ -333,15 +335,21 @@ function cartogratree_uiapi_get_vcf_studies_indexed($tgdr_numbers_csv) {
     $found_counter = 0;
     // This goes through the results where the analysis_name is in descending order
     foreach ($results_data as $row) {
+        //print_r($row);
+        //print_r("\n");
         if ($row->analysis_name != $analysis_name) {
             $analysis_name = $row->analysis_name;
             $found_counter = 1;
-            $return_results['vcf_locations'] = [];
-            $return_results['vcf_locations'][$row->tgdr_accession] = $row->vcf_path;
+            // $return_results['vcf_locations'] = [];
+            if (!isset($return_results['vcf_locations'][$row->tgdr_accession])) {
+                $return_results['vcf_locations'][$row->tgdr_accession] = $row->vcf_path;
+            }
         }
         else {
             $found_counter = $found_counter + 1;
-            $return_results['vcf_locations'][$row->tgdr_accession] = $row->vcf_path;
+            if (!isset($return_results['vcf_locations'][$row->tgdr_accession])) {
+                $return_results['vcf_locations'][$row->tgdr_accession] = $row->vcf_path;
+            }
         }
         if ($found_counter == $study_count) {
             $return_results['shared_analysis'] = $analysis_name;

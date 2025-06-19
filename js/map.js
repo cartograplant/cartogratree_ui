@@ -75,7 +75,7 @@ var ct_ready_mapjs = function() {
 
 	// Currently filtered trees store current selected trees
 	cartograplant.currently_filtered_trees = [];
-	var currently_filtered_trees = cartograplant.currently_filtered_trees;
+	// var currently_filtered_trees = cartograplant.currently_filtered_trees;
 
 	// treeDataStore stores per tree data when clicked (as a cache)
 	cartograplant.treeDataStore = [];
@@ -2515,6 +2515,7 @@ var ct_ready_mapjs = function() {
 
 				cartograplant.currently_filtered_trees = [];
 				cartograplant.json_tree_ids = [];
+				console.log(data);
 				for(var i=0; i < data.length; i++) {
 					cartograplant.currently_filtered_trees.push(data[i]["properties"]["id"]);
 					cartograplant.json_tree_ids.push(data[i]["properties"]["id"]);
@@ -6304,6 +6305,7 @@ var ct_ready_mapjs = function() {
 		for(var i=0; i < res["features"].length; i++) {
 			cartograplant.currently_filtered_trees.push(res["features"][i]["properties"]["id"]);
 		}
+		console.log('res["features"]', res["features"]);
 		if(debug) {
 			console.log("Added " + res["features"].length + " trees to currently_filtered_trees");
 		}
@@ -7508,9 +7510,9 @@ var ct_ready_mapjs = function() {
 		
 		html += '<div class="status"></div>';
 		html += '<div class="detected_vcf_information"></div>';
-		html += '<div class="detected_vcf_overlaps" style="padding: 20px;"></div>';
-		html += '<div class="none_detected_vcf_information"></div><hr />';
-		html += '<div class="nextflow_variant_filtering_pipeline"></div><hr />';
+		html += '<div class="detected_vcf_overlaps" style=""></div>';
+		html += '<div class="none_detected_vcf_information"></div>';
+		html += '<div class="nextflow_variant_filtering_pipeline"></div>';
 		html += '<div class="vcf_snps_quality_filtering_ui">';
 		// html += '	<div style="margin-bottom: 5px;" class="vcf_filtered_snp_files_select_div"><div style="display: inline-block; width: 15%;">Filter SNP Files</div><select></select></div>';
 		html += '	<div style="margin-bottom: 5px;" class="vcf_snp_quality_workflow_select_div"><h3>Galaxy variant filtering</h3><div style="display: inline-block; width: 15%;">Quality filtering method</div><select></select></div>';
@@ -7520,7 +7522,7 @@ var ct_ready_mapjs = function() {
 
 		$('#analysis-filter-snp-vcf-detection').html(html);
 		$('.nextflow_variant_filtering_pipeline').html('');
-		$('.nextflow_variant_filtering_pipeline').append('<h3>Nextflow variant filtering</h3>');
+		// $('.nextflow_variant_filtering_pipeline').append('<h3>Nextflow variant filtering</h3>');
 
 		
 
