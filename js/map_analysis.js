@@ -1451,7 +1451,12 @@ var ct_ready_map_analysis = function() {
 							$('#analysis_gt_check_status').append(generate_completion_message_html(data));
 							
 							var gt_check_study_refinement_html = '';
-							gt_check_study_refinement_html += '<div>Marker discordance between pairwise comparisons of genotypes in study X and study Y</div>';
+							var study_combinations = Object.keys(data['response']['sampleDiscordance']);
+							for (var i = 0; i<study_combinations.length; i++) {
+								var study_combination = study_combinations[i];
+								var study_comb_arr = study_combination.split('-');
+								gt_check_study_refinement_html += '<div>Marker discordance between pairwise comparisons of genotypes in study ' + study_comb_arr[0] + ' and study ' + study_comb_arr[1] +'</div>';
+							}
 							gt_check_study_refinement_html += '<div style="max-height: 200px; overflow-y: auto;">';
 							gt_check_study_refinement_html += '<table border=1 style="width: 100%;">';
 							gt_check_study_refinement_html += '<tr><th>Sample names</th>';
