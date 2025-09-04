@@ -312,6 +312,7 @@ function cartogratree_uiapi_get_vcf_studies($tgdr_numbers_csv) {
 
 function cartogratree_uiapi_get_vcf_studies_indexed($tgdr_numbers_csv) {
     $tgdr_numbers = explode(',',$tgdr_numbers_csv);
+    // print_r($tgdr_numbers);
     $tgdr_count = count($tgdr_numbers);
     $return_results = [
         'vcf_locations' => []
@@ -328,14 +329,15 @@ function cartogratree_uiapi_get_vcf_studies_indexed($tgdr_numbers_csv) {
     }
 
     $return_results['study_count'] = $study_count;
-    $sql = 'SELECT * FROM chado.vcf_locations WHERE (' . $where_clause . ') ORDER BY analysis_name DESC';
+    $sql = 'SELECT DISTINCT tgdr_accession, analysis_name, vcf_path FROM chado.vcf_locations WHERE (' . $where_clause . ') ORDER BY analysis_name DESC';
+    // print_r($sql);
     // echo $sql;
     $results_data = chado_query($sql, []);
     $analysis_name = "";
     $found_counter = 0;
     // This goes through the results where the analysis_name is in descending order
     foreach ($results_data as $row) {
-        //print_r($row);
+        // print_r($row);
         //print_r("\n");
         if ($row->analysis_name != $analysis_name) {
             $analysis_name = $row->analysis_name;

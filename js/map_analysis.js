@@ -1,3 +1,4 @@
+var analysis_study_context = {};
 var ct_ready_map_analysis = function() {
 	var galaxy_id = null; // the galaxy server / connection to be used for analysis
 	var workflow_id = null; // the workflow id to be used for the analysis
@@ -15,7 +16,7 @@ var ct_ready_map_analysis = function() {
 	var analysis_workflow_step_indexes = {};
 	var analysis_job_check_timers = {};
 	var analysis_snp_filtering_final_output_file = {};
-	var analysis_study_context = {};
+	
 	var genotype_filtering = {};
 	var loading_icon_src = Drupal.settings.base_url + '/' + Drupal.settings.cartogratree.url_path + '/theme/templates/resources_imgs/loader-ring.gif';
 	var analysis_includedTrees = undefined; // [IMPORTANT!] Initialized on first tab load 
@@ -167,6 +168,10 @@ var ct_ready_map_analysis = function() {
 			// create container object
 			$(interface).find('.statistics-histograms').append('<div style="display: inline-block; padding: 10px;" class="' + histogram_container + '"><i class="fa-solid fa-sync fa-spin"></i> Retrieving ' + variable_name + '... </div>')
 
+
+			// Get the vcf_filename_without_ext from the parent variant-filtering-study-interface
+			var vcf_filename_without_ext = $(this).closest('.variant-filtering-study-interface').attr('data-vcf-filename-without-ext');
+
 			$.ajax({
 				url: Drupal.settings.ct_nodejs_api + '/v2/genotypes/variant_filtering_panel_get_statistics',
 				method: 'POST',
@@ -175,32 +180,38 @@ var ct_ready_map_analysis = function() {
 					workspace_name: $('#nextflow-create-analysis-select-history').val(),
 					analysis_id: cartograplant['current_analysis_id'],
 					variable_name: variable_name,
-					study_accession: study_accession
+					study_accession: study_accession,
+					vcf_filename_without_ext: vcf_filename_without_ext
 				},
 				success: function (data) {
+					try {
+						console.log('variable data', data);
+						var data_object = JSON.parse(data);
+						console.log('data_object', data_object);
+						var values = [];
+						for (var i = 0; i < data_object['values'].length; i++) {
+							values.push({
+								value: data_object['values'][i]
+							})
+						}
+						console.log('values', values);
 
-					console.log('variable data', data);
-					var data_object = JSON.parse(data);
-					console.log('data_object', data_object);
-					var values = [];
-					for (var i = 0; i < data_object['values'].length; i++) {
-						values.push({
-							value: data_object['values'][i]
-						})
+						$(interface).find('.statistics-histograms').find('.' + histogram_container).html('');
+
+						
+						interactive_histogram_create_v5(
+							'.' + histogram_container, 
+							variable_name,//unique_id
+							variable_name, 
+							250, 250, 
+							values,['value'], 
+							false
+						);
 					}
-					console.log('values', values);
-
-					$(interface).find('.statistics-histograms').find('.' + histogram_container).html('');
-
-					
-					interactive_histogram_create_v5(
-						'.' + histogram_container, 
-						variable_name,//unique_id
-						variable_name, 
-						250, 250, 
-						values,['value'], 
-						false
-					);
+					catch (err) {
+						console.log(err);
+						$(interface).find('.statistics-histograms').append('<div style="display: inline-block; padding: 10px;" class="' + histogram_container + '"><i class="fa-solid fa-sync fa-spin"></i> Could not retrieve statistics for ' + variable_name +  ' </div>')
+					}
 				}
 			});
 		}
@@ -237,6 +248,7 @@ var ct_ready_map_analysis = function() {
 	var generate_nextflow_variant_filtering_ui_timers = {};
 	cartograplant['generate_nextflow_variant_filtering_ui'] = generate_nextflow_variant_filtering_ui_timers;
 	function generate_nextflow_variant_filtering_ui(options) {
+		console.log('generate_nextflow_variant_filtering_ui', options);
 		// Version 1 of options was simple
 		// var study_accession = options['study_accession'];
 		// var vcf_location = options['vcf_location'];
@@ -248,7 +260,7 @@ var ct_ready_map_analysis = function() {
 			try {
 				vcf_location = options['studies'][study_accession][0];
 			} catch (err) {}
-			
+			console.log('vcf_location', vcf_location);
 			if (vcf_location != undefined && vcf_location != null && vcf_location != "") {
 
 				html = '<div style="bottom: 10px;" class="variant-filtering-study-interface" data-study-accession="' + study_accession + '" data-vcf-location="' + vcf_location + '">';
@@ -298,6 +310,7 @@ var ct_ready_map_analysis = function() {
 							console.log('Polling filter_by_genotypes rules_json', data);
 							if (data['status'] == true) {
 								console.log('Stopping filter_by_genotypes rules_json timer from polling [' + study_accession +']');
+								
 								try {
 									var keys = Object.keys(data['rules_json']);
 									console.log('Rules_json parent keys', keys);
@@ -306,6 +319,9 @@ var ct_ready_map_analysis = function() {
 									// Generate the statistics checkboxes
 									// var directives_list = Object.keys(data['rules_json'][data['vcf_filename_without_ext']]);
 									var directives_list = Object.keys(data['rules_json'][rendered_vcf_location]);
+
+									// Set vcf_filename_without_ext for later use
+									$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"]').attr('data-vcf-filename-without-ext', data['vcf_filename_without_ext']);
 
 									
 									console.log('directives_list', directives_list);
@@ -319,7 +335,7 @@ var ct_ready_map_analysis = function() {
 											var directive_data_keys = Object.keys(directive_data);
 											console.log('directive_data_keys', directive_data_keys);
 											for (var j = 0; j < directive_data_keys.length; j++) {
-												statistics_variables_object[directive_data_keys[j]] = true;
+												statistics_variables_object[directive_data_keys[j]] = directive;
 											}
 										}
 									}
@@ -332,8 +348,10 @@ var ct_ready_map_analysis = function() {
 									.append('<div class="checkboxes"></div>');
 									for (var i = 0; i < statistics_variables.length; i++) {
 										console.log('statistics_variable', statistics_variables[i]);
+										var directive = statistics_variables_object[statistics_variables[i]];
+										var statistics_variable_human_readable_name = data['rules_json'][rendered_vcf_location][directive][statistics_variables[i]]['Description'];
 										$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .statistics-variables .checkboxes')
-										.append('<div style="display: inline-block; margin-right: 10px;"><input type="checkbox" data-statistic-variable="' + statistics_variables[i] + '" /> ' + statistics_variables[i] + '</div>');
+										.append('<div style="display: inline-block; margin-right: 10px;"><input type="checkbox" data-statistic-variable="' + statistics_variables[i] + '" /> ' + statistics_variable_human_readable_name + '</div>');
 									}
 
 									$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .status-process')
@@ -379,10 +397,11 @@ var ct_ready_map_analysis = function() {
 										var directives_list = Object.keys(study_specific_options);
 										for (var i = 0; i < directives_list.length; i++) {
 											try {
+
 												var directive = directives_list[i];
 												var options = study_specific_options[directive];
 												var options_keys = Object.keys(study_specific_options[directive]);
-												if (typeof options === 'object' && Array.isArray(options) == false) {
+												if (typeof options === 'object' && Array.isArray(options) == false && directive != 'uiMetaData') {
 													console.log('options', options);
 													console.log('options_keys', options_keys);
 
@@ -525,7 +544,9 @@ var ct_ready_map_analysis = function() {
 
 													console.log('filter_variable_object', filter_variable_object);
 												}
-											} catch (err) { console.log(err) }
+											} catch (err) { 
+												console.log(err);
+											}
 										}
 										console.log('query_builder_filters', query_builder_filters);
 								
@@ -604,235 +625,6 @@ var ct_ready_map_analysis = function() {
 					}
 				}
 
-				/*
-				// Generate the statistics checkboxes
-				var directives_list = Object.keys(data['rules_json'][data['vcf_filename_without_ext']]);
-				console.log('directives_list', directives_list);
-				var statistics_variables_object = {};
-
-				for (var i = 0; i < directives_list.length; i++) {
-					var directive = directives_list[i];
-					if (directive == 'INFO' || directive == 'FORMAT') {
-						var directive_data = data['rules_json'][data['vcf_filename_without_ext']][directive];
-						console.log('directive_data', directive_data);
-						var directive_data_keys = Object.keys(directive_data);
-						console.log('directive_data_keys', directive_data_keys);
-						for (var j = 0; j < directive_data_keys.length; j++) {
-							statistics_variables_object[directive_data_keys[j]] = true;
-						}
-					}
-				}
-
-				var statistics_variables = Object.keys(statistics_variables_object);
-				console.log('statistics_variables_object', statistics_variables_object);
-				$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .statistics-variables')
-				.append('<h5>Statistics variables</h5>');
-				$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .statistics-variables')
-				.append('<div class="checkboxes"></div>');
-				for (var i = 0; i < statistics_variables.length; i++) {
-					console.log('statistics_variable', statistics_variables[i]);
-					$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .statistics-variables .checkboxes')
-					.append('<div style="display: inline-block; margin-right: 10px;"><input type="checkbox" data-statistic-variable="' + statistics_variables[i] + '" /> ' + statistics_variables[i] + '</div>');
-				}
-
-				$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .status-process')
-				.html('🌟 Filtering variables retrieved, rules can now be created.');
-
-				$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"]').attr('data-rules_data', btoa(JSON.stringify(data)));
-
-				// TODO work on the options which we need to put into the container
-				if (data['study_accession'] != undefined) {
-					// generate_nextflow_variant_filtering_ui_add_rule({
-					// 	study_accession: data['study_accession']
-					// });
-					var rules_basic = {
-						condition: 'AND',
-						rules: [
-						{
-						  id: 'price',
-						  operator: 'less',
-						  value: 10.25
-						}, 
-						{
-						  condition: 'OR',
-						  rules: [
-							{
-							id: 'category',
-							operator: 'equal',
-							value: 2
-						  	}, 
-							{
-								id: 'category',
-								operator: 'equal',
-								value: 1
-							}
-						  ]
-						}
-						]
-					};
-
-					var query_builder_filters = {
-						filters: []
-					};
-					var study_specific_options = data['rules_json'][data['vcf_filename_without_ext']];
-					var directives_list = Object.keys(study_specific_options);
-					for (var i = 0; i < directives_list.length; i++) {
-						try {
-							var directive = directives_list[i];
-							var options = study_specific_options[directive];
-							var options_keys = Object.keys(study_specific_options[directive]);
-							if (typeof options === 'object' && Array.isArray(options) == false) {
-								console.log('options', options);
-								console.log('options_keys', options_keys);
-
-								var filter_variable_object = {
-									id: directive,
-									label: directive,
-									data: {
-										study_accession: data['study_accession']
-									},
-									type: 'string',
-									// input: 'select',
-									input: function(rule, name) {
-										var $container = rule.$el.find('.rule-value-container');
-									},
-									operators: [
-										'equal',
-										'greater',
-										'less'
-									],
-									values: {},
-									valueGetter: function(rule) {
-										return rule.$el.find('.rule-value-container select').val()
-											+ '-DELIMITER-' + rule.$el.find('.rule-value-container input').val();
-									},
-									// valueSetter: function(rule, value) {
-									// 	if (rule.operator.nb_inputs > 0) {
-									// 		var val = value.split('.');
-									
-									// 		rule.$el.find('.rule-value-container select').val(val[0]).trigger('change');
-									// 		rule.$el.find('.rule-value-container input').val(val[1]).trigger('change');
-									// 	}
-									// }
-								}
-								var select_html = '<select style="padding: 10px;">';
-								for (var j = 0; j < options_keys.length; j++) {
-									var raw_variable = options_keys[j];
-									var variable_options_object = options[raw_variable];
-									select_html += '<option value="' + raw_variable + '">' + variable_options_object['Description'] + '</option>';
-									// filter_variable_object['values'][raw_variable] = variable_options_object['Description'];
-								}
-								select_html += '</select>';
-								select_html += ' <input style="padding: 6px;" type="text" class="value_raw" placeholder="value" />';
-								if (cartograplant['analysis_variant_filtering_rules_ui_values_' + data['study_accession']] == undefined) {
-									cartograplant['analysis_variant_filtering_rules_ui_values_' + data['study_accession']] = {};
-								}
-								cartograplant['analysis_variant_filtering_rules_ui_values_' + data['study_accession']][directive] = select_html;
-								filter_variable_object['input'] = function(rule, name) {
-									var rule_element = rule.$el;
-									var directive = rule_element.find('.rule-filter-container select').val();
-									console.log('directive', directive);
-
-									console.log('custom rules_ui input');
-									console.log('rule', rule);
-									console.log('name', name);
-									console.log('ui_values_study', cartograplant['analysis_variant_filtering_rules_ui_values_' + rule.filter.data['study_accession']]);
-									console.log(cartograplant['analysis_variant_filtering_rules_ui_values_' + rule.filter.data['study_accession']][directive]);
-									var html = cartograplant['analysis_variant_filtering_rules_ui_values_' + rule.filter.data['study_accession']][directive];
-									return html;
-								}
-								query_builder_filters['filters'].push(filter_variable_object);
-
-								console.log('filter_variable_object', filter_variable_object);
-							}
-						} catch (err) { console.log(err) }
-					}
-					console.log('query_builder_filters', query_builder_filters);
-
-					// Shared (copied from above code)
-					var study_specific_options = data['rules_json'];
-					console.log('study_specific_options', study_specific_options);
-					var directives_list = ['Shared'];
-					console.log('directives_list', directives_list);
-					for (var i = 0; i < directives_list.length; i++) {
-						try {
-							var directive = directives_list[i];
-							var options = study_specific_options[directive];
-							var options_keys = Object.keys(study_specific_options[directive]);
-							console.log('options', options);
-							console.log('options_keys', options_keys);
-							if (typeof options === 'object' && Array.isArray(options) == false) {
-
-
-								var filter_variable_object = {
-									id: directive,
-									label: directive,
-									data: {
-										study_accession: data['study_accession']
-									},
-									type: 'string',
-									// input: 'select',
-									input: function(rule, name) {
-										var $container = rule.$el.find('.rule-value-container');
-									},
-									operators: [
-										'equal',
-										'greater',
-										'less'
-									],
-									values: {},
-									valueGetter: function(rule) {
-										return rule.$el.find('.rule-value-container select').val()
-											+ '-DELIMITER-' + rule.$el.find('.rule-value-container input').val();
-									},
-									// valueSetter: function(rule, value) {
-									// 	if (rule.operator.nb_inputs > 0) {
-									// 		var val = value.split('.');
-									
-									// 		rule.$el.find('.rule-value-container select').val(val[0]).trigger('change');
-									// 		rule.$el.find('.rule-value-container input').val(val[1]).trigger('change');
-									// 	}
-									// }
-								}
-								var select_html = '<select style="padding: 10px;">';
-								for (var j = 0; j < options_keys.length; j++) {
-									var raw_variable = options_keys[j];
-									var variable_options_object = options[raw_variable];
-									select_html += '<option value="' + raw_variable + '">' + variable_options_object['Description'] + '</option>';
-									// filter_variable_object['values'][raw_variable] = variable_options_object['Description'];
-								}
-								select_html += '</select>';
-								select_html += ' <input style="padding: 6px;" type="text" class="value_raw" placeholder="value" />';
-								if (cartograplant['analysis_variant_filtering_rules_ui_values_' + data['study_accession']] == undefined) {
-									cartograplant['analysis_variant_filtering_rules_ui_values_' + data['study_accession']] = {};
-								}
-								cartograplant['analysis_variant_filtering_rules_ui_values_' + data['study_accession']][directive] = select_html;
-								filter_variable_object['input'] = function(rule, name) {
-									var rule_element = rule.$el;
-									var directive = rule_element.find('.rule-filter-container select').val();
-									console.log('directive', directive);
-
-									console.log('custom rules_ui input');
-									console.log('rule', rule);
-									console.log('name', name);
-									console.log('ui_values_study', cartograplant['analysis_variant_filtering_rules_ui_values_' + rule.filter.data['study_accession']]);
-									console.log(cartograplant['analysis_variant_filtering_rules_ui_values_' + rule.filter.data['study_accession']][directive]);
-									var html = cartograplant['analysis_variant_filtering_rules_ui_values_' + rule.filter.data['study_accession']][directive];
-									return html;
-								}
-								query_builder_filters['filters'].push(filter_variable_object);
-
-								console.log('filter_variable_object', filter_variable_object);
-							}
-						} catch (err) { console.log(err) }
-					}
-					console.log('query_builder_filters', query_builder_filters);
-			
-					$('.variant-filtering-study-interface[data-study-accession="' + data['study_accession'] + '"] .rules_ui').queryBuilder(
-						query_builder_filters
-					);
-				}
-				*/
 			}
 		});
 
@@ -1433,6 +1225,7 @@ var ct_ready_map_analysis = function() {
 						try {
 							data = JSON.parse(data);
 						} catch (err) {console.log(err)}
+						console.log('Genotypes check completion json:', data);
 						if (data['response']['success'] == 'true') {
 							console.log('Genotypes check Completion:', data);
 							try {
@@ -1611,6 +1404,7 @@ var ct_ready_map_analysis = function() {
 						} catch (err) {console.log(err)}
 						if (data['response']['success'] == 'true') {
 							analysis_study_context = data['response'];
+							console.log('Merge VCFs Completion updated analysis_study_context:', data);
 							try {
 								clearInterval(analysis_timers['merge_vcfs_completion_json']);
 							} catch (err) {
@@ -4091,7 +3885,28 @@ var ct_ready_map_analysis = function() {
 		$('#analysis_detections_confirm_selection_status').html('<i class="fas fa-clock"></i> Processing, please wait...');
 		var payload = {};
 		
-		var trees = analysis_includedTrees;
+		var trees = analysis_includedTrees; // DEFAULT
+		// If the user has selected individual trees, then we use those instead
+		var samples_checkboxes = $('#analysis_detections_study_summary').find('.samples_checkbox');
+		if (samples_checkboxes.length > 0) {
+			var trees_object = {};
+			trees = [];
+			for (var i = 0; i < samples_checkboxes.length; i++) {
+				var element = $(samples_checkboxes[i]);
+				if ($(element).is(':checked')) {
+					console.log('Samples checkbox checked', element);
+					var samples_div = $(element).closest('tr').find('.samples');
+					var samples_csv = $(samples_div).attr('data-samples');
+					var samples_array = samples_csv.split(',');
+					for (var j = 0; j < samples_array.length; j++) {
+						var sample_name = samples_array[j];
+						trees_object[sample_name] = true;
+					}
+				}
+			}
+			trees = Object.keys(trees_object);
+			delete trees_object;
+		}
 		payload['trees'] = trees;
 		payload['studies'] = {};
 		console.log('Included Trees:', trees);
@@ -4301,6 +4116,41 @@ var ct_ready_map_analysis = function() {
 		}
 	}
 
+	// Individual samples checkbox clicks
+	try {
+		$('body').off('click', '#analysis_detections_study_summary .samples_checkbox');
+	}
+	catch (err) {}
+	$('body').on('click', '#analysis_detections_study_summary .samples_checkbox', function() {
+		console.log('samples_checkbox clicked');
+		// Check if checkbox is checked
+		if ($(this).is(':checked')) {
+			// Make sure the main study checkbox is also checked
+			$(this).closest('tr').find('.checkbox_option input').prop('checked', true);
+		}
+		else{
+			$(this).closest('tr').find('.checkbox_option input').prop('checked', false);
+		}
+	});
+
+	// Main study checkbox clicks
+	try {
+		$('body').off('click', '#analysis_detections_study_summary .checkbox_option input');
+	}
+	catch (err) {}
+	$('body').on('click', '#analysis_detections_study_summary .checkbox_option input', function() {
+		if ($(this).is(':checked')) {
+			$(this).closest('tr').find('.samples_checkbox').prop('checked', true);
+		}
+		else {
+			$(this).closest('tr').find('.samples_checkbox').prop('checked', false);
+		}
+	})
+
+
+
+
+
 	try {
 		$('#analysis-initial-configuration-tab').off('click');
 	}
@@ -4339,6 +4189,7 @@ var ct_ready_map_analysis = function() {
 		// THIS FILTER DOES NOT TAKE PLACE HERE BUT RATHER FROM THE CHECKBOX CLICKS
 		// THIS JUST INITIALIZES THE VARIABLE SO IT DOES NOT REMAIN UNDEFINED AND HAS ALL SELECTED TREES FROM CP MAIN
 		analysis_includedTrees = JSON.parse(JSON.stringify(mapState.includedTrees)); // makes a complete copy
+		console.log('analysis_includedTrees', analysis_includedTrees);
 
 		// Populate cartograplant studies variables which is used throughout the panel
 		get_detected_studies_from_selected_trees();
@@ -4385,56 +4236,104 @@ var ct_ready_map_analysis = function() {
 		var studies_with_phenotypes_count = 0;
 		for (var i = 0; i<studies.length; i++) {
 			var study = studies[i];
+
+			// Go through all filtered trees and see how many trees are associated with this study
+			var trees_in_study = 0;
+			var trees_csv = "";
+			for (var j = 0; j<analysis_includedTrees.length; j++) {
+				var tree = analysis_includedTrees[j];
+				if (tree.startsWith(study)) {
+					trees_in_study = trees_in_study + 1;
+					if (trees_csv.length == 0) {
+						trees_csv = tree;
+					}
+					else {
+						trees_csv = trees_csv + ',' + tree;
+					}
+				}
+			}
+
+
 			var table_row_html = "";
 			table_row_html += "<tr data-value='" + study + "'>";
 			table_row_html += "<td class='checkbox_option'><input type='checkbox' checked /></td>";
-			table_row_html += "<td class='accession'></td>";
-			table_row_html += "<td class='title'>Looking up study info</td>";
+			table_row_html += "<td class='accession'>" + study + "</td>";
+			table_row_html += "<td class='title_container'>";
+			table_row_html += '<div class="title" style="margin-bottom:10px; ">Attempting to gather data for this study...</div>';
+			table_row_html += '<div class="samples_container">';
+			table_row_html += '	<div class="samples" data-samples="' + trees_csv + '">';
+			table_row_html += '		<input type="checkbox" class="samples_checkbox" checked /> ';
+			table_row_html += '		<i class="fas fa-tree"></i> ' + trees_in_study + ' individual trees';
+			table_row_html += '	</div>';
+			table_row_html += '</div>';
+			table_row_html += "</td>";
 			table_row_html += "<td class='gen_count' style='text-align: center;'>-</td>";
 			table_row_html += "<td class='phen_count' style='text-align: center;'>-</td>";
 			table_row_html += "<td class='tree_count' style='text-align: center;'>-</td>";
 			table_row_html += "</tr>";
-			$('#analysis_detections_study_summary table').append(table_row_html);
-			var study_retrieved_count = 0;
-			$.ajax({
-				url: '/cartogratree_uianalysis/cartogratree_analysisapi_lookup_study_info/' + study,
-				method: 'GET',
-				success: function(data) {
-					console.log('lookup_study_info study row data', data);
-					study_data.push(data);
-					$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .accession').html(data['accession']);
-					$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .title').html(data['title']);
-					$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .tree_count').html(data['tree_count']);
-					if (data['gen_count'] != null) {
-						$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .gen_count').html(parseInt(data['gen_count']).toLocaleString());
-					}
-					if (data['phen_count'] != null) {
-						$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .phen_count').html(parseInt(data['phen_count']).toLocaleString());
-					}
-				}
-			}).always(function() {
-				study_retrieved_count = study_retrieved_count + 1;
-				
-				if (study_retrieved_count == studies.length) {
-					for (var j = 0; j<study_retrieved_count; j++) {
-						// check if there are at least 2 studies with genotypes
-						var single_study_data = study_data[j];
-						if (single_study_data['gen_count'] != null) {
-							studies_with_genotypes_count = studies_with_genotypes_count + 1;
-						}
-						if (single_study_data['marker_count'] != null) {
-							studies_with_phenotypes_count = studies_with_phenotypes_count + 1;
-						}
-					}
-					if (studies_with_genotypes_count > 1) {
-						$('#analysis_detections_genotype_capability').html('Genotypic overlap analysis may be possible for these studies. ✅');
 
+			$('#analysis_detections_study_summary table').append(table_row_html);
+			var pop_study_table_state = {
+				study_retrieved_count: 0,
+			}
+			// var study_retrieved_count = 0;
+			populate_study_table_row(studies, study, study_data, trees_in_study, pop_study_table_state);
+			function populate_study_table_row(studies, study, study_data, trees_in_study, pop_study_table_state) {
+				$.ajax({
+					url: '/cartogratree_uianalysis/cartogratree_analysisapi_lookup_study_info/' + study,
+					method: 'GET',
+					success: function(data) {
+						console.log('lookup_study_info study row data', data);
+						study_data.push(data);
+						$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .accession').html(data['accession']);
+						if (data['title'] !== undefined && data['title'] != null && data['title'] != "null" && data['title'].length > 0) {
+							$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .title').html(data['title']);
+						}
+						else {
+							$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .title').html('<i>No title found</i>');
+						}
+						$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .tree_count').html(data['tree_count']);
+
+						// Hide the individual samples checkbox if they are equal to the tree count
+						var tree_count = parseInt(data['tree_count']);
+						if (tree_count == trees_in_study) {
+							$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .samples_container').hide();
+						}
+						else {
+							$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .samples_container').show();
+						}
+
+						if (data['gen_count'] != null) {
+							$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .gen_count').html(parseInt(data['gen_count']).toLocaleString());
+						}
+						if (data['phen_count'] != null) {
+							$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .phen_count').html(parseInt(data['phen_count']).toLocaleString());
+						}
 					}
-					if (studies_with_phenotypes_count > 1) {
-						$('#analysis_detections_phenotype_capability').html('Phenotypic overlap analysis may be possible for these studies. ✅');
+				}).always(function() {
+					pop_study_table_state.study_retrieved_count = pop_study_table_state.study_retrieved_count + 1;
+					
+					if (pop_study_table_state.study_retrieved_count == studies.length) {
+						for (var j = 0; j<pop_study_table_state.study_retrieved_count; j++) {
+							// check if there are at least 2 studies with genotypes
+							var single_study_data = study_data[j];
+							if (single_study_data['gen_count'] != null) {
+								studies_with_genotypes_count = studies_with_genotypes_count + 1;
+							}
+							if (single_study_data['marker_count'] != null) {
+								studies_with_phenotypes_count = studies_with_phenotypes_count + 1;
+							}
+						}
+						if (studies_with_genotypes_count > 1) {
+							$('#analysis_detections_genotype_capability').html('Genotypic overlap analysis may be possible for these studies. ✅');
+
+						}
+						if (studies_with_phenotypes_count > 1) {
+							$('#analysis_detections_phenotype_capability').html('Phenotypic overlap analysis may be possible for these studies. ✅');
+						}
 					}
-				}
-			});
+				});
+			}
 			analysis_initial_configuration_tab = true;
 
 

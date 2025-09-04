@@ -115,8 +115,23 @@ var ct_ready_mainjs = function () {
 	}
 	cartograplant['populateOptions'] = populateOptions;
 	
-	function reload_filter_system() {
-
+	function reload_filter_system(readd_previous_filter_choices = false) {
+		var old_rules = undefined;
+		if (readd_previous_filter_choices == true) {
+			try {
+				old_rules = $('#builder').queryBuilder('getRules');
+				console.log('old_rules', old_rules);
+			}
+			catch (e) {
+				console.log('error getting old rules', e);
+			}
+		}
+		try {
+			// $('#builder').queryBuilder('getRules');
+		}
+		catch (e) {
+			console.log('error getting rules', e);
+		}
 		cartograplant.filtersList = [
 			cartograplant.buildSelectOption("family", "Family", "string", ["equal", "not_equal"]),	 // 0
 			cartograplant.buildSelectOption("genus", "Genus", "string", ["equal", "not_equal"]), // 1
@@ -201,6 +216,10 @@ var ct_ready_mainjs = function () {
 		querybuilder_change_delete();
 
 		console.log('reload filter system executed');
+		if (readd_previous_filter_choices == true) {
+			console.log('readd_previous_filter_choices is true so readd the previous filters');
+			$('#builder').queryBuilder('setRules', old_rules);	
+		}
 	}
 	reload_filter_system();
 	cartograplant['reload_filter_system'] = reload_filter_system;

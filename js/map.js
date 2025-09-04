@@ -2813,7 +2813,7 @@ var ct_ready_mapjs = function() {
 		console.log('getAllTrees()');
 		$.ajax({
 			url: Drupal.settings.ct_nodejs_api + "/v2/trees?cpapi_token=" + Drupal.settings.user.cpapi_token,
-			dataType: "json",		
+			dataType: "json",
 			async: true,
 			xhr: xhr_progress,
 			success: function (data) {	
@@ -3375,10 +3375,10 @@ var ct_ready_mapjs = function() {
 			}
 		}
 
-		if(debug) {
+		//if(debug) {
 			console.log('updateTreeImgs() function');
 			console.log('-- species:' + species);
-		}
+		// }
 		$("#tree-img-carousel .carousel-inner").html("");
 		$("#tree-img-carousel .carousel-indicators").html("");
 		//$("#tree-img-carousel").carousel("pause").removeData();
@@ -4103,6 +4103,7 @@ var ct_ready_mapjs = function() {
 			}
 			else if(data.source_id == 2) {
 				sourceName = "Data Dryad";
+				updateTreeImgs([], data.species);
 				if(data.uniquename.includes('TGDR')) {
 					getTreegenesData(treeId);
 				}
@@ -4511,30 +4512,35 @@ var ct_ready_mapjs = function() {
 			url: Drupal.settings.base_url + '/cartogratree_uiapi/get_genomes_by_species_text/' + data.species,
 			method: 'GET',
 			success: function(data) {
+				$('#species-details-info-body-genomes-container').html('');
 				console.log('get_genomes_by_species_text', data);
 				for (var i =0; i<data.length; i++) {
+					if (data[i].programversion == null) {
+						continue;
+					}
 					var g_html = '';
-					g_html += '<div class="row w-100">';
+					g_html += '<div class="row w-100" style="margin-bottom: 10px; padding: 5px; border-bottom: 1px solid #ccc;">';
 					g_html += '<div class="col-2">';
-					g_html += '<div class="tag" style="background-color: #000000; color: #FFFFFF; margin-right: 10px;">FTP</div>';
-					g_html += '<a target="_blank" href="' + Drupal.settings.base_url + '/FTP/Genomes/' + data[i].ftp + '/' + data[i].sourceversion + '/genome">';
-					g_html += data[i].sourceversion;
+					g_html += '<div class="tag" style="background-color: #e9b90b; color: #FFFFFF; margin-right: 10px;">FTP</div>';
+					g_html += '<a target="_blank" href="' + Drupal.settings.base_url + '/FTP/Genomes/' + data[i].ftp + '/' + data[i].programversion + '/genome">';
+					g_html += data[i].programversion;
 					g_html += '</a>';
 					g_html += '</div>';
 					g_html += '<div class="col-8">';
-					g_html += '<div class="tag" style="background-color: #000000; color: #FFFFFF; margin-right: 10px;">PUBLICATION</div>';
+					// g_html += '<div class="tag" style="background-color: #000000; color: #FFFFFF; margin-right: 10px;">PUBLICATION</div>';
 					if (data[i].pub_link == null) {
 						data[i].pub_link = '';
 					}
 					if (data[i].uniquename == null) {
 						data[i].uniquename = 'Publication title could not be retrieved.';
 					}
-					g_html += '<a target="_blank" href="' + data[i].pub_link + '">';
-					g_html += data[i].uniquename;
-					g_html += '</a>';
+					// g_html += '<a target="_blank" href="' + data[i].pub_link + '">';
+					// g_html += data[i].uniquename;
+					// g_html += '</a>';
+					g_html += data[i]['program'];
 					g_html += '</div>';
 					g_html += '</div>';
-					$('#species-details-info-body-genomes-container').html(g_html);
+					$('#species-details-info-body-genomes-container').append(g_html);
 				}
 			}
 		});
@@ -6897,7 +6903,7 @@ var ct_ready_mapjs = function() {
 					console.log('dynamic search options', data);
 					Drupal.settings.options_data.organism_data = data;
 					console.log('Drupal.settings updated', Drupal.settings);
-					cartograplant.reload_filter_system();
+					cartograplant.reload_filter_system(true);
 				}
 			});
 		}
@@ -7533,31 +7539,10 @@ var ct_ready_mapjs = function() {
 
 		$('.vcf_snps_quality_filtering_ui').fadeOut(50);
 		$('.vcf_detection_loading').fadeIn(500);
-
-		// Populate the snp_quality_workflow_select select list
-		// NO MORE GALAXY
-		// var url = Drupal.settings.base_url + "/cartogratree_uianalysis/get_all_workflows_from_galaxy_account/" + cartograplant.galaxy_id;
-		// $.ajax({
-		// 	method: "GET",
-		// 	url: url,
-		// 	dataType: "json",
-		// 	success: function (data) {
-		// 		console.log('vcf_snp_quality_workflow_select', data);
-		// 		data.sort((a,b)=> (a.workflow_name > b.workflow_name ? 1 : -1));
-		// 		console.log('vcf_snp_quality_workflow_select sorted', data);
-		// 		var snps_workflows_html = '';
-				
-		// 		for(var i=0; i<data.length; i++) {
-		// 			if(data[i].workflow_name.includes('SNP Quality Filtering Step') || data[i].workflow_name.includes('LinkImputeR')) {
-		// 				snps_workflows_html = snps_workflows_html +  '<option value="' + data[i].workflow_id + '">' + data[i].workflow_name +  '</option>';
-		// 			}
-		// 		}
-		// 		$('.vcf_snp_quality_workflow_select_div select').html(snps_workflows_html);
-		// 	}
-		// });	
-				
+		
 
 
+		
 
 
 		// Process VCF files in studies
@@ -7570,6 +7555,7 @@ var ct_ready_mapjs = function() {
 			method: 'GET',
 			url: vcf_files_ui_api_url,
 			success: function(data) {
+				console.log('vcf_files_ui_api data', data);
 				var all_data = data;
 				data = data['vcf_locations'];
 				// Clear timers
@@ -7588,35 +7574,47 @@ var ct_ready_mapjs = function() {
 
 				console.log('snp_vcf_files', data);
 				var vcf_found_count = 0;
+
+
+
 				if(data != undefined) {
 					var detected_studies_containing_vcfs = Object.keys(data);
 					var vcf_info = data;
 					console.log('vcf_info', vcf_info);
 					var studies = Object.keys(vcf_info);
-					// Version 1
-					// for (var studies_i = 0; studies_i < studies.length; studies_i++) {
-					// 	cartograplant['generate_nextflow_variant_filtering_ui']({
-					// 		study_accession: studies[studies_i],
-					// 		vcf_location: vcf_info[studies[studies_i]]
-					// 	});
-					// 	// Create workspace symbolic links
-					// 	var workspace_name = $('#nextflow-create-analysis-select-history').val();
-					// 	var nextflow_vcf_symlink_api_url = Drupal.settings.base_url + '/cartogratree_uianalysis/nextflow_symlink_workspace_vcf_file/' + workspace_name + '/' + studies[studies_i];
-					// 	console.log('nextflow_vcf_symlink_api_url', nextflow_vcf_symlink_api_url);
-					// 	$.ajax({
-					// 		method: 'GET',
-					// 		url: nextflow_vcf_symlink_api_url,
-					// 		success: function(data) {
-					// 			console.log('vcf_symlink', data);
-					// 		}
-					// 	});
-					// }
+
+					var detected_studies = Object.keys(cartograplant['detected_studies']);
+
+
+					// Check if there is a vcf combined file from the analysis study context
+					var found_vcf_combined = false;
+					console.log('analysis_study_context', analysis_study_context);
+					if (analysis_study_context != undefined && analysis_study_context != null) {
+						var keys = Object.keys(analysis_study_context['vcfs']);
+						for (var i = 0; i < keys.length; i++) {
+							var key = keys[i];
+							if (key.includes('combined')) {
+								// Get the location
+								var vcf_combined_location = analysis_study_context['vcfs'][key];
+								// Override detected studies to use combined only
+								vcf_info = {};
+								vcf_info['combined_filltags'] = vcf_combined_location;
+								studies = ['combined_filltags'];
+								detected_studies = ['combined_filltags'];
+								found_vcf_combined = true;
+								// override the code below for studies etc
+							}
+						}
+					}
+
 					// Version 2
 					var structured_json = {
 						studies: {},
 						markers: [],
 					};
-					var detected_studies = Object.keys(cartograplant['detected_studies']);
+					
+					console.log('detected_studies', detected_studies);
+					// return; // TODO Remove
 					for (var studies_i = 0; studies_i < detected_studies.length; studies_i++) {
 						structured_json.studies[detected_studies[studies_i]] = [null];
 						if (vcf_info[detected_studies[studies_i]] != null && vcf_info[detected_studies[studies_i]] != undefined) {
@@ -7640,144 +7638,7 @@ var ct_ready_mapjs = function() {
 					console.log('Structured JSON', structured_json);
 					cartograplant['generate_nextflow_variant_filtering_ui'](structured_json);
 
-					// RISH: Removed on 2025/01/05 since we now have nextflow workflows to take care of this
-					/*
-					var vcf_found_info = {};
-					for(var i=0; i<detected_studies_containing_vcfs.length; i++) {
-						var study_vcf_html = "";
-						if (vcf_info[detected_studies_containing_vcfs[i]] != null) {
-							vcf_found_count = vcf_found_count + 1;
 
-							// Add this study to the vcf_found_info which is used later down in the code
-							vcf_found_info[detected_studies_containing_vcfs[i]] = vcf_info[detected_studies_containing_vcfs[i]];
-
-							study_vcf_html += "<div>";
-							study_vcf_html += "✅ Found Genotype VCF for " + detected_studies_containing_vcfs[i];
-							study_vcf_html += "</div>";
-							$('#analysis-filter-snp-vcf-detection .detected_vcf_information').append(study_vcf_html);
-						}
-						else {
-							study_vcf_html += "<div>";
-							study_vcf_html += "🚧 Missing Genotype VCF for " + detected_studies_containing_vcfs[i];
-							study_vcf_html += "</div>";
-							$('#analysis-filter-snp-vcf-detection .none_detected_vcf_information').append(study_vcf_html);
-						}
-					}
-					// Set the CSS coloring for detected vcf information
-					$('#analysis-filter-snp-vcf-detection .detected_vcf_information').css('padding','20px');
-					$('#analysis-filter-snp-vcf-detection .detected_vcf_information').css('margin-top','10px');
-					$('#analysis-filter-snp-vcf-detection .detected_vcf_information').css('background-color','#dff0d8');
-
-					$('#analysis-filter-snp-vcf-detection .none_detected_vcf_information').css('padding','20px');
-					$('#analysis-filter-snp-vcf-detection .none_detected_vcf_information').css('margin-top','10px');
-					$('#analysis-filter-snp-vcf-detection .none_detected_vcf_information').css('background-color','#eff0d8');
-
-
-					// So now we need to send all this data to the CT API endpoint
-					// that will work to filter the VCF files and produce a single merged
-					// VCF file
-					
-					
-					$('#analysis-filter-snp-vcf-detection .status').css('padding', '20px');
-					$('#analysis-filter-snp-vcf-detection .status').html('Filtering VCF files by genotype subsets selected... <br />Please wait, workflow interface will appear once files have finished uploading... <img style="width: 16px;" src="' + cartograplant.loading_icon_src + '" />');
-					if(vcf_found_count > 0) {
-							// Check if any of them match
-							var studies_tmp = Object.keys(vcf_info);
-							var studies_values_tmp = Object.values(vcf_info);
-							var detected_vcf_overlaps_html = "";
-							var unique_combinations = {};
-							for (var studies_tmp_i = 0; studies_tmp_i < studies_tmp.length; studies_tmp_i++) {
-								var study_tmp_i = studies_tmp[studies_tmp_i];
-								console.log('study_tmp_i', study_tmp_i);
-								var vcf_location_tmp_i = vcf_info[study_tmp_i];
-								console.log('vcf_location_tmp_i', vcf_location_tmp_i);
-								for(var studies_tmp_j = 0; studies_tmp_j < studies_tmp.length; studies_tmp_j++) {
-									var study_tmp_j = studies_tmp[studies_tmp_j];
-									console.log('study_tmp_j', study_tmp_j);
-									var vcf_location_tmp_j = vcf_info[study_tmp_j];
-									console.log('vcf_location_tmp_j', vcf_location_tmp_j);
-									if (studies_tmp_i != studies_tmp_j) {
-										if (vcf_location_tmp_i == vcf_location_tmp_j) {
-											// If this is a new unique combination
-											if (unique_combinations[study_tmp_i + ',' + study_tmp_j] == undefined && unique_combinations[study_tmp_j + ',' + study_tmp_i] == undefined) { 
-												detected_vcf_overlaps_html += '<div>';
-												detected_vcf_overlaps_html += '🔀 ' + study_tmp_i + " and " + study_tmp_j + " have shared datasets<br />";
-												detected_vcf_overlaps_html += '</div>';
-												console.log('unique combination found:' + study_tmp_i + ' and ' + study_tmp_j);
-												unique_combinations[study_tmp_i + ',' + study_tmp_j] = true; // record this new combination
-											}
-										}
-									}
-									else {
-										// don't record a match if i == j (same study)
-									}
-								}
-							}
-							$('#analysis-filter-snp-vcf-detection .detected_vcf_overlaps').html(detected_vcf_overlaps_html);
-							
-							$.ajax({
-								method: 'POST',
-								url: Drupal.settings.ct_nodejs_api + "/v2/genotypes/snp_vcf_filtering",
-								data: {
-									analysis_id: cartograplant.current_analysis_id,
-									galaxy_id: cartograplant.galaxy_id,
-									history_id: cartograplant.history_id,
-									cartogratree_base_url: Drupal.settings.base_url,
-									vcf_info: JSON.stringify(vcf_found_info)
-								},
-								success: function (data) {
-									$('.vcf_detection_loading').fadeOut(500);
-									console.log('snp_vcf_filtering api response', data);
-									$('#analysis-filter-snp-vcf-detection .status').html('🌟 VCF files successfully uploaded to workspace. Quality filtering methods will appear below after a few seconds.');
-									
-									// Update the file drop down list
-									if (cartograplant.galaxy_id == null) {
-										alert('Missing Galaxy ID - please reload Cartoplant, select studies and click the Analysis button');
-									}
-									var url_history_contents = Drupal.settings.base_url + '/cartogratree_uianalysis/get_history_details/' + cartograplant.galaxy_id + '/' + cartograplant.history_id;
-									console.log(url_history_contents);
-									// Empty the select list
-									$('.vcf_filtered_snp_files_select_div select').html('');
-									$.ajax({
-										method: 'GET',
-										url: url_history_contents,
-										success: function(data_history_items) {
-											console.log(data_history_items);
-											var files_html = "";
-											for(var i=0; i<data_history_items.length; i++) {
-												var file_object = data_history_items[i];
-												var file_name_caption = get_file_name_caption(file_object['dataset_name']);
-												// if(file_object['dataset_name'].includes('AN') && file_object['dataset_name'].includes('_TGDR') && file_object['dataset_name'].includes('_snps.vcf')) {
-												// 	var file_name_dash_parts = file_object['dataset_name'].split('-');
-												// 	var file_name_underscore = file_name_dash_parts[2];
-												// 	var file_name_underscore_parts = file_name_dash_parts[2].split('_');
-												// 	var file_name_relative_time = moment.unix(file_name_dash_parts[1]).fromNow();
-												// 	var file_name_caption = "Analysis " +  file_name_underscore_parts[0].replace('AN','') + ": " + file_name_underscore_parts[1] + " Filtered SNPs VCF (" + file_name_relative_time + ")";
-												// }
-												// else {
-												// 	file_name_caption = file_object['dataset_name'];
-												// }
-												files_html += '<option raw_name="'+ file_object['dataset_name'] + '" value="' + file_object['dataset_id'] + '">' + file_name_caption + '</option>';
-											}
-											$('.vcf_filtered_snp_files_select_div select').html(files_html);
-											$('.vcf_snps_quality_filtering_ui').fadeIn(500);
-
-											cartograplant_snp_quality_filtering_populate_workflow_submit_form();
-										}
-									});
-								}
-							});
-							
-						
-					}
-					else {
-						$('#analysis-filter-snp-vcf-detection .detected_vcf_information').html('');
-						$('#analysis-filter-snp-vcf-detection .none_detected_vcf_information').html('');
-						$('#analysis-filter-snp-vcf-detection .status').html('No VCF files detected<br />To continue, select studies that contain VCF files.');
-						$('#analysis-filter-snp-vcf-detection .detected_vcf_information').html('');
-						$('#analysis-filter-snp-vcf-detection .detected_vcf_overlaps').html('');
-					}
-					*/
 				}
 				else {
 					$('#analysis-filter-snp-vcf-detection .status').html('No VCF files detected<br />To continue, select studies that contain VCF files.');
@@ -9377,6 +9238,7 @@ var ct_ready_mapjs = function() {
 	//Saving the current state of the map on click event
 	$("#save-session").on("click", function () {
 		if (Drupal.settings.user.logged_in) {
+			$("#saved-session").modal("toggle");
 			//open save session popup dialog
 			$("#save-success-container").addClass("hidden");
 			$("#submit-user-session").removeClass("hidden");

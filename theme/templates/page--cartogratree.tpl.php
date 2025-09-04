@@ -214,6 +214,7 @@
                 </button>
             </div>
             <div class="modal-body">
+				<button id="save-session" class="btn btn-success" style="margin-bottom: 10px;">Save current session</button>
                 <div class="list-group list-group-flush" id="saved-session-list"> 
                 </div>
             </div>
@@ -291,7 +292,7 @@
 							</li>				
 							
 							<li class="nav-item">
-								<a id="analysis-filter-snp-section-tab" class="nav-link analysis-nav-tab analysis-filter-snp-section" data-toggle="tab" href="#analysis-filter-snp">Filtering & Imputation</a>
+								<a id="analysis-filter-snp-section-tab" class="nav-link analysis-nav-tab analysis-filter-snp-section" data-toggle="tab" href="#analysis-filter-snp">Marker & Genotype Filtering</a>
 							</li>
 							<li class="nav-item">
 								<a id="analysis-popstruct-section-tab" class="nav-link analysis-nav-tab analysis-popstruct-section-tab" data-toggle="tab" href="#analysis-popstruct-section">Population Structure</a>
