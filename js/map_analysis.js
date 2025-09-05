@@ -399,6 +399,7 @@ var ct_ready_map_analysis = function() {
 											try {
 
 												var directive = directives_list[i];
+												var directive_human_readable_name = study_specific_options['uiMetaData'][directive];
 												var options = study_specific_options[directive];
 												var options_keys = Object.keys(study_specific_options[directive]);
 												if (typeof options === 'object' && Array.isArray(options) == false && directive != 'uiMetaData') {
@@ -407,7 +408,7 @@ var ct_ready_map_analysis = function() {
 
 													var filter_variable_object = {
 														id: directive,
-														label: directive,
+														label: directive_human_readable_name,
 														data: {
 															study_accession: data['study_accession']
 														},
