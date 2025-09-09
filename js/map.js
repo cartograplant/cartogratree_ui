@@ -7590,12 +7590,12 @@ var ct_ready_mapjs = function() {
 					var found_vcf_combined = false;
 					console.log('analysis_study_context', analysis_study_context);
 					if (analysis_study_context != undefined && analysis_study_context != null) {
-						var keys = Object.keys(analysis_study_context['vcfs']);
+						var keys = Object.keys(analysis_study_context['studies']);
 						for (var i = 0; i < keys.length; i++) {
 							var key = keys[i];
 							if (key.includes('combined')) {
 								// Get the location
-								var vcf_combined_location = analysis_study_context['vcfs'][key];
+								var vcf_combined_location = analysis_study_context['studies'][key]['vcf'];
 								// Override detected studies to use combined only
 								vcf_info = {};
 								vcf_info['combined_filltags'] = vcf_combined_location;

@@ -25,6 +25,13 @@ function cartogratree_menu()
         ),
     );
 
+    $items['cartograplant'] = array(
+        'title' => 'CartograPlant',
+        'description' => 'CartograPlant Landing Page',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
 
     $items['cartogratree_test/create_grid'] = array(
         'description' => 'Cartogratree TEST: CREATE GRID',
