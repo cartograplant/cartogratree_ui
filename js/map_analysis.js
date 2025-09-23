@@ -1,4 +1,8 @@
 var analysis_study_context = {};
+var analysis_completion_json = {
+	analysis_study_context: {},
+	analysis_study_filter_markers_and_genotypes: {},
+}
 var ct_ready_map_analysis = function() {
 	var galaxy_id = null; // the galaxy server / connection to be used for analysis
 	var workflow_id = null; // the workflow id to be used for the analysis
@@ -151,6 +155,7 @@ var ct_ready_map_analysis = function() {
 	$('body').on('click', '.variant-filtering-study-interface .checkboxes input[type="checkbox"]', function() {
 		console.log('CLICK');
 		var variable_name = $(this).attr('data-statistic-variable');
+		var directive = $(this).attr('data-directive');
 		console.log('variable_name', variable_name);
 		var study_accession = $(this).closest('.variant-filtering-study-interface').attr('data-study-accession');
 		console.log('study_accession', study_accession);
@@ -180,6 +185,7 @@ var ct_ready_map_analysis = function() {
 					workspace_name: $('#nextflow-create-analysis-select-history').val(),
 					analysis_id: cartograplant['current_analysis_id'],
 					variable_name: variable_name,
+					directive: directive,
 					study_accession: study_accession,
 					vcf_filename_without_ext: vcf_filename_without_ext
 				},
@@ -585,6 +591,7 @@ var ct_ready_map_analysis = function() {
 							console.log('data', data);
 							console.log('Polling filter_by_genotypes completion_json', data);
 							if (data['success'] == "true") {
+								analysis_completion_json['analysis_study_filter_markers_and_genotypes'][data['ui_study_accession']] = data;
 								var study_accession = data['ui_study_accession'];
 								console.log('Stopping filter_by_genotypes completion_json timer from polling [' + study_accession +']');
 								
@@ -592,8 +599,9 @@ var ct_ready_map_analysis = function() {
 									var vcf_loc = data['studies'][data['ui_study_accession']]['vcf'];
 									var vcf_loc_slash_parts = vcf_loc.split('/');
 									var vcf_filename_without_ext = vcf_loc_slash_parts[vcf_loc_slash_parts.length - 1];
-									var header_vcf = Object.keys(data['studies'][data['ui_study_accession']]['header'])[0];
-									var study_rules_json = data['studies'][data['ui_study_accession']]['header'][header_vcf];
+									// var header_vcf = Object.keys(data['studies'][data['ui_study_accession']]['header'])[0];
+									// var study_rules_json = data['studies'][data['ui_study_accession']]['header'][header_vcf];
+									var study_rules_json = data['studies'][data['ui_study_accession']]['header'];
 									var keys = Object.keys(study_rules_json);
 									console.log('Rules_json parent keys', keys);
 									// var rendered_vcf_location = Object.keys(data['rules_json'])[0];
@@ -611,7 +619,7 @@ var ct_ready_map_analysis = function() {
 
 									for (var i = 0; i < directives_list.length; i++) {
 										var directive = directives_list[i];
-										if (directive == 'INFO' || directive == 'FORMAT') {
+										if (directive == 'INFO' || directive == 'FORMAT' || directive == 'INDV') {
 											var directive_data = study_rules_json[directive];
 											console.log('directive_data', directive_data);
 											var directive_data_keys = Object.keys(directive_data);
@@ -633,7 +641,7 @@ var ct_ready_map_analysis = function() {
 										var directive = statistics_variables_object[statistics_variables[i]];
 										var statistics_variable_human_readable_name = study_rules_json[directive][statistics_variables[i]]['Description'];
 										$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .statistics-variables .checkboxes')
-										.append('<div style="display: inline-block; margin-right: 10px;"><input type="checkbox" data-statistic-variable="' + statistics_variables[i] + '" /> ' + statistics_variable_human_readable_name + '</div>');
+										.append('<div style="display: inline-block; margin-right: 10px;"><input type="checkbox" data-directive="' + directive + '" data-statistic-variable="' + statistics_variables[i] + '" /> ' + statistics_variable_human_readable_name + '</div>');
 									}
 
 									$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .status-process')
@@ -681,7 +689,7 @@ var ct_ready_map_analysis = function() {
 											try {
 
 												var directive = directives_list[i];
-												var directive_human_readable_name = study_specific_options['uiMetaData'][directive];
+												// var directive_human_readable_name = study_specific_options['uiMetaData'][directive];
 												var options = study_specific_options[directive];
 												var options_keys = Object.keys(study_specific_options[directive]);
 												if (typeof options === 'object' && Array.isArray(options) == false && directive != 'uiMetaData') {
@@ -690,7 +698,8 @@ var ct_ready_map_analysis = function() {
 
 													var filter_variable_object = {
 														id: directive,
-														label: directive_human_readable_name,
+														// label: directive_human_readable_name,
+														label: directive,
 														data: {
 															study_accession: data['ui_study_accession']
 														},
@@ -939,7 +948,16 @@ var ct_ready_map_analysis = function() {
 		var filter = cmd_result;
 		$(variant_filtering_study_interface_element).find('.command-flags').html(cmd_result);
 		$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .status-process')
-		.html('<i class="fa-solid fa-sync fa-spin"></i> Performing filtering and imputation...');
+		.html('<i class="fa-solid fa-sync fa-spin"></i> Performing filtering...');
+
+		var payload = analysis_completion_json['analysis_study_context'];
+		console.log('DEBUG: analysis_study_context', analysis_completion_json['analysis_study_context'])
+		console.log('DEBUG: payload', payload);
+		console.log('DEBUG: analysis_study_filter_markers_and_genotypes', analysis_completion_json['analysis_study_filter_markers_and_genotypes']);
+		payload['studies'][study_accession]['vcf'] = analysis_completion_json['analysis_study_filter_markers_and_genotypes'][study_accession]['studies'][study_accession]['vcf'];
+		console.log('Payload generated for variant_filtering_panel_filter_and_imputation', payload);
+
+
 		$.ajax({
 			url: Drupal.settings.ct_nodejs_api + '/v2/genotypes/variant_filtering_panel_filter_and_imputation',
 			method: 'POST',
@@ -949,7 +967,8 @@ var ct_ready_map_analysis = function() {
 				analysis_id: cartograplant['current_analysis_id'],
 				study_accession: study_accession,
 				vcf_location: vcf_location,
-				filter: filter
+				filter: filter,
+				payload: JSON.stringify(payload)
 			},
 			success: function (data) {
 				$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .status-process')
@@ -1015,7 +1034,7 @@ var ct_ready_map_analysis = function() {
 					real_operator = '>';
 					break;
 				case 'less':
-					real_operator = '=';
+					real_operator = '<';
 					break;
 			}
 
@@ -1024,12 +1043,23 @@ var ct_ready_map_analysis = function() {
 			var value = formula_parts[1];
 
 			var str = '';
-			if (rules_index > 1) {
-						str += ' ' + real_condition + ' ';
+			// Original version
+			// if (rules_index > 1) {
+			// 			str += ' ' + real_condition + ' ';
+			// }
+			if (rules_index > 1 && parent_json['rules'].length == rules_index) {
+				str += ' ' + real_condition + ' ';
 			}
 			if (parent_json['rules'].length == rules_index) {
 				str = '';
 			}
+
+			// AI Version that did not work as well
+			// if (rules_index > 1 && rules_index <= rules_total) {
+			// 	str += ' ' + real_condition + ' ';
+			// }
+
+
 			console.log(rules_total);
 			str += directive + '/' + variable + ' ' + real_operator + ' ' + value;
 			console.log('str', str);
@@ -1086,7 +1116,7 @@ var ct_ready_map_analysis = function() {
 								real_operator = '>';
 								break;
 							case 'less':
-								real_operator = '=';
+								real_operator = '<';
 								break;
 						}
   
@@ -1348,6 +1378,9 @@ var ct_ready_map_analysis = function() {
 		analysis_summary_update();	
 	}
 
+	try {
+		$('#btn_update_analysis_name').off('click');
+	} catch (err) {}
 	$('#btn_update_analysis_name').click(function() {
 		var url = Drupal.settings.base_url + '/cartogratree/api/v2/analysis/update_analysis_name';
 		url += "?analysis_id=" + cartograplant.current_analysis_id + '&analysis_name=' + $('#analysis_name').val();
@@ -1410,7 +1443,7 @@ var ct_ready_map_analysis = function() {
 		$('body').off('click', '#btn_snps_gt_check');
 	} catch (err) {}
 	$('body').on('click', '#btn_snps_gt_check', function() {
-		if (analysis_study_context == {} || analysis_study_context == undefined) {
+		if (analysis_completion_json['analysis_study_context'] == {} || analysis_completion_json['analysis_study_context'] == undefined) {
 			alert('No study context was found. Please go to the manage tab, select studies with genotypes and run the study context process, then return here to perform the merge.');
 			return;
 		}
@@ -1419,14 +1452,14 @@ var ct_ready_map_analysis = function() {
 			markers: [],
 			sampleDiscordance: null
 		};
-		console.log('analysis_study_context', analysis_study_context);
-		if (analysis_study_context['studies'] == undefined) {
+		console.log('analysis_study_context', analysis_completion_json['analysis_study_context']);
+		if (analysis_completion_json['analysis_study_context']['studies'] == undefined) {
 			alert('No VCF files were found. Please go to the manage tab, select studies with genotypes and run the study context process, then return here to perform the merge.');
 		}
 		else {
 			
-			if (analysis_study_context['sampleDiscordance'] != undefined) {
-				gt_check_payload['sampleDiscordance'] = analysis_study_context['sampleDiscordance'];
+			if (analysis_completion_json['analysis_study_context']['sampleDiscordance'] != undefined) {
+				gt_check_payload['sampleDiscordance'] = analysis_completion_json['analysis_study_context']['sampleDiscordance'];
 			}
 
 			var studies_overlap_selections = [];
@@ -1456,11 +1489,11 @@ var ct_ready_map_analysis = function() {
 			var markers = Object.keys(markers_tmp);
 			gt_check_payload['markers'] = markers;
 
-			var studies = Object.keys(analysis_study_context['studies']);
+			var studies = Object.keys(analysis_completion_json['analysis_study_context']['studies']);
 			for (var i = 0; i < studies.length; i++) {
 				var study = studies[i];
 				if (studies_overlap_selections.includes(study) == true) {
-					var vcf_location = analysis_study_context['studies'][study]['vcf'];
+					var vcf_location = analysis_completion_json['analysis_study_context']['studies'][study]['vcf'];
 					gt_check_payload['studies'][study] = [vcf_location];
 				}
 			}
@@ -1516,7 +1549,7 @@ var ct_ready_map_analysis = function() {
 							} catch  (err) {
 								console.log('Error clearing timer', err);
 							}
-							analysis_study_context = data['response'];
+							analysis_completion_json['analysis_study_context'] = data['response'];
 							try {
 								clearInterval(analysis_timers['gt_check_completion_json']);
 							} catch (err) {
@@ -1616,7 +1649,7 @@ var ct_ready_map_analysis = function() {
 		$('body').off('click', '#btn_snps_merge_vcfs');
 	} catch (err) {}
 	$('body').on('click', '#btn_snps_merge_vcfs', function() {
-		if (analysis_study_context == {} || analysis_study_context == undefined) {
+		if (analysis_completion_json['analysis_study_context'] == {} || analysis_completion_json['analysis_study_context'] == undefined) {
 			alert('No study context was found. Please go to the manage tab, select studies with genotypes and run the study context process, then return here to perform the merge.');
 			return;
 		}
@@ -1625,8 +1658,8 @@ var ct_ready_map_analysis = function() {
 		// 	markers: [],
 		// 	sampleDiscordance: null
 		// };
-		console.log('analysis_study_context', analysis_study_context);
-		if (analysis_study_context['studies'] == undefined) {
+		console.log('analysis_study_context', analysis_completion_json['analysis_study_context']);
+		if (analysis_completion_json['analysis_study_context']['studies'] == undefined) {
 			alert('No VCF files were found. Please go to the manage tab, select studies with genotypes and run the study context process, then return here to perform the merge.');
 		}
 		else {
@@ -1686,7 +1719,7 @@ var ct_ready_map_analysis = function() {
 							data = JSON.parse(data);
 						} catch (err) {console.log(err)}
 						if (data['response']['success'] == 'true') {
-							analysis_study_context = data['response'];
+							analysis_completion_json['analysis_study_context'] = data['response'];
 							console.log('Merge VCFs Completion updated analysis_study_context:', data);
 							try {
 								clearInterval(analysis_timers['merge_vcfs_completion_json']);
@@ -3704,9 +3737,10 @@ var ct_ready_map_analysis = function() {
 				success: function (data) {
 					console.log(data);
 					data = JSON.parse(data);
+					console.log('Phenotype PCA data', data);
 					if(data['error'] == undefined) { 
 						$('#analysis-overlapping-traits-pca').html('');
-						const blob = b64toBlob(data['data_base64'], 'image/jpeg');
+						const blob = b64toBlob(data['data_base64'], 'image/png');
 						var html = "";
 						html += '<center><div style="background-color: #036e63;color: #FFFFFF;font-size: 14px;display: inline-block;padding: 5px;border-radius: 2px;">PCA (' + phenotypes.length + ' phenotypes)</div></center><br />';
 						html += '<img style="width: 100%;" src="' + URL.createObjectURL(blob) + '" />';
@@ -4279,8 +4313,8 @@ var ct_ready_map_analysis = function() {
 						data = JSON.parse(data);
 					} catch (err) {console.log(err)}
 					if (data['response']['success'] == 'true') {
-						analysis_study_context = data['response'];
-						console.log('analysis_study_context', analysis_study_context);
+						analysis_completion_json['analysis_study_context'] = data['response'];
+						console.log('analysis_study_context', analysis_completion_json['analysis_study_context']);
 						try {
 							clearInterval(analysis_timers['study_context_completion_json']);
 						} catch (err) {
@@ -4328,6 +4362,9 @@ var ct_ready_map_analysis = function() {
 
 
 	// Perform traits filtering
+	try {
+		$('#analysis-overlapping-traits-filter-by-selected-phenotypes').off('click');
+	} catch (err) {}
 	$('#analysis-overlapping-traits-filter-by-selected-phenotypes').click(function() {
 		$('#analysis-overlapping-traits-download-by-selected-phenotypes').hide();
 		var trees = analysis_includedTrees;
@@ -4377,6 +4414,9 @@ var ct_ready_map_analysis = function() {
 		});	
 	});
 
+	try {
+	$('#analysis-overlapping-traits-download-by-selected-phenotypes').off('click');
+	} catch (err) {}
 	$('#analysis-overlapping-traits-download-by-selected-phenotypes').click(function() {
 		if(analysis_data_store['traits_filtered_csv'] != undefined) {
 			generateFileDownload("traits_filtered.csv", analysis_data_store['traits_filtered_csv']);
@@ -4495,6 +4535,7 @@ var ct_ready_map_analysis = function() {
 			analysis_detections_html += ' <div>No studies detected from your plant selections. ⚠️ <br />Please return to the map and select trees within studies to get most out of this analysis system.</div>';
 		}
 		else {
+			analysis_detections_html += '<h4 style="color:rgb(1, 77, 70) !important;margin-left: 4px;">Study summary</h4>';
 			analysis_detections_html += ' <div>' + studies.length + ' studies (' + studies.join(',') + ') found associated with the trees you selected. ✅</div>';
 
 			if (studies.length == 1) {
@@ -4502,7 +4543,7 @@ var ct_ready_map_analysis = function() {
 			}
 			analysis_detections_html += '<div id="analysis_detections_genotype_capability" class="mt-1 mb-1"></div>';
 			analysis_detections_html += '<div id="analysis_detections_phenotype_capability" class="mt-1 mb-3"></div>';
-			analysis_detections_html += '<h5 style="color: #036e63 !important;margin-left: 4px;">Study summary</h5>';
+			
 			analysis_detections_html += '<div class="mt-2" id="analysis_detections_study_summary">';
 			analysis_detections_html += '<table><tr><th>Filter</th><th>Accession</th><th>Title</th><th>Genotypes</th><th>Phenotypes</th><th>Trees</th><tr></table>';
 			analysis_detections_html += '</div>';
@@ -4550,7 +4591,7 @@ var ct_ready_map_analysis = function() {
 			table_row_html += '<div class="samples_container">';
 			table_row_html += '	<div class="samples" data-samples="' + trees_csv + '">';
 			table_row_html += '		<input type="checkbox" class="samples_checkbox" checked /> ';
-			table_row_html += '		<i class="fas fa-tree"></i> ' + trees_in_study + ' individual trees';
+			table_row_html += '		<i class="fas fa-tree"></i> ' + trees_in_study + ' individual plants';
 			table_row_html += '	</div>';
 			table_row_html += '</div>';
 			table_row_html += "</td>";
@@ -5015,6 +5056,32 @@ var ct_ready_map_analysis = function() {
 		return html;
 	}
 
+	$('body').off('click', '.gwas_button_stop_step');
+	$('body').on('click', '.gwas_button_stop_step', function() {
+		console.log('GWAS Stop Step button clicked');
+		var pid = $('#nextflow-gwas-data').attr('data-gwas-pid');
+		if (pid != null && pid != '') {
+			var url = Drupal.settings.base_url + '/cartogratree/api/v2/gwas/step_stop_execution';
+			$.ajax({
+				url: url,
+				method: 'POST',
+				data: {
+					pid: pid,
+					user_id: Drupal.settings.user.user_id,
+				},
+				success: function(data) {
+					var data = JSON.parse(data);
+					console.log('GWAS Step Stop:', data);
+					$('#nextflow-gwas-results').html('🛑 GWAS Step Stopped');
+					// Remove the PID
+					$('#nextflow-gwas-data').attr('data-gwas-pid', '');
+					clearInterval(analysis_timers['gwas_step_execution_completion_json']);
+
+				}
+			});
+		}
+	});
+
 
 	$('body').off('click', '.gwas_button_run_step');
 	$('body').on('click', '.gwas_button_run_step', function() {
@@ -5070,6 +5137,13 @@ var ct_ready_map_analysis = function() {
 				flags: JSON.stringify(flags),
 			},
 			success: function(data) {
+				var run_data = JSON.parse(data);
+				console.log('gwas step execution response run_data', run_data);
+				console.log('PID: ' + run_data['pid']);
+
+				// Get the PID and store it in the nextflow-gwas-data element
+				$('#nextflow-gwas-data').attr('data-gwas-pid', run_data['pid']);
+
 				// console.log('gwas response', data);
 				// $('#nextflow-gwas-results').html('Finished!');
 				// var workspace_name = $('#nextflow-create-analysis-select-history').val();
@@ -5089,7 +5163,12 @@ var ct_ready_map_analysis = function() {
 						success: function(data) {
 							var data = JSON.parse(data);
 							console.log('GWAS Step Completion:', data);
+
+
+
 							if (data['response']['success'] == "true") {
+								// Remove the PID
+								$('#nextflow-gwas-data').attr('data-gwas-pid', '');
 								$('#nextflow-gwas-results').html('✅ GWAS Step Completed');
 								$('#nextflow-gwas-results').append(generate_completion_message_html(data));
 								if (data['response']['image'] != null) {
@@ -5137,6 +5216,10 @@ var ct_ready_map_analysis = function() {
 		if (model_data['title'] != undefined) {
 			html += '<div style="text-transform: uppercase; font-weight: 500; margin-top: 15px; margin-bottom: 10px;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAONJREFUOE+tlIENwjAMBL+bwCTAJrAJTAKbwCbAJNBDSeWkTpuIWKrUNt/L2049qHMMnXkqAfeSuJbiJemWCzzgRtKz0vlh3PhhtR7wKukYRBfPRVhjU2BAp8iB0R1CUiatbcFt3DhxmQOtCDjPp4JLu/nk0gJzQXxucmmBXgrUssmlBX6cIluXOPUiHq9fLSPQrYfpJuslIGtEAuTFPXTWdm0tZb5LMltqCmLOGg5Kf9Ss7rnQulw7NjN3vFg62ACb3HlAW0vu//71gHQfDkDp7m5l4rzH9XPN+KqcXL6s+8T+AmgCRRUPcuWxAAAAAElFTkSuQmCC" /> ' + model_data['title'] + '</div>';
 		}
+		if (model_data['warning'] != undefined) {
+			html += '<div style="text-transform: uppercase; font-weight: 500; margin-bottom: 10px;">WARNING: ' + model_data['warning']  + '</div>';
+		}
+		
 		console.log('steps_keys', steps_keys);
 		for (var sk_i = 0; sk_i < steps_keys.length; sk_i++) {
 			html += '<table>';
@@ -5239,7 +5322,7 @@ var ct_ready_map_analysis = function() {
 			if (sk_i == step_properties_keys.length - 1) {
 				data_vis_file = 'gwasVis.png';
 			}
-			html += '<td><button class="btn btn-primary gwas_button_run_step" data-vis-file="' + data_vis_file + '" style="margin-bottom: 10px;">Run step</button></td><td></td>';
+			html += '<td><button class="btn btn-primary gwas_button_run_step" data-vis-file="' + data_vis_file + '" style="margin-bottom: 10px;">Run step</button> <button class="btn btn-primary gwas_button_stop_step" data-vis-file="' + data_vis_file + '" style="margin-bottom: 10px;">Stop step</button></td><td></td>';
 			html += '</tr>';
 			html += '</table>';
 		}
@@ -6022,6 +6105,9 @@ var ct_ready_map_analysis = function() {
 
 
 	// This should cater for initiating a job analysis by clicking on the button
+	try {
+		$(document).off('click', '.initiate_analysis_job_button');
+	} catch (err) {}
 	$(document).on('click', '.initiate_analysis_job_button', function() {
 		// We'll need to get creative here, try to select elements that contain workflow
 		// To do that, we'll need to get workflow from this button clicked
@@ -6195,6 +6281,9 @@ var ct_ready_map_analysis = function() {
 	});
 
 	// This should cater for file uploading to the currently selected history then maybe refresh the select list
+	try {
+	$(document).off('click', '.history_file_upload_button');
+	} catch (error) {}
 	$(document).on('click', '.history_file_upload_button', function() {
 		// alert('This should upload the file to galaxy history');
 
@@ -6267,7 +6356,9 @@ var ct_ready_map_analysis = function() {
 	});
 
 
+	try {
 	$(document).off('click', '#analysis-retrieve-envdata-section-tab');
+	} catch (error) {}
 	$(document).on('click', '#analysis-retrieve-envdata-section-tab', function() {
 		// window.alert("Nice");
 		if($('#analysis-retrieve-envdata-section-layers-list').html() == "") {
@@ -6295,6 +6386,9 @@ var ct_ready_map_analysis = function() {
 	});
 
 	// This will show the container that contains the option to create a new history
+	try {
+		$(document).off('click', '#nextflow-create-analysis-new-workspace-button');
+	} catch (error) {}
 	$(document).on('click', '#nextflow-create-analysis-new-workspace-button', function() {
 		if ($('#nextflow-create-analysis-new-workspace-configuration').css('display') == 'none') {
 			$('#nextflow-create-analysis-new-workspace-configuration').css('display','flex');
@@ -6305,6 +6399,9 @@ var ct_ready_map_analysis = function() {
 	});
 
 	// This will show the container that contains the option to create a new history
+	try {
+	$(document).off('click', '#create-analysis-new-history-button');
+	} catch (error) {}
 	$(document).on('click', '#create-analysis-new-history-button', function() {
 		if ($('#create-analysis-new-history-configuration').css('display') == 'none') {
 			$('#create-analysis-new-history-configuration').css('display','flex');
@@ -6314,7 +6411,10 @@ var ct_ready_map_analysis = function() {
 		}
 	});
 
-
+	try {
+		$(document).off('click', '#nextflow-create-analysis-new-workspace-name-button');
+	} catch (error) {}
+	$(document).off('click', '#nextflow-create-analysis-new-workspace-name-button');
 	$(document).on('click', '#nextflow-create-analysis-new-workspace-name-button', function() {
 		console.log($('#nextflow-create-analysis-new-workspace-name').val());
 		var workspace_name = $('#nextflow-create-analysis-new-workspace-name').val();
@@ -6340,6 +6440,9 @@ var ct_ready_map_analysis = function() {
 		}
 	});
 
+	try {
+	$(document).off('click', '#create-analysis-new-history-name-button');
+	} catch (error) {}
 	$(document).on('click', '#create-analysis-new-history-name-button', function() {
 		// Here we need to make an api call to create a new history or return an error that this history name
 		// has already been taken

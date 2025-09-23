@@ -156,7 +156,8 @@ var ct_ready_mainjs = function () {
 		cartograplant.populateOptions(1, Object.keys(Drupal.settings.options_data.organism_data["genus"]).sort());
 		cartograplant.populateOptions(2, Drupal.settings.options_data.organism_data["species"].sort());
 		// cartograplant.populateOptions(3, Drupal.settings.options_data.marker_type, {'SSR':'nSSR'});
-		cartograplant.populateOptions(3, Drupal.settings.options_data.markers, {'SSR':'nSSR'});
+		// cartograplant.populateOptions(3, Drupal.settings.options_data.markers, {'SSR':'nSSR'});
+		cartograplant.populateOptions(3, Drupal.settings.options_data.markers, {'microsatellite':'SSR'});
 		cartograplant.populateOptions(4, Drupal.settings.options_data.categories);
 		// cartograplant.populateOptions(5, Drupal.settings.options_data.plant_ontology);
 		// cartograplant.populateOptions(6, Drupal.settings.options_data["cvterm"]);

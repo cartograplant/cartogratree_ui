@@ -1171,6 +1171,7 @@ function cartogratree_preprocess_page(&$variables)
         //Genotypes
         //Changed marker_type to markers (1/10/2024)
         $fields_data['markers'] = cartogratree_get_marker_options($api_key);
+        
         // if (($key = array_search('indel', $fields_data['markers'])) !== false) {
         //     unset($fields_data['markers'][$key]);
         // }
@@ -1185,7 +1186,9 @@ function cartogratree_preprocess_page(&$variables)
             }
             // unset($fields_data['markers'][$key]);
         }
-        if (($key = array_search('microsatellite', $fields_data['markers'])) !== false) {
+
+        // Remove SSR
+        if (($key = array_search('SSR', $fields_data['markers'])) !== false) {
             try {
                 if (is_array($fields_data['markers'])) {
                     unset($fields_data['markers'][$key]);
@@ -1193,6 +1196,26 @@ function cartogratree_preprocess_page(&$variables)
             } catch (Exception $ex) {
             }
         }
+
+        // Remove cpSSR
+        if (($key = array_search('cpSSR', $fields_data['markers'])) !== false) {
+            try {
+                if (is_array($fields_data['markers'])) {
+                    unset($fields_data['markers'][$key]);
+                }
+            } catch (Exception $ex) {
+            }
+        }
+
+
+        // if (($key = array_search('microsatellite', $fields_data['markers'])) !== false) {
+        //     try {
+        //         if (is_array($fields_data['markers'])) {
+        //             unset($fields_data['markers'][$key]);
+        //         }
+        //     } catch (Exception $ex) {
+        //     }
+        // }
 
         // if (($key = array_search('Indel Mutation', $fields_data['marker_type'])) !== false) {
         //     unset($fields_data['marker_type'][$key]);

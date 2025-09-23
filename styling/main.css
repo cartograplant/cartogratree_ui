@@ -56,10 +56,11 @@ select {
 }
 
 #map-opened-layers-container {
-  position: absolute;
-  top: 64.75%;
+  /* position: absolute; */
+  /* top: 64.75%; */
+  position: relative;
   right: 0px;
-  height: 10%;
+  height: 100px;
   width: 200px;
   background-color: #383c42F2;
   color: #FFFFFF;
@@ -186,7 +187,7 @@ select {
   vertical-align: top;
   width: 200px;
   max-height: 45vh;
-  overflow-y: auto;
+  overflow-y: hidden;
 }
 
 #map-right-buttons .map-right-buttons-parent-container {
@@ -678,7 +679,7 @@ select {
 .map-overlay {
   top: 0;   
   height: 50vh;   
-  margin-top: 10vh;   
+  margin-top: 1vh; 
   width: 18vw;
   position: absolute;   
   bottom: 0;   
