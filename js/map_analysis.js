@@ -3019,7 +3019,7 @@ var ct_ready_map_analysis = function() {
 		//if ($('#analysis-overlapping-traits-studies').html() == "") {
 			console.log('Generating html');
 			$('#analysis-overlapping-traits-studies').html('<i class="fas fa-clock"></i> Detecting studies...');
-			$('#analysis-overlapping-traits-traits-list-summary').html('<i class="fas fa-clock"></i> Querying ' + analysis_includedTrees.length + ' trees ' + '<span class="loading"></span> <img style="height: 16px;" src="' + loading_icon_src + '" />');
+			$('#analysis-overlapping-traits-traits-list-summary').html('<i class="fas fa-clock"></i> Querying ' + analysis_includedTrees.length + ' plants ' + '<span class="loading"></span> <img style="height: 16px;" src="' + loading_icon_src + '" />');
 			$('#analysis-overlapping-traits-traits-list').html('<i class="fas fa-clock"></i> Awaiting query...');
 			$('#analysis-overlapping-traits-traits-operation-container').fadeOut(500);
 			$('#analysis-overlapping-traits-download-by-selected-phenotypes').fadeOut(500);
@@ -4128,10 +4128,10 @@ var ct_ready_map_analysis = function() {
 				if (i == total - 1) {
 					$('#analysis-overlapping-traits-status').html('Status: Finding traits overlapping all studies <span class="loading"></span> <img style="height: 16px;" src="' + loading_icon_src + '" />');
 				}
-				$('#' + id_name_nospaces).html('<i class="fas fa-tree"></i> ' + data.length + ' of ' + data.length + ' trees');
+				$('#' + id_name_nospaces).html('<i class="fas fa-tree"></i> ' + data.length + ' of ' + data.length + ' plants');
 			},
 			error: function() {
-				$('#' + id_name_nospaces).html('<i class="fas fa-tree"></i>  0 of ' + analysis_includedTrees.length + ' trees (query failed)');
+				$('#' + id_name_nospaces).html('<i class="fas fa-tree"></i>  0 of ' + analysis_includedTrees.length + ' plants (query failed)');
 			}
 		});	
 	}
@@ -4268,7 +4268,7 @@ var ct_ready_map_analysis = function() {
 
 		console.log('Payload: ', payload);
 		console.log('Payload JSON: ', JSON.stringify(payload));
-		$('#analysis_detections_confirm_selection_status').html('<i class="fas fa-check"></i> ' + trees.length + ' trees selected. ' + studies.length + ' studies selected. ' + '<span class="loading"></span> <img style="height: 16px;" src="' + loading_icon_src + '" /> Running study context processing...');
+		$('#analysis_detections_confirm_selection_status').html('<i class="fas fa-check"></i> ' + trees.length + ' plants selected. ' + studies.length + ' studies selected. ' + '<span class="loading"></span> <img style="height: 16px;" src="' + loading_icon_src + '" /> Running study context processing...');
 
 		// Now we need to send this payload to the server
 		var url = Drupal.settings.base_url + '/cartogratree/api/v2/manage/study_context/run';
@@ -4409,7 +4409,7 @@ var ct_ready_map_analysis = function() {
 				
 				analysis_data_store['traits_filtered_csv'] = csv_data;
 				$('#analysis-overlapping-traits-download-by-selected-phenotypes').fadeIn(500);
-				$('#analysis-overlapping-traits-filter-by-selected-phenotypes-results').html('<i class="fas fa-check-square"></i> Completed! ' + analysis_trees.length + ' of ' + analysis_includedTrees.length + ' trees were found to contain traits you selected!');	
+				$('#analysis-overlapping-traits-filter-by-selected-phenotypes-results').html('<i class="fas fa-check-square"></i> Completed! ' + analysis_trees.length + ' of ' + analysis_includedTrees.length + ' plants were found to contain traits you selected!');	
 			}
 		});	
 	});
@@ -4532,11 +4532,11 @@ var ct_ready_map_analysis = function() {
 		analysis_detections_html += '</div>';
 		analysis_detections_html += '<div class="col-10">';
 		if (studies.length == 0) {
-			analysis_detections_html += ' <div>No studies detected from your plant selections. ⚠️ <br />Please return to the map and select trees within studies to get most out of this analysis system.</div>';
+			analysis_detections_html += ' <div>No studies detected from your plant selections. ⚠️ <br />Please return to the map and select plants within studies to get most out of this analysis system.</div>';
 		}
 		else {
 			analysis_detections_html += '<h4 style="color:rgb(1, 77, 70) !important;margin-left: 4px;">Study summary</h4>';
-			analysis_detections_html += ' <div>' + studies.length + ' studies (' + studies.join(',') + ') found associated with the trees you selected. ✅</div>';
+			analysis_detections_html += ' <div>' + studies.length + ' studies (' + studies.join(',') + ') found associated with the plants you selected. ✅</div>';
 
 			if (studies.length == 1) {
 				analysis_detections_html += '<div>To get the best out of the analysis system, 2 studies or more are recommended</div>';
@@ -7332,7 +7332,7 @@ var ct_ready_map_analysis = function() {
 		aes_progressbar_description.html("Sending payload to the environmental server...");
 		// Create a string containing tree_ids delimited by commas
 		for(var i=0; i < analysis_includedTrees.length; i++) {
-			aes_progressbar_description.html("Requesting tree " + (i+1) + " of " + analysis_includedTrees.length);
+			aes_progressbar_description.html("Requesting plant " + (i+1) + " of " + analysis_includedTrees.length);
 			for (var j=0; j<selections_studies.length; j++) {
 				var study_tmp = selections_studies[j];
 				if (analysis_includedTrees[i].startsWith(study_tmp + "-")) {
@@ -7374,7 +7374,7 @@ var ct_ready_map_analysis = function() {
 		$('#analysis-generateoutput-envdata-section-from-db-button').off('click');
 	} catch (error) {}
 	$('#analysis-generateoutput-envdata-section-from-db-button').click(function() {
-		console.log('Checking database for trees with locations');
+		console.log('Checking database for plants with locations');
 		console.log('detected_studies', Object.keys(cartograplant.detected_studies))
 		// We first need to get all the tree ids
 		// console.log(analysis_includedTrees);
@@ -7410,14 +7410,14 @@ var ct_ready_map_analysis = function() {
 							}
 						}
 					}
-					console.log('Checking currently filtered trees (by study selections) since no snps subset trees were found');
-					console.log('Filtered trees that will be used', tree_ids);
+					console.log('Checking currently filtered plants (by study selections) since no snps subset plants were found');
+					console.log('Filtered plants that will be used', tree_ids);
 					if (tree_ids.length > 0) {
-						console.log('Using currently filtered trees (by study selections) since no snps subset trees were found');
+						console.log('Using currently filtered plants (by study selections) since no snps subset plants were found');
 						process_retrieve_environmental_data(tree_ids);
 					}
 					else {
-						alert('No tree_ids were deteted from studies and no trees were selected from the map. Please ensure that you choose an option from the Filter by Genotypes tab if you selected a study.')
+						alert('No plant_ids were deteted from studies and no plants were selected from the map. Please ensure that you choose an option from the Filter by Genotypes tab if you selected a study.')
 					}
 				}
 				else {
@@ -7859,7 +7859,7 @@ var ct_ready_map_analysis = function() {
 					value: Math.ceil((analysis_envdata_current_progress_tree_count / analysis_includedTrees.length) * 100),
 				});
 				analysis_envdata_end_time = Math.round((new Date()).getTime() / 1000);
-				aes_progressbar_description.html("Basic metadata for tree " + analysis_envdata_current_progress_tree_count + " of " + analysis_includedTrees.length + " downloaded.");
+				aes_progressbar_description.html("Basic metadata for plant " + analysis_envdata_current_progress_tree_count + " of " + analysis_includedTrees.length + " downloaded.");
 				$("#analysis-generateoutput-elapsed-time").html("(" + Math.ceil(analysis_envdata_end_time - analysis_envdata_start_time) + "s)");
 			}
 		});
@@ -7882,7 +7882,7 @@ var ct_ready_map_analysis = function() {
 					value: Math.ceil((analysis_envdata_current_progress_properties_count / analysis_envdata_current_progress_properties_total) * 100),
 				});
 				analysis_envdata_end_time = Math.round((new Date()).getTime() / 1000);
-				aes_progressbar2_description.html("Property <i>" + key_name +  "</i> for tree " + analysis_envdata_current_progress_properties_count + " of " + analysis_envdata_current_progress_properties_total + " downloaded.");
+				aes_progressbar2_description.html("Property <i>" + key_name +  "</i> for plant " + analysis_envdata_current_progress_properties_count + " of " + analysis_envdata_current_progress_properties_total + " downloaded.");
 				$("#analysis-generateoutput-elapsed-time").html("(" + Math.ceil(analysis_envdata_end_time - analysis_envdata_start_time) + "s)");
 				var properties = [];
 				if (data_prop_query['features'].length >= 1) {

@@ -261,7 +261,7 @@
 						<!-- <h3 style="padding: 0px;" class="modal-title" id="cartogratreeTitle">
 
 						</h3> -->
-						<img style="width: 175px;" id="ct-logo" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/cp_logo.png">
+						<img style="width: 100%;" id="ct-logo" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/cp_logo.png">
 					</div>
 					<div class="col-10" style="padding-top: 10px;">
 						<div id="analysis_summary_html"></div>	
@@ -282,7 +282,7 @@
 								<a id='analysis-initial-configuration-tab' class="nav-link analysis-nav-tab analysis-initial-configuration active" data-toggle="tab" href="#analysis-initial-configuration">Create & manage workspace</a>
 							</li>
 							<li class="nav-item">
-								<a id='analysis-study-context-tab' class="nav-link study-context-nav-tab analysis-study-context" data-toggle="tab" href="#analysis-study-context">Study selection</a>
+								<a id='analysis-study-context-tab' class="nav-link study-context-nav-tab analysis-study-context" data-toggle="tab" href="#analysis-study-context">Select studies</a>
 							</li>	
 							<li class="nav-item">
 								<a id="analysis-overlapping-traits-tab" class="nav-link analysis-nav-tab analysis-overlapping-traits" data-toggle="tab" href="#analysis-overlapping-traits">Filter traits</a>
@@ -770,7 +770,7 @@
 												<th>Author</th>
 												<th>Year</th>
 												<!--<th>Species</th>-->
-												<th># Trees</th>
+												<th># Plants</th>
 												<th>Study type</th>
 												<th>Status</th>
 											</tr>
@@ -804,7 +804,7 @@
 									<h4>Map Summary</h4>
 									<ul class="list-group">						
 										<li class="list-group-item d-flex justify-content-between align-items-center">
-											<h5><b>Number of trees</b></h5>
+											<h5><b>Number of plants</b></h5>
 											<span id="analysis-num-trees">0</span>
 										</li>
 										<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -1228,7 +1228,7 @@
 					Add Rule will add a new filter rule to the current set of filters. This new rule will conform to the operator (AND / OR) that is currently selected.
 					For example, if you already had a current rule in which the conjunction 'AND' has been selected, this new rule will filter by both the old rule AND the new rule created.<br />
 					It follows the same concept of SQL AND and ORs.<br />
-					Practical example: Old rule (Family equal Fabaceae) OR (Family equal Rosaceae) will show both families of trees on the map. Using AND would show no trees since the families do not overlap.<br />
+					Practical example: Old rule (Family equal Fabaceae) OR (Family equal Rosaceae) will show both families of plants on the map. Using AND would show no plants since the families do not overlap.<br />
 				</div>
 				<div>
 					<h2>Add Group</h2>
@@ -1252,7 +1252,7 @@
                 <span aria-hidden="true">&times;</span>
                 </button>
             </div> -->
-			<h2 style="padding-top: 10px; padding-bottom: 0px; padding-left: 12px;">Selected Trees</h2>
+			<h2 style="padding-top: 10px; padding-bottom: 0px; padding-left: 12px;">Selected Plants</h2>
             <div class="modal-body">
 				<table class="modal-table" style="width: 100%;">
 				
@@ -1847,7 +1847,7 @@
 												<h6 id="num-trees">0</h6>
 											</div>
 											<div class="col-1" style="padding-top: 8px;">
-												<button type="button" data-toggle="button" class="btn btn-sel-all" id="select-num-trees" style="transform: scale(0.75); margin-left: 10px;" autocomplete="off" data-original-title='Select all trees'>
+												<button type="button" data-toggle="button" class="btn btn-sel-all" id="select-num-trees" style="transform: scale(0.75); margin-left: 10px;" autocomplete="off" data-original-title='Select all plants'>
 													SEL ALL
 												</button>
 											</div>								
@@ -2475,17 +2475,43 @@
 					<div id="treesnap-collection-container" style="width: 100%;padding-left: 20px;padding-right: 10px;" class="hidden">
 
 					</div>
-					<div id="tree-study-associated-container" style="width: 100%;padding-left: 20px;padding-right: 10px;">
-						<h3 id="tree-study-associated-label" style="padding-top: 5px; padding-bottom: 5px;">Study Associated</h3>
-						<div class="media">
-							<i class="fas fa-book-open fa-4x align-self-center mr-3" style="position: relative; top: -15px;"></i>
-							<div class="media-body">
-								<h4 class="mt-0" id="tree-pub-title" style="margin-bottom: 0px;">Who</h4>
-								<h5 id="tree-pub-author" style="display: inline-block; margin-right: 10px;">Unknown.</h5>
-								<div class="mb-0" id="tree-pub-year" style="display: inline-block; margin-right: 10px;">2000</div>
-								<a href="#" target="_blank" id="tree-pub-link">View Additional Details</a>
-								<p id="study-organisms-csv" style="margin: 0; padding: 0; margin-bottom: 10px;"></p>	
-								<p id="study-download-files" class="hidden" style="margin: 0; padding: 0;"></p>						
+					<div style="width: 100%;">
+						<div id="tree-study-associated-container" style="display: inline-block; width: 48%;padding-left: 20px;padding-right: 10px; vertical-align: top;">
+							<h3 id="tree-study-associated-label" style="padding-top: 5px; padding-bottom: 5px;">Study Details</h3>
+							<div class="media">
+								<!-- <i class="fas fa-book-open fa-4x align-self-center mr-3" style="position: relative; top: -15px;"></i> -->
+								<div class="media-body">
+									<h4 class="mt-0" id="tree-pub-title" style="margin-bottom: 0px;">Who</h4>
+									<div style="margin-bottom: 5px;">
+										<h5 id="tree-pub-author" style="display: inline-block; margin-right: 10px;">Unknown.</h5>
+										<div class="mb-0" id="tree-pub-year" style="display: inline-block; margin-right: 10px;">2000</div>
+										<a href="#" target="_blank" id="tree-pub-link">View Additional Details</a>
+									</div>
+									<p id="study-organisms-csv" style="margin: 0; padding: 0; margin-bottom: 10px;"></p>
+									<p id="study-genotypes-count" style="margin: 0; padding: 0; margin-bottom: 10px;"></p>
+									<p id="study-phenotypes-count" style="margin: 0; padding: 0; margin-bottom: 10px;"></p>	
+									<p id="study-download-files" class="hidden" style="margin: 0; padding: 0;"></p>						
+								</div>
+							</div>
+						</div>
+						<div id="plant-details-container" style="display: inline-block; height: 100%; width: 48%; vertical-align: top; border-left: 1px solid #dbdbdb; padding-left: 20px;">
+							<h3 id="plant-details-label" style="padding-top: 5px; padding-bottom: 20px;">Plant details</h3>
+							<h4 class="mt-0" id="tree-specific-info-label" style="margin-bottom: 0px;"></h4>
+							<div id="tree-specific-location-container" style="display: inline-block; width: 50%">
+								<h3 id="tree-specific-location-label" style="padding-bottom: 5px; font-size: 16px;">Location</h3>
+								<span style='font-size: 14px;' class="badge badge-primary" id="tree-specific-location-value"></span>
+							</div>
+							<div id="tree-specific-coord-container" style="display: inline-block; width: 50%">
+								<h3 id="tree-specific-coord-label" style="padding-bottom: 5px; font-size: 16px;">Coordinate type</h3>
+								<span style='font-size: 14px;' class="badge badge-primary" id="tree-specific-coord-value"></span>
+							</div>
+							<div id="tree-specific-unique-phenotypes-container" style="display: inline-block; width: 50%">
+								<h3 id="tree-specific-unique-phenotypes-count-label" style="padding-bottom: 5px; font-size: 16px;">Unique Phenotypes</h3>
+								<span style='font-size: 14px;' class="badge badge-primary" id="tree-specific-unique-phenotypes-count"></span>
+							</div>
+							<div id="tree-specific-unique-genotypes-container" style="display: inline-block; width: 50%">
+								<h3 id="tree-specific-unique-genotypes-count-label" style="padding-bottom: 5px; font-size: 16px;">Unique Genotypes</h3>
+								<span style='font-size: 14px;' class="badge badge-primary" id="tree-specific-unique-genotypes-count">0</span>
 							</div>
 						</div>
 					</div>
@@ -2506,11 +2532,11 @@
 						<span class="badge badge-info" id="tree-study-type"></span>
 					</div>	
 					<!-- <div class="col-8"> -->
-					<div style="width: 30%">
+					<div id="tree-markers-count-container" style="width: 30%">
 						<h3 id="tree-markers-label" style="padding-bottom: 5px; font-size: 16px;">Markers</h3>
 						<span style='font-size: 14px;' class="badge badge-primary" id="tree-markers"></span>
 					</div>
-					<div style="width: 30%">
+					<div id="tree-phenotypes-count-container" style="width: 30%">
 						<h3 id="tree-markers-count-label" style="padding-bottom: 5px; font-size: 16px;">Markers Count</h3>
 						<span style='font-size: 14px;' class="badge badge-primary" id="tree-markers-count"></span>
 						<h3 id="tree-phenotypes-count-label" style="padding-bottom: 5px; font-size: 16px;">Phenotype Measures</h3>
@@ -2519,17 +2545,7 @@
 				</div>
 				<hr />
 				<div style= "width: 100%;" class="row">
-					<div id="" style="margin-left: 22px; margin-top: 10px; width: 60%; display: inline-block;">
-					<h3>Plant specific details for <span style="font-weight: bold;" id="tree-specific-info-label"></span></h3>
-					</div>
-					<div id="tree-specific-unique-phenotypes-container" style="display: inline-block; width: 15%">
-						<h3 id="tree-specific-unique-phenotypes-count-label" style="padding-bottom: 5px; font-size: 16px;">Unique Phenotypes</h3>
-						<span style='font-size: 14px;' class="badge badge-primary" id="tree-specific-unique-phenotypes-count"></span>
-					</div>
-					<div id="tree-specific-unique-genotypes-container" style="display: inline-block; width: 15%">
-						<h3 id="tree-specific-unique-genotypes-count-label" style="padding-bottom: 5px; font-size: 16px;">Unique Genotypes</h3>
-						<span style='font-size: 14px;' class="badge badge-primary" id="tree-specific-unique-genotypes-count">0</span>
-					</div>					
+					
 					<div id="tree-more-info-phenotype-container" style="margin-left: 22px; margin-top: 10px; width: 100%;">
 						
 					</div>
