@@ -1007,6 +1007,11 @@
 								<td>Postdoctoral Scholar</td>
 							</tr>
 							<tr>
+								<td>Meghan Myles</td>
+								<td>University of Connecticut</td>
+								<td>PhD Student</td>
+							</tr>
+							<tr>
 								<td>Risharde Ramnath</td>
 								<td>University of Connecticut</td>
 								<td>Lead Developer</td>
@@ -1025,11 +1030,6 @@
 								<td>Vlad Savitsky</td>
 								<td>University of Connecticut</td>
 								<td>Developer</td>
-							</tr>
-							<tr>
-								<td>Meghan Myles</td>
-								<td>University of Connecticut</td>
-								<td>Curator</td>
 							</tr>
 							<tr>
 								<td>Phoebe Zhou</td>
@@ -1060,10 +1060,15 @@
 							<td>Principal Investigator</td>
 						</tr>
 						<tr>
+							<td>Florence Caldwell</td>
+							<td>University of Tennessee</td>
+							<td>Mobile and Web Developer</td>
+						</tr>
+						<!-- <tr>
 							<td>Abdullah Almsaeed</td>
 							<td>University of Tennessee</td>
 							<td>TreeSnap Developer</td>
-						</tr>
+						</tr>-->
 						<tr>
 							<td>Ellen Crocker</td>
 							<td>College of Agriculture, Food and Environment</td>
@@ -1073,7 +1078,7 @@
 				</div>
 				<div class="featurette-divider"></div>
 				<div class="ct_left_card">
-					<h2>Citing</h2>
+					<h2>Citations</h2>
 					<!-- 
 					<p>Wegrzyn J.L., Staton M.A., Street N. R., Main D., Grau E., Herndon N., Buehler S., Falk T., Zaman S., Ramnath R., Richter P., Sun L., Condon B., Almsaeed A., Chen M.,Mannapperuma C., Jung S., Ficklin S. Cyberinfrastructure to Improve Forest Health and Productivity: The Role of Tree Databases in Connecting Genomes, Phenomes, and the Environment, TreeGenes. Database, Volume 2019. doi:10.3389/fpls.2019.00813</p>
 					<p>Falk, T., Herndon, N., Grau, E., Buehler, S., Richter, P., Zaman, S., Baker, E. M., Ramnath, R., Ficklin, S., Staton, M., Feltus, F. A., Jung, S., Main, D., & Wegrzyn, J. L (2018) <a href=" http://dx.doi.org/10.1093/database/bay084">Growing and cultivating the forest genomics database, TreeGenes</a> <i>Database, Volume 2018</i></p>
@@ -1093,36 +1098,52 @@
 				
 				<div class="ct_left_card">
 					<h2>Participating Groups</h2>
-					<div class="d-flex justify-content-between" style='align-items: center;'>
+					<table style="width: 100%;">
+						<tr>
+							<td style="width: 33%; text-align: center;"><img style="height: 4em;" src='/sites/default/files/uploads/uconn.png' /></td>
+							<td style="width: 33%; text-align: center;"><img style="height: 5em;" src='/sites/default/files/uploads/wsu.png' /></td>
+							<td style="width: 33%; text-align: center;"><img style="height: 5em;" src='/sites/default/files/uploads/utk.png' /></td>
+						</tr>
+					</table>
+					<!-- <div class="d-flex justify-content-between" style='align-items: center;'>
 						<img style="height: 5em;" src='/sites/default/files/uploads/uconn.png' />
 						<img style="height: 6em;" src='/sites/default/files/uploads/wsu.png' />
 						<img style="height: 6em;" src='/sites/default/files/uploads/utk.png' />
-					</div>
+					</div> -->
 				</div>
 				
 				<div class="ct_left_card">
 					<h2>Funding</h2>
 					<table style="margin-top:20px;">
 						<tr>
-							<td width="50%">
+							<td width="33%">
 								<div style='text-align: center;'>
 									<img class="lazy" style='width: 50%;' src='https://nsf-gov-resources.nsf.gov/styles/featured_content_tablet/s3/2023-10/NSF_Official_logo_Med_Res_600ppi_rectangle.png?VersionId=_BzE41fXUTKWnh2WWSpDiBtR5xAf4YQs&itok=G01s-MfI' />
 								</div>
 							</td>
-							<td width="50%">
+							<td width="33%">
 								<div style='text-align: center;'>
-									<img class="lazy" style='width: 50%;' src='https://treegenesdb.org/Drupal/sites/default/files/uploads/USDA_logo-cmp.png' />
+									<img class="lazy" style='width: 40%;' src='https://treegenesdb.org/Drupal/sites/default/files/uploads/USDA_logo-cmp.png' />
+								</div>
+							</td>
+							<td width="34%">
+								<div style='text-align: center;'>
+									<img class="lazy" style='width: 50%;' src='https://www.nature.org/content/dam/tnc/nature/en/logos/tnc-logo-primary-registered-dark-text.svg' />
 								</div>
 							</td>
 						</tr>
 						<tr>
-							<td width="50%" style="text-align: center;">
-								<h3>U.S National Science Foundation</h3>
-								<h3><a href="https://nsf.gov/awardsearch/showAward?AWD_ID=1443040">1443040</a> and <a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=1444573">1444573</a></h3>
+							<td width="33%" style="text-align: center;">
+								<h4 style="margin-bottom: 0px;">U.S National Science Foundation</h4>
+								<h3 style="padding-top: 0px;"><a href="https://nsf.gov/awardsearch/showAward?AWD_ID=1443040">1443040</a> and <a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=1444573">1444573</a></h3>
 							</td>
-							<td width="50%" style="text-align: center;">
-								<h3>National Institute of Food and Agriculture</h3>
-								<h3><a href="https://portal.nifa.usda.gov/web/crisprojectpages/1019897-fact-enabling-association-mapping-and-landscape-genomics-through-the-advanced-integration-of-genotype-phenotype-and-geospatial-data.html">2019-67021-29920</a></h3>
+							<td width="33%" style="text-align: center;">
+								<h4 style="margin-bottom: 0px;">National Institute of Food and Agriculture</h4>
+								<h3 style="padding-top: 0px;"><a href="https://portal.nifa.usda.gov/web/crisprojectpages/1019897-fact-enabling-association-mapping-and-landscape-genomics-through-the-advanced-integration-of-genotype-phenotype-and-geospatial-data.html">2019-67021-29920</a></h3>
+							</td>
+							<td width="34%" style="text-align: center;">
+								<h4 style="margin-bottom: 0px;">The Nature Conservancy</h4>
+								<h3 style="padding-top: 0px;"></h3>								
 							</td>
 						</tr>
 					</table>
@@ -1130,15 +1151,29 @@
 				
 				<div class="ct_left_card">	
 					<h2>In collaboration with: </h2>
-					<div id="sources-imgs" class="d-flex justify-content-between" style="margin-left: 2em; margin-right: 2em; align-items: center;">
-						<img class="lazy" style="width:15em; height:5em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/GMod_Chado.png">
+					<table style="width: 100%">
+						<tr>
+							<td style="width: 33%; text-align: center;">
+								<img class="lazy" style="width:15em; height:5em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/GMod_Chado.png">
+							</td>
+							<td style="width: 33%; text-align: center;">
+								<img class="lazy" style="width:15em; height:4.5em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TripalLogo_dark.png">
+							</td>
+							<td style="width: 33%; text-align: center;">
+								<img class="lazy" style="width:8em; height:8em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TreeSnap.jpg">
+							</td>
+						</tr>
+					</table>
+					<div id="sources-imgs" class="d-flex justify-content-between" style="margin-left: 2em; margin-right: 2em; align-items: center;">	
+						<!-- <img class="lazy" style="width:15em; height:5em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/GMod_Chado.png">
 						<img class="lazy" style="width:15em; height:4.5em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TripalLogo_dark.png">
-						
+						<img class="lazy" style="width:8em; height:8em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TreeSnap.jpg"> -->
 					</div>
 					<div id="sources-imgs-2" class="d-flex justify-content-between" style="margin-left: 2em; margin-right: 2em; align-items: center;">
-						<img class="lazy" style="width:8em; height:8em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TreeSnap.jpg">
+						<!-- 
 						<img class="lazy" style="width:12em; height:7em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/wfid.png">
 						<img class="lazy" style="width:15em; height:5em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/wildtype.png">
+						-->
 					</div>
 				</div>
 				
@@ -1155,11 +1190,11 @@
 							<td>University of Connecticut</td>
 							<td>Co-Principal Investigator</td>
 						</tr>
-						<tr>
+						<!-- <tr>
 							<td>Meg Staton</td>
 							<td>University of Tennessee</td>
 							<td>Co-Principal Investigator</td>
-						</tr>
+						</tr> -->
 						<tr>
 							<td>Irene Cobo</td>
 							<td>University of Connecticut</td>
