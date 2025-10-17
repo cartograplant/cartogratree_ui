@@ -94,11 +94,11 @@ var ct_ready_mapjs = function() {
 	};
 
 	// This variable attempts to keep track / hold all jQuery ajax calls
-	var ajax_requests = {
+	cartograplant.ajax_requests = {
 		'map_filtering': null,
 		'environmental_data_lookups': {
 			'current_bbox': null,
-			'data_lookup_objects': [],
+			'data_lookup_objects': {},
 		},
 	}; 
 
@@ -1493,6 +1493,10 @@ var ct_ready_mapjs = function() {
 
 					if(Drupal.settings.layers['cartogratree_layer_' + layer_id_number]['layer_legend_hide_default'] == "1") {
 						$('#legend_legend_icon_' + layer_id_number).hide();
+					}
+					else {
+						// 10/14/2025 - Show the legend automatically
+						$('#legend_legend_icon_' + layer_id_number).click();
 					}					
 					
 				}
@@ -2385,11 +2389,47 @@ var ct_ready_mapjs = function() {
 		popupHTML += "<h4 style='color: white'>Latitude: " + roundHundredths(lngLat.lat);
 		popupHTML += " | " + "Longitude: " + roundHundredths(lngLat.lng) + "</h4>";
 		popupHTML += "<h3 style='color: #FFFFFF; margin-top: 5px; margin-bottom: 2px; background-color: #000000;' id='popup_point_elevation'>Retrieving...</h3></div>";
-
+		popupHTML += '<div id="environmental-parent-loading" style="margin-bottom: 15px;"><img style="height: 16px;" src="' + loading_icon_src + '" /> Loading environmental data...</div>';
 		//if there are any active layers on the map then add an environmental data section to the popup				
 		if (layersList.getActiveLayers().length > 0) {
 			popupHTML += "<h3 class='card-title'>Environmental Data</h3><ul class='environmental-values list-group'></ul>";
-			$(".environmental-values").html();
+			$(".environmental-values").html('');
+			if (cartograplant['timers'] == undefined) {
+				cartograplant['timers'] = {}
+			}
+			if (cartograplant['timers']['environmental_loading'] != undefined) {
+				clearInterval(cartograplant['timers']['environmental_loading']);
+				cartograplant['timers']['environmental_loading'] = undefined;
+				// Abort all XHRs
+				var keys = Object.keys(cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects);
+				for (var i = 0; i<keys.length; i++) {
+					var key = keys[i];
+					try {
+						cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[key].xhr.abort();
+					}  catch (err) { console.log('abort xhr error', err)}
+				}
+
+				// Remove all the data_lookup_objects;
+				for (var i = 0; i<keys.length; i++) {
+					var key = keys[i];
+					delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[key];
+				}
+				
+			}
+			
+			cartograplant['timers']['environmental_loading'] = setInterval(function() {
+				// Check for ajax_requests.environmental_data_lookups
+				if (Object.keys(cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects).length > 0) {
+					console.log('data_lookup_objects', cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects);
+					$('#environmental-parent-loading').html('<img style="height: 16px;" src="' + loading_icon_src + '" /> Looking up ' + Object.keys(cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects).length + ' resources...</div>')
+				}
+				else {
+					clearInterval(cartograplant['timers']['environmental_loading']);
+					cartograplant['timers']['environmental_loading'] = undefined;
+					$('#environmental-parent-loading').slideUp(1000);
+				}
+			}, 2000);
+			
 		}
 		popupHTML += "</div>";
 
@@ -3070,6 +3110,10 @@ var ct_ready_mapjs = function() {
 	
 	function addDynamicDatasetClickEvents(sourceId, layerId, clusterId) {
 		var treeHover = new mapboxgl.Popup({closeButton: false});
+		try {
+			map.off("mouseenter", layerId);
+		}
+		catch (err) {}
 		map.on("mouseenter", layerId, function (e) {
 			//console.log('addDynamicDatasetClickEvents on mouseenter');
 			//create a bounding box around the clicked point
@@ -3104,9 +3148,9 @@ var ct_ready_mapjs = function() {
 		});
 
 		map.on("click", layerId, function(e) {
-			if(debug) {
-				console.log('addDynamicDatasetClickEvents on click');
-			}
+			
+			console.log('addDynamicDatasetClickEvents on click');
+			
 			/*
 			var bbox = [
 				[e.point.x, e.point.y],
@@ -3358,7 +3402,7 @@ var ct_ready_mapjs = function() {
 	
 	
 	
-	async function updateTreeImgs(imgs, species) {
+	async function updateTreeImgs(imgs, species, source = null) {
 		if (imgs != undefined) {
 			var all_imgs = imgs;
 			console.log('all_imgs', all_imgs);
@@ -3376,6 +3420,8 @@ var ct_ready_mapjs = function() {
 				}
 			}
 		}
+
+
 
 		//if(debug) {
 			console.log('updateTreeImgs() function');
@@ -3452,8 +3498,52 @@ var ct_ready_mapjs = function() {
 			}
 			//$("#tree-imgs-container").append("</div>");
 		}
-		$(".carousel-item").first().addClass("active");
-		$(".carousel-indicators > li").first().addClass("active");
+		$("#tree-img-carousel .carousel-item").first().addClass("active");
+		$("#tree-img-carousel .carousel-indicators > li").first().addClass("active");
+
+		$('#treesnap-images-container').hide();
+		if (source =='treesnap') {
+			$("#treesnap-img-carousel .carousel-inner").html("");
+			$("#treesnap-img-carousel .carousel-indicators").html("");
+			//$("#tree-img-carousel").carousel("pause").removeData();
+			$("#treesnap-imgs-container").html("");
+			$("#treesnap-img-carousel").css('display','block');
+
+			for (var i = 0; i < imgs.length; i++) {	
+				// $("#expand-image-view-button").show();
+				var row = "<div class='row'>";
+				var numAddedElements = 0;
+	
+				//show arrows
+				$('#treesnap-img-carousel .carousel-control-prev').show();
+				$('#treesnap-img-carousel .carousel-control-next').show();
+				for (var i = 0; i < imgs.length; i++) {	
+					$("#treesnap-img-carousel .carousel-indicators").append("<li data-target='#treesnap-img-carousel' data-slide-to='" + i + "'></li>");
+					$("#treesnap-img-carousel .carousel-inner").append("<div class='carousel-item tree-img'><img class='d-block w-100' onclick=\"show_full_image('" + imgs[i] + "');\" id='treesnap-view-img" + i + "' src='" + imgs[i] + "' alt='tree img'></div>");	
+					if (i % 2 == 0 && numAddedElements > 0) {
+						$("#tree-imgs-container").append(row + "</div>");
+						numAddedElements = 0;
+						row = "<div class='row'>";
+					}
+					row += "<div class='col img-full'><img onclick='show_full_image(\'" + imgs[i] + "\');' src='" + imgs[i] + "'/></div>";
+					numAddedElements++;
+				}
+				if (numAddedElements > 0) {
+					$("#tree-imgs-container").append(row);
+				}
+			}
+
+			$("#treesnap-img-carousel .carousel-item").first().addClass("active");
+			$("#treesnap-img-carousel .carousel-indicators > li").first().addClass("active");
+			if (imgs.length <= 0) {
+				$('#treesnap-images-container').hide();
+			}
+			else {
+				$('#treesnap-images-container').show();
+			}
+			// $('#treesnap-img-carousel .carousel-item').css('display', 'block');
+
+		}
 	}
 	
 
@@ -3468,7 +3558,7 @@ var ct_ready_mapjs = function() {
 
 		// Get basic information about the tree
 		$.ajax({
-			url: Drupal.settings.ct_nodejs_api + "/v2/tree?api_key=" + Drupal.settings.ct_api + "&tree_acc=" + treeId + "&cpapi_token=" + Drupal.settings.user.cpapi_token,
+			url: Drupal.settings.ct_nodejs_api + "/v2/tree?api_key=" + Drupal.settings.ct_api + "&tree_id=" + treeId + "&cpapi_token=" + Drupal.settings.user.cpapi_token,
 			dataType: "json",
 			success: function (data) {
 				console.log(data);
@@ -3613,38 +3703,39 @@ var ct_ready_mapjs = function() {
 					// 	}
 					// }
 
-					try {
-						console.log('Checking study type from publication data');
-						console.log('study_type_data', data[0]);
-						var study_type_html = "";
-						$('#study-genotypes-count').hide();
-						if(data[0]['gen_count'] != undefined) {
-							if(parseInt(data[0]['gen_count']) > 0) {
-								$('#study-genotypes-count').show();
-								$('#study-genotypes-count').html('Total genotypes: ' + data[0]['gen_count']);
-								study_type_html += "Genotype";
-							}
-						}
-						$('#study-phenotypes-count').hide();
-						if(data[0]['phen_count'] != undefined) {
-							if(parseInt(data[0]['phen_count']) > 0) {
-								if(study_type_html.includes('Genotype')) {
-									study_type_html += " x ";
-								}$('#study-phenotypes-count').show();
-								$('#study-phenotypes-count').html('Total phenotypes: ' + data[0]['phen_count']);
-								study_type_html += "Phenotype";
-							}
-						}
-						console.log('study_type_html', study_type_html);
-						if(study_type_html != "") {
-							$("#tree-study-type-label").removeClass("hidden");
-							$("#tree-study-type").removeClass("hidden");
-							$("#tree-study-type").html(study_type_html);
-						}
-					}
-					catch (err) {
-						console.log(err);
-					}
+					// DEPRECATED on 10/1/2025
+					// try {
+					// 	// console.log('Checking study type from publication data');
+					// 	// console.log('study_type_data', data[0]);
+					// 	// var study_type_html = "";
+					// 	// $('#study-genotypes-count').hide();
+					// 	// if(data[0]['gen_count'] != undefined) {
+					// 	// 	if(parseInt(data[0]['gen_count']) > 0) {
+					// 	// 		$('#study-genotypes-count').show();
+					// 	// 		$('#study-genotypes-count').html('Total genotypes: ' + data[0]['gen_count']);
+					// 	// 		study_type_html += "Genotype";
+					// 	// 	}
+					// 	// }
+					// 	// $('#study-phenotypes-count').hide();
+					// 	// if(data[0]['phen_count'] != undefined) {
+					// 	// 	if(parseInt(data[0]['phen_count']) > 0) {
+					// 	// 		if(study_type_html.includes('Genotype')) {
+					// 	// 			study_type_html += " x ";
+					// 	// 		}$('#study-phenotypes-count').show();
+					// 	// 		$('#study-phenotypes-count').html('Total phenotypes: ' + data[0]['phen_count']);
+					// 	// 		study_type_html += "Phenotype";
+					// 	// 	}
+					// 	// }
+					// 	// console.log('study_type_html', study_type_html);
+					// 	// if(study_type_html != "") {
+					// 	// 	$("#tree-study-type-label").removeClass("hidden");
+					// 	// 	$("#tree-study-type").removeClass("hidden");
+					// 	// 	$("#tree-study-type").html(study_type_html);
+					// 	// }
+					// }
+					// catch (err) {
+					// 	console.log(err);
+					// }
 					
 					
 					try {
@@ -3661,11 +3752,85 @@ var ct_ready_mapjs = function() {
 						}
 					}
 					
+					$('#tree-details-view-study-type').html('');
+					$('#tree-details-view-study-statistics').html('');
 					try {
 						if(data[0].accession.length > 0) {
 							$("#tree-pub-link").removeClass("hidden");
 							$("#tree-pub-link").text("View Additional Details");
 							$("#tree-pub-link").attr("href", "https://treegenesdb.org/tpps/details/" + data[0].accession);
+							
+							// Lookup more info from the TPPS module API
+							$('#tree-details-view-study-type').html('Looking up study type... <img style="height: 16px;" src="' + loading_icon_src + '" />');
+							$.ajax({
+								url: Drupal.settings.base_url + '/api/submission/' + data[0].accession + '/view/shared_state',
+								method: 'GET',
+								success: function(data) {
+									$('#tree-details-view-study-type').removeClass("hidden");
+									$('#tree-details-view-study-type').html('');
+									// tree-details-view-study-type
+									var html = '';
+									if (data['saved_values']['2']['data_type'] != undefined) {
+										html += '<div>';
+										html += '<h3 style="width: 20%; display: inline-block; font-size: 14px; margin-right: 10px; padding-top:0px; padding-bottom: 20px;">Study type</h3>';
+										html += '<div style="display: inline-block; font-size: 14px;" class="badge badge-primary">' + data['saved_values']['2']['data_type'] + '</div>';
+										html += '</div>';
+									}
+									$('#tree-details-view-study-type').append(html);
+								},
+								error: function(err) {
+									$('#tree-details-view-study-type').addClass("hidden");
+									$('#tree-details-view-study-type').html('');
+								}
+							})
+
+							$('#tree-details-view-study-statistics').html('Looking up study statistics... <img style="height: 16px;" src="' + loading_icon_src + '" />');
+							$.ajax({
+								url: Drupal.settings.base_url + '/cartogratree_uianalysis/cartogratree_analysisapi_lookup_study_info/' + data[0].accession,
+								method: 'GET',
+								success: function(data) {
+									$('#tree-details-view-study-statistics').removeClass("hidden");
+									$('#tree-details-view-study-statistics').html('');
+									// tree-details-view-study-statistics
+									var html = '';
+									if (data['tree_count'] != undefined && data['tree_count'] != null) {
+										html += '<div>';
+										html += '<h3 style="width: 20%; display: inline-block; font-size: 14px; margin-right: 10px; padding-top:0px; padding-bottom: 20px;">Total plants</h3>';
+										html += '<div style="display: inline-block; font-size: 14px;" class="badge badge-primary">' + data['tree_count'] + '</div>';
+										html += '</div>';
+									}
+									if (data['gen_count'] != undefined && data['gen_count'] != null) {
+										html += '<div>';
+										html += '<h3 style="width: 20%; display: inline-block; font-size: 14px; margin-right: 10px; padding-top:0px; padding-bottom: 20px;">Total genotypes</h3>';
+										html += '<div style="display: inline-block; font-size: 14px;" class="badge badge-primary">' + data['gen_count'] + '</div>';
+										html += '</div>';
+									}
+									if (data['phen_count'] != undefined && data['phen_count'] != null) {
+										html += '<div>';
+										html += '<h3 style="width: 20%; display: inline-block; font-size: 14px; margin-right: 10px; padding-top:0px; padding-bottom: 20px;">Total phenotypes</h3>';
+										html += '<div style="display: inline-block; font-size: 14px;" class="badge badge-primary">' + data['phen_count'] + '</div>';
+										html += '</div>';
+									}
+									if (data['species'] != undefined && data['species'] != null) {
+										var organisms_html = "";
+										organisms_html += '<div>';
+										organisms_html += '<h3 style="width: 20%; display: inline-block; font-size: 14px; margin-right: 10px; padding-top:0px; padding-bottom: 20px;">Species</h3>';
+										organisms_html += '<div style="display: inline-block; font-size: 14px; margin-right: 5px;" class="badge badge-primary">';
+										organisms_html += '<a style="color: #000000; text-decoration: underline;" target="_blank" href="/org/' + data['species'].replaceAll(' ', '-') + '">' + data['species'] + "</a>";
+										organisms_html += '</div>';
+										organisms_html += '</div>';
+										$('#study-organisms-csv').html(organisms_html);
+									}
+
+
+									$('#tree-details-view-study-statistics').append(html);
+								},
+								error: function(err) {
+									$('#tree-details-view-study-statistics').addClass("hidden");
+									$('#tree-details-view-study-statistics').html('');
+								}
+							})
+
 						}
 					}
 					catch(err) {
@@ -3684,7 +3849,7 @@ var ct_ready_mapjs = function() {
 								var keys = Object.keys(data);
 								var study_files_html = '';
 								if(keys.length > 0) {
-									study_files_html += '<h2 style="font-size: 12px; color: #589a60; margin:0;padding:0; margin-top: 30px; margin-bottom: 5px;">Study File Downloads</h2>';
+									study_files_html += '<h3 style="margin:0;padding:0; margin-top: 30px; margin-bottom: 5px;">Study File Downloads</h3>';
 									study_files_html += '<table>';
 								}
 								for(var i=0; i<keys.length; i++) {
@@ -3696,13 +3861,24 @@ var ct_ready_mapjs = function() {
 										var organisms = data[key_name];
 										console.log('study organisms_array', organisms);
 										var organisms_html = "";
+										organisms_html += '<div>';
+										organisms_html += '<h3 style="width: 20%; display: inline-block; font-size: 14px; margin-right: 10px; padding-top:0px; padding-bottom: 20px;">Species</h3>';
 										for(var j=0; j<organisms.length; j++) {
-											if(j>0) {
-												organisms_html += ', '
-											}
-											organisms_html += organisms[j];
+											organisms_html += '<div style="display: inline-block; font-size: 14px; margin-right: 5px;" class="badge badge-primary">';
+											organisms_html += '<a style="color: #000000; text-decoration: underline;" target="_blank" href="/org/' + organisms[j].replaceAll(' ', '-') + '">' + organisms[j] + "</a>";
+											organisms_html += '</div>';
+											// for(var j=0; j<organisms.length; j++) {
+										// 	if(j>0) {
+										// 		organisms_html += ', '
+										// 	}
+										// 	organisms_html += organisms[j];
+										// }
 										}
-										$('#study-organisms-csv').html('Species: ' + organisms_html);
+										
+										organisms_html += '</div>';
+										if (organisms.length > 0) {
+											$('#study-organisms-csv').html(organisms_html);
+										}
 									}
 									else if (key_name == 'phenotype-files') {
 										// console.log('data[key_name]',data[key_name]);
@@ -3904,6 +4080,12 @@ var ct_ready_mapjs = function() {
 		$("#tree-pub-link").attr("href", "#");	
 		$("#tree-pub-link").text("No Publication info found");
 
+		$('#tree-details-view-study-type').addClass("hidden");
+		$('#tree-details-view-study-type').html('');
+
+		$('#tree-details-view-study-statistics').addClass("hidden");
+		$('#tree-details-view-study-statistics').html('');
+
 		$("#tree-phenotypes-label").addClass("hidden");
  		$("#tree-phenotypes").addClass("hidden");
 		$("#tree-phenotypes").html("");
@@ -3976,21 +4158,36 @@ var ct_ready_mapjs = function() {
 						
 						
 						// Lookup the number of plants in this collection
+						// if (data.length > 0) {
+						// 	console.log('Collection data: ', data);
+						// 	$("#treesnap-collection-container").append('<div style="margin-left: 5px; margin-top: 5px;">There are ' + data.length + ' plants in this Treesnap collection</div>')
+						// }
+						
+						// Lookup the collection number
 						$.ajax({
 							url: Drupal.settings.ct_nodejs_api + "/v2/trees/treesnap/collection_lookup_by_tree_id?tree_id=" + treeId,
 							dataType: "json",
 							success: function (data) {
 								if (data.length > 0) {
 									console.log('Collection data: ', data);
-									$("#treesnap-collection-container").append('<div style="margin-left: 5px; margin-top: 5px;">There are ' + data.length + ' plants in this Treesnap collection</div>')
+									$("#treesnap-collection-container").append('<div style="margin-left: 0px; margin-top: 5px; margin-bottom: 5px;">There are ' + data.length + ' plants in this Treesnap collection</div>')
 								}
 							}
 						});
+						
 					}
 				}
 			});
 
 
+			if(treeId.includes('treesnap')) {
+				$('#treesnap-images-container').removeClass("hidden");
+			}
+			else {
+				if ($('#treesnap-images-container').hasClass("hidden") == false) {
+					$('#treesnap-images-container').addClass("hidden");
+				}
+			}
 
 			if (treeImgsStore[treeId] == undefined) {
 				$.ajax({
@@ -4003,7 +4200,7 @@ var ct_ready_mapjs = function() {
 						$("#tree-submitter").text("Taken by: " + tsData.submitter);
 						$("#tree-collection-date").text("Collection date: " + tsData.collection_date);
 						try {
-						updateTreeImgs(tsData.data.images, data.species);
+						updateTreeImgs(tsData.data.images, data.species, 'treesnap');
 						}
 						catch (err) {
 							console.log('ERROR FOR TREESNAP IMAGES:' + err);
@@ -4027,7 +4224,7 @@ var ct_ready_mapjs = function() {
 							console.log(xhr.responseText);
 						}
 						// updateTreeImgs(undefined, "dummy_value");
-						updateTreeImgs(undefined, data.species);
+						updateTreeImgs(undefined, data.species, 'treesnap');
 					}
 				});	
 			}
@@ -4055,32 +4252,34 @@ var ct_ready_mapjs = function() {
 					success: function (data) {
 						$('#project-tree-species').html($('#tree-species').html());
 						console.log('phenotype data', data);
-						var html = "";
-						var imgs_html = "";
-						html += "<h2>Phenotypes</h2>";
-						html += "<table style='width: 100%;' id='more_info_phenotype_table'>";
-						html += "<tr>";
-						html += "<th style='width: 50%;'>Phenotype</th>";
-						html += "<th style='width: 50%;'>Value</th>";
-						html += "</tr>";
-						for (var i = 0; i<data.length; i++) {
-							var row = data[i];
-							if (row['value'].includes("https://anecdata.org")) {
-								imgs_html += '<div style="text-align: center; display: inline-block; margin-right: 20px; color: #589a60; font-weight: bold;">';
-								imgs_html += '<img src="' + row['value'] + '" style="width: 250px; height: 250px; border-radius: 4px;"/>';
-								imgs_html += '<div style="margin-top: -4px;padding-top: 10px;padding-bottom: 5px;background-color: #589a60;border-radius: 0px 0px 5px 5px;color: #FFFFFF;">' + row['name'].replaceAll('Add photo of ', '').replaceAll('if possible', '').replaceAll(',', '').replaceAll('.', '').toUpperCase() + '</div>';
-								imgs_html += '</div>';
+						if (data.length > 0) {
+							var html = "";
+							var imgs_html = "";
+							html += "<h2>Phenotypes</h2>";
+							html += "<table style='width: 100%;' id='more_info_phenotype_table'>";
+							html += "<tr>";
+							html += "<th style='width: 50%;'>Phenotype</th>";
+							html += "<th style='width: 50%;'>Value</th>";
+							html += "</tr>";
+							for (var i = 0; i<data.length; i++) {
+								var row = data[i];
+								if (row['value'].includes("https://anecdata.org")) {
+									imgs_html += '<div style="text-align: center; display: inline-block; margin-right: 20px; color: #589a60; font-weight: bold;">';
+									imgs_html += '<img src="' + row['value'] + '" style="width: 250px; height: 250px; border-radius: 4px;"/>';
+									imgs_html += '<div style="margin-top: -4px;padding-top: 10px;padding-bottom: 5px;background-color: #589a60;border-radius: 0px 0px 5px 5px;color: #FFFFFF;">' + row['name'].replaceAll('Add photo of ', '').replaceAll('if possible', '').replaceAll(',', '').replaceAll('.', '').toUpperCase() + '</div>';
+									imgs_html += '</div>';
+								}
+								else {
+									html += '<tr>';
+									html += '<td>' + row['name'] + '</td>';
+									html += '<td>' + row['value'] + '</td>';
+									html += '</tr>';
+								}
 							}
-							else {
-								html += '<tr>';
-								html += '<td>' + row['name'] + '</td>';
-								html += '<td>' + row['value'] + '</td>';
-								html += '</tr>';
-							}
+							html += "</table>";
+							$('#project-info-phenotypes').html(html);
+							$('#project-info-phenotypes-images').html(imgs_html);
 						}
-						html += "</table>";
-						$('#project-info-phenotypes').html(html);
-						$('#project-info-phenotypes-images').html(imgs_html);
 					}
 				})
 			}
@@ -4230,6 +4429,7 @@ var ct_ready_mapjs = function() {
 			url: Drupal.settings.ct_nodejs_api + "/v2/phenotypes?api_key=" + Drupal.settings.ct_api + "&tree_id=" + treeId,
 			dataType: "json",
 			success: function (data) {
+				$('#tree-more-info-phenotype-container').html('');
 				if(data.length > 0) {
 					$('#tree-more-info-phenotype-container').show();
 					if(debug) {
@@ -4238,7 +4438,7 @@ var ct_ready_mapjs = function() {
 					}
 					var cvtermsSet = {};
 					var phenotype_html = "";
-					$('#tree-more-info-phenotype-container').html();
+					
 					phenotype_html = phenotype_html + "<h3 style='padding-top: 0px;padding-bottom: 5px;margin-left: 3px; margin-bottom: 10px;'>Plant Phenotypic Data</h3>";
 					phenotype_html = phenotype_html + "<table id='more_info_phenotype_table' style='width: 100%;'>";
 					phenotype_html = phenotype_html + "<tr><th>Plant ID</th><th>Name</th><th>Value</th><th>Units</th><th>Structure</th><th>Observation</th></tr>";
@@ -4287,7 +4487,7 @@ var ct_ready_mapjs = function() {
 							$("#tree-phenotypes").append("    <span class='badge badge-success'>" + data[i].cvterm_name + "</span>");
 							cvtermsSet[data[i].cvterm_name] = true;
 						}
-						if(data[i].name.startsWith('diameterNumeric') || data[i].name.startsWith('willowSample') || data[i].name.startsWith('willowSpecies') || data[i].name.startsWith('otherLabel') || data[i].name.startsWith('heightNumeric') || data[i].value == 'NA' || data[i].value == '' || data[i].value == '-') {
+						if(data[i].name.startsWith('diameterNumeric') || data[i].name.startsWith('willowSample') || data[i].name.startsWith('willowSpecies') || data[i].name.startsWith('otherLabel') || data[i].name.startsWith('heightNumeric') || data[i].value == 'NA' || data[i].value == '' || data[i].value == '-' || data[i].value == '[]') {
 							//don't add to the list to clean up the list
 							unique_phenotypes_count = unique_phenotypes_count - 1;
 						}
@@ -4329,7 +4529,9 @@ var ct_ready_mapjs = function() {
 								data[i]['cvterm_name'] = '-';
 							}
 
-							phenotype_html = phenotype_html + "<tr><td>"  + data[i]['tree_acc'] + "</td><td>" + data[i].mapped_name + "</td><td>" + data[i].value + "</td><td>" + data[i].cvterm_name + "</td><td>" +  data[i].structure_name +"</td><td>" + data[i].observable_name + "</td></tr>";	
+							if (data[i].value != "" && data[i].value != "[]") {
+								phenotype_html = phenotype_html + "<tr><td>"  + data[i]['tree_acc'] + "</td><td>" + data[i].mapped_name + "</td><td>" + data[i].value + "</td><td>" + data[i].cvterm_name + "</td><td>" +  data[i].structure_name +"</td><td>" + data[i].observable_name + "</td></tr>";	
+							}
 						}
 					}
 					phenotype_html = phenotype_html + "</table>";
@@ -4546,12 +4748,13 @@ var ct_ready_mapjs = function() {
 						console.log('Genotypes for ' + genotype_treeId + ':');
 						console.log(data);
 						var tpps_study = '';
-						var genotype_html = '';
-						genotype_html += "<h3 style='padding-top: 0px;padding-bottom: 5px;margin-left: -3px; margin-bottom: 10px;'>Plant Genotypic Data</h3>";
-						genotype_html += "<table id='more_info_genotype_table' style='width: 100%;'>";
-						genotype_html += "<tr><th>Plant ID</th><th>Marker Name</th><th>Genotype</th><th>Marker Type</th></tr>";				
 						if(data.length > 0) {
-
+							var genotype_html = '<div id="more_info_genotype_table_container">';
+							genotype_html += "<h3 style='padding-top: 0px;padding-bottom: 5px;margin-left: -3px; margin-bottom: 10px;'>Plant Genotypic Data</h3>";
+							genotype_html += "<table id='more_info_genotype_table' style='width: 100%;'>";
+							genotype_html += "<tr><th>Plant ID</th><th>Marker Name</th><th>Genotype</th><th>Marker Type</th></tr>";				
+						
+							$('#more_info_genotype_table_container').show();
 							$('#tree-specific-unique-genotypes-container').show();
 							$('#tree-specific-unique-genotypes-count-label').hide();
 							$('#tree-specific-unique-genotypes-count').hide();
@@ -4597,31 +4800,36 @@ var ct_ready_mapjs = function() {
 								genotype_html +=  "<tr><td>" + data[i].tree_acc + "</td><td>" + data[i].marker_name + "</td><td>" + data[i].description + "</td><td>" + data[i].marker_type + "</td></tr>";
 								//genotype_html = genotype_html + "<tr><td>" + data[i].uniquename.replace('-' + data[i].description, '') + "</td><td>" + data[i].description + "</td><td>" + data[i].marker_type + "</td></tr>";
 							}
+							genotype_html += "</table></div>";
+							if(data.length > 15) {
+								if(tpps_study != '') {
+									genotype_html += "More markers are available for this plant, <a target='_blank' href='/tpps/details/" + tpps_study + "'>click here to view all</a>";
+								}
+								else {
+									genotype_html += "More markers are available for this plant.<br />";
+								}
+							}
+							$('#tree-more-info-genotype-container').html(genotype_html);
+							$('#tree-more-info-genotype-container').show();	
+							$('#more_info_genotype_table_container').show();
 						}
 						else {
+							$('#more_info_genotype_table_container').hide();
 							$('#tree-more-info-genotype-container').html('');
 							$('#tree-more-info-genotype-container').hide();
 
 							// $('#tree-specific-unique-genotypes-container').show();
 							// $('#tree-specific-unique-genotypes-count').html(data.length);					
 						}
-						genotype_html += "</table>";
 						
-						if(data.length > 15) {
-							if(tpps_study != '') {
-								genotype_html += "More markers are available for this plant, <a target='_blank' href='/tpps/details/" + tpps_study + "'>click here to view all</a>";
-							}
-							else {
-								genotype_html += "More markers are available for this plant.<br />";
-							}
-						}
+						
 
-						if (data.length <= 0) {
-							genotype_html += "<p style='padding: 5px;'>No genotypes were found for this specific plant</p>";
-						}
+
+						// if (data.length <= 0) {
+						// 	genotype_html += "<p style='padding: 5px;'>No genotypes were found for this specific plant</p>";
+						// }
 						
-						$('#tree-more-info-genotype-container').html(genotype_html);
-						$('#tree-more-info-genotype-container').show();	
+
 					}
 				}
 			});
@@ -4828,6 +5036,7 @@ var ct_ready_mapjs = function() {
 			console.log('Trying to set elevation from cache...');
 			if(data.elevation != undefined) {
 				$("#tree-elevation").text('Elevation: ' + data.elevation + ' m');
+				$('#popup_point_elevation').text('Elevation: ' + data.elevation + ' m');
 			}
 			else {
 				$("#tree-elevation").text('Elevation: Unknown');
@@ -4924,6 +5133,7 @@ var ct_ready_mapjs = function() {
 									if(highestElevation != undefined) {
 										data.elevation = highestElevation;
 										$('#tree-elevation').text('Elevation: ' + highestElevation + ' m');
+										$('#popup_point_elevation').text('Elevation: ' + highestElevation + ' m');
 									}
 									treeDataStore.push({'tree_id':data.uniquename, 'data':data});
 									//console.log('DEBUG: TREEDATASTORE LENGTH:' + treeDataStore.length);
@@ -5072,7 +5282,7 @@ var ct_ready_mapjs = function() {
 				tree_id_html += "</button>";
 				tree_id_html += '</div>';
 				tree_id_html += '<div class="col-3" style="padding: 2px;">';
-				if (treeId.includes('TGDR')) {
+				if (treeId.includes('TGDR') || treeId.includes('treesnap') || treeId.includes('mama')) {
 					tree_id_html += "<a style='font-size: 1.3vw; padding: 6px' class='btn btn-success add-tree " + activeClass + "' data-toggle='tooltip' data-placement='bottom' title='Add this plant for analysis.'>";
 					tree_id_html += ' <i class="fas fa-plus-square"></i>';
 					tree_id_html += "</a>"
@@ -5193,6 +5403,7 @@ var ct_ready_mapjs = function() {
 	//requests the environmental data located at a particular point from geoserver
 	cartograplant.addEnvData = addEnvData;
 	function addEnvData(htmlEle, bbox, renderedFeatures, e = null) {
+		console.log('addEnvData function called');
 		$(htmlEle).html("");
 		//var baseUrl = "https://tgwebdev.cam.uchc.edu/geoserver/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&QUERY_LAYERS=";
 		var baseUrl = "https://treegenesdb.org/geoserver/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&QUERY_LAYERS=";
@@ -5271,10 +5482,10 @@ var ct_ready_mapjs = function() {
 					console.log('Y:' + y + ' used to create bounding box');
 				}
 				var bbox_temp = (x-offset) + ',' + (y-offset) + ',' + (x+offset) + ',' + (y+offset);
-				if(debug) {
+				//if(debug) {
 					console.log('This is the bounding box generated:');
 					console.log(bbox_temp);
-				}
+				//}
 
 				//Get feature data for this click for this specific layer
 				displayGeoserverLayersData(envLayer, bbox);				
@@ -5459,6 +5670,9 @@ var ct_ready_mapjs = function() {
 				}
 			}
 		}
+		if (activeLayers.length <= 0) {
+			$("#environmental-parent-loading").remove();
+		}
 	}
 
 	/* IN PROGRESS */
@@ -5471,6 +5685,10 @@ var ct_ready_mapjs = function() {
 
 
 		var url_uiapi_get_layer_embedded_fields_hide = Drupal.settings.base_url + '/cartogratree_uiapi/get_layer_embedded_fields_hide/' + envLayer.layer_id;
+		var edl1 = {};
+		var edl1_key = Date.now() + '-fields-rename';
+		var edl2 = {};
+		var edl2_key = Date.now() + '-env-lookup';
 		var xhr = $.ajax({
 			url: url_uiapi_get_layer_embedded_fields_hide,
 			dataType: "json",
@@ -5499,7 +5717,8 @@ var ct_ready_mapjs = function() {
 							replace_keys_new.push(data_fields_rename['layer_embedded_fields_rename'][field_rename_iterator].split(',')[1]);
 						}	
 						console.log(replace_keys);
-						console.log(replace_keys_new);		
+						console.log(replace_keys_new);
+						delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl1];
 
 						/*
 						* The code below will pull geoserver layer embedded data for display on the UI
@@ -5560,6 +5779,7 @@ var ct_ready_mapjs = function() {
 								catch (err) {
 									console.log(err);
 								}
+								delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl2_key];
 
 								/*
 								var lines = data.split("\n");
@@ -5603,21 +5823,30 @@ var ct_ready_mapjs = function() {
 									});
 									console.log(xhr.responseText);
 								}
+								delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl2_key];
 							}
 						});
 
-						var edl2 = {};
+						delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl1_key];
+						
 						edl2['xhr'] = xhr2;
 						edl2['bbox'] = bbox;
-						ajax_requests.environmental_data_lookups.data_lookup_objects.push(edl2);							
+						cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl2_key] = edl2; // set							
 
+					},
+					error: function (err) {
+						delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl1_key];
 					}
 				});
 
-				var edl1 = {};
+				delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl3_key];
+
 				edl1['xhr'] = xhr1;
 				edl1['bbox'] = bbox;
-				ajax_requests.environmental_data_lookups.data_lookup_objects.push(edl1);	
+				cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl1_key] = edl1;
+			},
+			error: function (err) {
+				delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl3_key];
 			}
 		});	
 		
@@ -5631,15 +5860,18 @@ var ct_ready_mapjs = function() {
 		// 3 LOADING, 4 DONE
 
 		// EDL (environmental data lookup object which should store bbox and the xhr request object)
-		var edl = {};
-		edl['xhr'] = xhr;
-		edl['bbox'] = bbox;
-		ajax_requests.environmental_data_lookups.current_bbox = bbox;
+		var edl3 = {};
+		var edl3_key = Date.now() + '-fields-hide';
+		edl3['xhr'] = xhr;
+		edl3['bbox'] = bbox;
+		cartograplant.ajax_requests.environmental_data_lookups.current_bbox = bbox;
 
-		// Clear up the old XHRs first
-		for(var dlo_index=0; dlo_index < ajax_requests.environmental_data_lookups.data_lookup_objects.length; dlo_index++) {
-			var data_lookup_object = ajax_requests.environmental_data_lookups.data_lookup_objects[dlo_index];
-			if(data_lookup_object['bbox'] != ajax_requests.environmental_data_lookups.current_bbox) {
+		// Clear up the old XHRs first by aborting them
+		var abort_keys_array = [];
+		for(var dlo_index=0; dlo_index < Object.keys(cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects).length; dlo_index++) {
+			var key = Object.keys(cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects)[dlo_index];
+			var data_lookup_object = cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[key];
+			if(data_lookup_object['bbox'] != cartograplant.ajax_requests.environmental_data_lookups.current_bbox) {
 				// abort the xhr
 				try {
 					data_lookup_object.xhr.abort();
@@ -5647,15 +5879,22 @@ var ct_ready_mapjs = function() {
 				catch (err) {
 					console.log(err);
 				}
+				abort_keys_array.push(key);
 
 				// now remove it from the array
-				ajax_requests.environmental_data_lookups.data_lookup_objects.splice(dlo_index, 1);
-				dlo_index--;
+				// delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[key];
+				// dlo_index--;
 			}			
 		}
 
+		// Then remove all abort xhr by keys
+		for (var i = 0; i < abort_keys_array.length; i++) {
+			var key = abort_keys_array[i];
+			delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[key];
+		}
 
-		ajax_requests.environmental_data_lookups.data_lookup_objects.push(edl);		
+
+		cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl3_key] = edl3;
 
 
 		// edl['bbox'] = bbox;
@@ -5689,6 +5928,8 @@ var ct_ready_mapjs = function() {
 	}
 
 	function perform_layer_embedded_data_eval(url_uiapi_get_layer_embedded_data_eval, k, feature, replace_keys, replace_keys_new, envLayer, bbox) {
+		var edl = {};
+		var edl_key = Date.now() + '-data-eval';
 		var xhr = $.ajax({
 			url: url_uiapi_get_layer_embedded_data_eval,
 			dataType: "json",
@@ -5749,13 +5990,17 @@ var ct_ready_mapjs = function() {
 					var item_container = '<tr><td style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
 					$('#env_layer_' + envLayer.layer_id +  '_values').append(item_container);															
 				}
+				delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl_key];
+			},
+			error: function (err) {
+				delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl_key];
 			}
 		});
 
-		var edl = {};
+
 		edl['xhr'] = xhr;
 		edl['bbox'] = bbox;
-		ajax_requests.environmental_data_lookups.data_lookup_objects.push(edl);			
+		cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl_key] = edl;			
 	}
 
 	function updateMapSummary(numTrees, numSpecies, numPubs, numLayers) {
@@ -5864,7 +6109,7 @@ var ct_ready_mapjs = function() {
 		// toastr.clear();
 		toastr.remove();
 		if (result == 0) {
-			toastr.error("Filter successful </br> No trees found that match those parameters.");
+			toastr.error("Filter successful </br> No plants found that match those parameters.");
 		}
 		else{
 			// setTimeout(function() {
@@ -5951,13 +6196,13 @@ var ct_ready_mapjs = function() {
 			toastr.success("No datasets active.");
 			try {
 				// try to cancel any old ajax_requests
-				ajax_requests['map_filtering'].abort();
+				cartograplant.ajax_requests['map_filtering'].abort();
 			}
 			catch (err) {
 				console.log(err);
 			}	
 			
-			$('map-dataset-loading-text-status').html('No actived datasets... download cancelled...');
+			$('map-dataset-loading-text-status').html('No active datasets... download cancelled...');
 			$('#map-dataset-loading').slideUp(1000);
 			$('#map-summary-loading').slideUp(1000);
 		}
@@ -5966,7 +6211,7 @@ var ct_ready_mapjs = function() {
 				// Try to abort all calls to ajax
 				try {
 					// try to cancel any old ajax_requests
-					ajax_requests['map_filtering'].abort();
+					cartograplant.ajax_requests['map_filtering'].abort();
 				}
 				catch (err) {
 					console.log(err);
@@ -6088,7 +6333,7 @@ var ct_ready_mapjs = function() {
 				//This processed the geojson formatted layers from dataset 0,1,2,3 (TreeGenes via CT API) 
 				try {
 					// try to cancel any old ajax_requests
-					ajax_requests['map_filtering'].abort();
+					cartograplant.ajax_requests['map_filtering'].abort();
 				}
 				catch (err) {
 					console.log(err);
@@ -6102,7 +6347,7 @@ var ct_ready_mapjs = function() {
 				}
 				else { // cache does not exist, perform manual pull from CT API
 
-					ajax_requests['map_filtering'] = $.ajax({ 
+					cartograplant.ajax_requests['map_filtering'] = $.ajax({ 
 						url: Drupal.settings.ct_nodejs_api + "/v2/trees/q?api_key=" + Drupal.settings.ct_api + "&cpapi_token=" + Drupal.settings.user['cpapi_token'],
 						type: "POST",
 						timeout: 120000,
@@ -8772,8 +9017,12 @@ var ct_ready_mapjs = function() {
 	}
 
 	//adding and removing layers from the map
+	// try {
+	// 	$(".layers-btn").off("click");
+	// }
+	// catch (err) {}
 	$(".layers-btn").on("click", function () {
-
+		console.log('layers-btn clicked');
 		var layer = $(this)[0].id.split("-");
 		var layerId = layer[0];
 		var original_layerId = layer[0];
@@ -9208,6 +9457,7 @@ var ct_ready_mapjs = function() {
 					.zoom();					
 				}
 				
+				
 				$('#legend_container_geoserver_legend_' + layer_id_number).toggle(); // hide the legend image
 
 				/*	
@@ -9215,6 +9465,7 @@ var ct_ready_mapjs = function() {
 				$("#legend_container_" + layer_id_number).append(legend_container_html);
 				*/
 
+				
 				$("#legend_container_html_" + layer_id_number).toggle();//default hide
 
 				/*

@@ -248,12 +248,20 @@ var ct_ready_map_click_events = function() {
 	});
 
     
-	$(".carousel-control-prev-icon").click(function() {
+	$("#tree-img-carousel.carousel-control-prev-icon").click(function() {
         $("#tree-img-carousel").carousel("prev");
     });
 
-    $(".carousel-control-next-icon").click(function() {
+    $("#tree-img-carousel .carousel-control-next-icon").click(function() {
         $("#tree-img-carousel").carousel("next");
+    });  
+
+	$("#treesnap-img-carousel.carousel-control-prev-icon").click(function() {
+        $("#treesnap-img-carousel").carousel("prev");
+    });
+
+    $("#treesnap-img-carousel .carousel-control-next-icon").click(function() {
+        $("#treesnap-img-carousel").carousel("next");
     });  
 	
 	$(document).on('click', 'i[id*="layer_info_icon_"]', function() {
@@ -278,7 +286,7 @@ var ct_ready_map_click_events = function() {
 		}
 		else {
 			console.log('Info container does not exist... creating and populating');
-			var layer_info_container = '<div style="margin-left: 20px; width: 100%; font-size: 10px;" id="layer_info_' + layer_id_number + '">This layer does not have additional information.</div>';
+			var layer_info_container = '<div style="margin-left: 20px; width: 100%; font-size: 10px;" id="layer_info_' + layer_id_number + '">Loading...</div>';
 			$("#ct-layer-title-" + layer_id_number).parent().parent().append(layer_info_container);	
 			var url_uiapi_get_layer_info = Drupal.settings.base_url + "/cartogratree_uiapi/get_layer_info/" + Drupal.settings.layers['cartogratree_layer_' + layer_id_number]['layer_id'];
 			$.ajax({
@@ -293,7 +301,8 @@ var ct_ready_map_click_events = function() {
 							$('#layer_info_' + layer_id_number).html(data['layer_legend_html']);
 						}
 						else {
-							
+							// This layer does not have additional information.
+							$('#layer_info_' + layer_id_number).html('This layer does not have additional information.');
 						}
 					}
 					catch(err) {

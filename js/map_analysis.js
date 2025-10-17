@@ -3580,7 +3580,9 @@ var ct_ready_map_analysis = function() {
 							obj['plant_accession'] = row.plant_accession;
 							obj['study_accession'] = row.study_accession;
 							
-							values.push(obj);						
+							
+							values.push(obj);
+										
 						}
 
 						// Insert data into databse
@@ -3617,7 +3619,9 @@ var ct_ready_map_analysis = function() {
 							obj['phenotype_name'] = phenotype_name;
 							obj['plant_accession'] = row.plant_accession;
 							obj['study_accession'] = row.study_accession;
-							csv_data += obj['phenotype_id'] + ',' + obj['phenotype_name'] + ',' + obj['plant_accession'] + ',' + obj['study_accession'] + ',' +  obj['year'] + ',' + obj['value'] + '\n';					
+							if (obj['value'] != 'NA') {
+								csv_data += obj['phenotype_id'] + ',' + obj['phenotype_name'] + ',' + obj['plant_accession'] + ',' + obj['study_accession'] + ',' +  obj['year'] + ',' + obj['value'] + '\n';					
+							}
 						}
 
 						// Upload to history
@@ -5045,6 +5049,19 @@ var ct_ready_map_analysis = function() {
 						// file_location_parts
 						var file_location_parts = data[i].split('/');
 						var filename = file_location_parts[file_location_parts.length - 1];
+
+						// This code to format the filenames into human readable needs more work - 9/25/2025
+						// // Check to see if there's a unixtimestamp at the start
+						// var filename_dash_parts = filename.split('-');
+						// var unixtimestamp = parseInt(filename_dash_parts[0]);
+						// if (unixtimestamp != NaN) {
+						// 	// const date = new Date(unixtimestamp * 1000);
+						// 	// Override the filename
+						// 	filename = timeConverter(unixtimestamp);
+						// 	for (let j = 1; j < filename_dash_parts.length; j++) {
+						// 		filename += "-" + filename_dash_parts[j];
+						// 	}
+						// }
 						html += filename;
 						html += '</option>';
 					}
@@ -5055,6 +5072,19 @@ var ct_ready_map_analysis = function() {
 		html += '</div>';
 		return html;
 	}
+
+	function timeConverter(UNIX_timestamp){
+		var a = new Date(UNIX_timestamp * 1000);
+		var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+		var year = a.getFullYear();
+		var month = months[a.getMonth()];
+		var date = a.getDate();
+		var hour = a.getHours();
+		var min = a.getMinutes();
+		var sec = a.getSeconds();
+		var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+		return time;
+	  }
 
 	$('body').off('click', '.gwas_button_stop_step');
 	$('body').on('click', '.gwas_button_stop_step', function() {
@@ -5180,6 +5210,12 @@ var ct_ready_map_analysis = function() {
 									//	target: '.vis-img-zoom'
 									//});
 								}
+								clearInterval(analysis_timers['gwas_step_execution_completion_json']);
+							}
+							else if (data['response']['success'] == "false") {
+								$('#nextflow-gwas-data').attr('data-gwas-pid', '');
+								$('#nextflow-gwas-results').html('GWAS Step was unsuccessful');
+								$('#nextflow-gwas-results').append(generate_completion_message_html(data));
 								clearInterval(analysis_timers['gwas_step_execution_completion_json']);
 							}
 							else {

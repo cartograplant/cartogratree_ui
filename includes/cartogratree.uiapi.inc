@@ -375,10 +375,16 @@ function cartogratree_uiapi_get_study_files($tgdr_number) {
     $data = null;
     $return_results = array();
     foreach($results_data as $results_row) {
-        $data_all = unserialize($results_row->submission_state);
-        // drupal_json_output($data_all);
+        // $data_all = unserialize($results_row->submission_state);
+        // // drupal_json_output($data_all);
+        // $data = $data_all['saved_values'];
+
+        // Get submission shared state
+        $submission = new Submission($results_row->accession);
+        $data_all = $submission->getSharedState();
         $data = $data_all['saved_values'];
     }
+    // print_r($data);
     if($data != null) {
         // Try to get the tree accession file
         
@@ -419,6 +425,7 @@ function cartogratree_uiapi_get_study_files($tgdr_number) {
         $return_results['phenotype-mspec-files'] = array();
         // print_r($data_all);
         foreach ($organisms_data as $key => $value) {
+            // $key eg 'organism-1'
             $key_parts = explode('-',$key);
             $i = $key_parts[1];
             //print_r($i);
@@ -457,6 +464,7 @@ function cartogratree_uiapi_get_study_files($tgdr_number) {
             }
             if(isset($value['genotype']['files']['ssrs'])) {
                 $fid = $value['genotype']['files']['ssrs'];
+                // print_r($fid);
                 // Generate a url
                 $file = file_load($fid);
                 $filename = $file->filename;
@@ -468,8 +476,8 @@ function cartogratree_uiapi_get_study_files($tgdr_number) {
                     'organism_name' => $org_name,
                 );
             }  
-            if(isset($value['genotype']['files']['assaydesign'])) {
-                $fid = $value['genotype']['files']['assaydesign'];
+            if(isset($value['genotype']['files']['assay-design'])) {
+                $fid = $value['genotype']['files']['assay-design'];
                 // Generate a url
                 $file = file_load($fid);
                 $filename = $file->filename;

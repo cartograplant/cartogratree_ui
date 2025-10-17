@@ -941,7 +941,7 @@
 				</div>	
 							
 				<div class="ct_left_card">
-					<h2>Development and Advisory Team</h2>
+					<h2>Development Team</h2>
 					<!-- <table style="width: 100%">
 						<tr>
 							<th>Member</th>
@@ -1002,17 +1002,7 @@
 								<td>Principal Investigator</td>
 							</tr>
 							<tr>
-								<td>Nic Herndon</td>
-								<td>University of Connecticut</td>
-								<td>Co-Principal Investigator</td>
-							</tr>
-							<tr>
-								<td>Meg Staton</td>
-								<td>University of Tennessee</td>
-								<td>Co-Principal Investigator</td>
-							</tr>
-							<tr>
-								<td>Irene Cobo</td>
+								<td>Brandon Lind</td>
 								<td>University of Connecticut</td>
 								<td>Postdoctoral Scholar</td>
 							</tr>
@@ -1088,9 +1078,13 @@
 					<p>Wegrzyn J.L., Staton M.A., Street N. R., Main D., Grau E., Herndon N., Buehler S., Falk T., Zaman S., Ramnath R., Richter P., Sun L., Condon B., Almsaeed A., Chen M.,Mannapperuma C., Jung S., Ficklin S. Cyberinfrastructure to Improve Forest Health and Productivity: The Role of Tree Databases in Connecting Genomes, Phenomes, and the Environment, TreeGenes. Database, Volume 2019. doi:10.3389/fpls.2019.00813</p>
 					<p>Falk, T., Herndon, N., Grau, E., Buehler, S., Richter, P., Zaman, S., Baker, E. M., Ramnath, R., Ficklin, S., Staton, M., Feltus, F. A., Jung, S., Main, D., & Wegrzyn, J. L (2018) <a href=" http://dx.doi.org/10.1093/database/bay084">Growing and cultivating the forest genomics database, TreeGenes</a> <i>Database, Volume 2018</i></p>
 					-->
-					<p>Wegrzyn J.L., Staton M.A., Street N. R., Main D., Grau E., Herndon N., Buehler S., Falk T., Zaman S., Ramnath R., Richter P., Sun L., Condon B., Almsaeed A., Chen M.,Mannapperuma C., Jung S., Ficklin S. Cyberinfrastructure to Improve Forest Health and Productivity: The Role of Tree Databases in Connecting Genomes, Phenomes, and the Environment, TreeGenes. Database, Volume 2019. doi:10.3389/fpls.2019.00813</p>
+					<p>Staton, S. E., Ramirez, J. D., Dziedzic, A., Austillo, C., Massey, A. R., Allu, M. K., Mock, S. A., Almsaeed, A., Ficklin, S. P., & Feltus, F. A. (2021). Tripal, a community update after 10 years of supporting open source standards-based genetic, genomic and breeding databases. Briefings in Bioinformatics, 22(6), bbab238. doi:10.1093/bib/bbab238</p>
+					
+					<p>Wegrzyn J.L., Falk T., Grau E., Buehler S., Ramnath R., Herndon N. (2019). Cyberinfrastructure and resources to enable an integrative approach to studying forest trees. Evolutionary Applications, 13(1), 228-241. doi:doi.org/10.1111/eva.12860</p>
+					
+					<p>Wegrzyn J.L., Staton M.A., Street N. R., Main D., Grau E., Herndon N., Buehler S., Falk T., Zaman S., Ramnath R., Richter P., Sun L., Condon B., Almsaeed A., Chen M.,Mannapperuma C., Jung S., Ficklin S. (2019) Cyberinfrastructure to Improve Forest Health and Productivity: The Role of Tree Databases in Connecting Genomes, Phenomes, and the Environment, TreeGenes. Database, Volume 2019. doi:10.3389/fpls.2019.00813</p>
 
-					<p>Falk, T., Herndon, N., Grau, E., Buehler, S., Richter, P., Zaman, S., Baker, E. M., Ramnath, R., Ficklin, S., Staton, M., Feltus, F. A., Jung, S., Main, D., & Wegrzyn, J. L (2018) Growing and cultivating the forest genomics database, TreeGenes Database, Volume 2018</p>
+					<p>Falk, T., Herndon, N., Grau, E., Buehler, S., Richter, P., Zaman, S., Baker, E. M., Ramnath, R., Ficklin, S., Staton, M., Feltus, F. A., Jung, S., Main, D., & Wegrzyn, J. L. (2018). Growing and cultivating the forest genomics database, TreeGenes Database, Volume 2018</p>
 
 					<p>Herndon, N., Grau, E. S., Batra, I., Demurjian Jr., S. A., Vasquez-Gross, H. A., Staton, M. E., and Wegrzyn, J. L. (2016) CartograTree: Enabling Landscape Genomics for Forest Trees. In Proceedings of the Open Source Geospatial Research & Education Symposium (OGRS 2016), Perugia, Italy.</p>
 
@@ -1107,12 +1101,31 @@
 				</div>
 				
 				<div class="ct_left_card">
-					<h2>Funding</h2>	
-					<div style='text-align: center;'>
-						<img class="lazy" style='width: 25%;' src='https://treegenesdb.org/Drupal/sites/default/files/uploads/USDA_logo-cmp.png' />
-						<h3>National Institute of Food and Agirculture</h3>
-						<h3>USDA-NIFA #2018-09223</h3>
-					</div>
+					<h2>Funding</h2>
+					<table style="margin-top:20px;">
+						<tr>
+							<td width="50%">
+								<div style='text-align: center;'>
+									<img class="lazy" style='width: 50%;' src='https://nsf-gov-resources.nsf.gov/styles/featured_content_tablet/s3/2023-10/NSF_Official_logo_Med_Res_600ppi_rectangle.png?VersionId=_BzE41fXUTKWnh2WWSpDiBtR5xAf4YQs&itok=G01s-MfI' />
+								</div>
+							</td>
+							<td width="50%">
+								<div style='text-align: center;'>
+									<img class="lazy" style='width: 50%;' src='https://treegenesdb.org/Drupal/sites/default/files/uploads/USDA_logo-cmp.png' />
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td width="50%" style="text-align: center;">
+								<h3>U.S National Science Foundation</h3>
+								<h3><a href="https://nsf.gov/awardsearch/showAward?AWD_ID=1443040">1443040</a> and <a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=1444573">1444573</a></h3>
+							</td>
+							<td width="50%" style="text-align: center;">
+								<h3>National Institute of Food and Agriculture</h3>
+								<h3><a href="https://portal.nifa.usda.gov/web/crisprojectpages/1019897-fact-enabling-association-mapping-and-landscape-genomics-through-the-advanced-integration-of-genotype-phenotype-and-geospatial-data.html">2019-67021-29920</a></h3>
+							</td>
+						</tr>
+					</table>
 				</div>							
 				
 				<div class="ct_left_card">	
@@ -1136,6 +1149,21 @@
 							<th>Member</th>
 							<th>Institution</th>
 							<th>Position</th>
+						</tr>								
+						<tr>
+							<td>Nic Herndon</td>
+							<td>University of Connecticut</td>
+							<td>Co-Principal Investigator</td>
+						</tr>
+						<tr>
+							<td>Meg Staton</td>
+							<td>University of Tennessee</td>
+							<td>Co-Principal Investigator</td>
+						</tr>
+						<tr>
+							<td>Irene Cobo</td>
+							<td>University of Connecticut</td>
+							<td>Postdoctoral Scholar</td>
 						</tr>
 						<tr>
 							<td>Damian Gessler</td>
@@ -1722,14 +1750,14 @@
 							foreach($group['subgroups'] as $key => $subgroup){
 								foreach($subgroup['layers'] as $layer){
 									echo '<li class="justify-content-center container layers-items-header"><div class="row inner-layer-header row-100">';
-									echo '<div class="col-6"><h7 id="ct-layer-title-' . $layer['layer_id'] . '">';
+									echo '<div class="col-6"><div style="font-size:10px; line-height: 1.6em;" id="ct-layer-title-' . $layer['layer_id'] . '">';
 									
 									//Clean up code for Species Ranges
 									if(stripos($layer['layer_title'],'range') !== FALSE) {
 										$layer['layer_title'] = str_ireplace(' range','', $layer['layer_title']);
 									}
 
-									echo $layer['layer_title'] . '</h7>';
+									echo $layer['layer_title'] . '</div>';
 									echo '</div><div class="col-6">';
 									echo '<button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button>';
 									echo '<center><i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 45px;" class="fas fa-info-circle"></i></center>';
@@ -1748,14 +1776,14 @@
 								foreach($subgroup['layers'] as $layer){
 									echo '<li class="justify-content-center container layers-items">';
 									echo '<div class="row inner-layer-header" style="margin-left: -2.0rem;">';
-									echo '<div class="col-6"><h7 id="ct-layer-title-' . $layer['layer_id'] . '">';
+									echo '<div class="col-6"><div style="font-size:10px; line-height: 1.6em;"  id="ct-layer-title-' . $layer['layer_id'] . '">';
 									
 									//Clean up code for Precipitation layers
 									// if(stripos($layer['layer_title'],'precipitation') !== FALSE) {
 									// 	$layer['layer_title'] = str_ireplace('precipitation ','', $layer['layer_title']);
 									// }
 
-									echo $layer['layer_title'] . '</h7></div>';
+									echo $layer['layer_title'] . '</div></div>';
 									echo '<div class="col-6">';
 									echo '<div><button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button></div>';
 									echo '<div style="position: relative; left: 35px;">';
@@ -1962,14 +1990,14 @@
 											foreach($group['subgroups'] as $key => $subgroup){
 												foreach($subgroup['layers'] as $layer){
 													echo '<li class="justify-content-center container layers-items-header"><div class="row inner-layer-header row-100">';
-													echo '<div class="col-7"><h7 id="ct-layer-title-' . $layer['layer_id'] . '">';
+													echo '<div class="col-7"><div style="font-size:10px; line-height: 1.6em;"  id="ct-layer-title-' . $layer['layer_id'] . '">';
 													
 													//Clean up code for Species Ranges
 													if(stripos($layer['layer_title'],'range') !== FALSE) {
 														$layer['layer_title'] = str_ireplace(' range','', $layer['layer_title']);
 													}
 
-													echo $layer['layer_title'] . '</h7>';
+													echo $layer['layer_title'] . '</div>';
 													echo '</div><div class="col-3">';
 													echo '<button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button>';
 													echo '<center><i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 45px;" class="fas fa-info-circle"></i></center>';
@@ -1988,14 +2016,14 @@
 												foreach($subgroup['layers'] as $layer){
 													echo '<li class="justify-content-center container layers-items">';
 													echo '<div class="row inner-layer-header" style="margin-left: -2.0rem;">';
-													echo '<div class="col-6"><h7 id="ct-layer-title-' . $layer['layer_id'] . '">';
+													echo '<div class="col-6"><div style="font-size:10px; line-height: 1.6em;"  id="ct-layer-title-' . $layer['layer_id'] . '">';
 													
 													//Clean up code for Precipitation layers
 													// if(stripos($layer['layer_title'],'precipitation') !== FALSE) {
 													// 	$layer['layer_title'] = str_ireplace('precipitation ','', $layer['layer_title']);
 													// }
 
-													echo $layer['layer_title'] . '</h7></div>';
+													echo $layer['layer_title'] . '</div></div>';
 													echo '<div class="col-6">';
 													echo '<div><button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button></div>';
 													echo '<div style="position: relative; left: 35px;">';
@@ -2487,6 +2515,8 @@
 										<div class="mb-0" id="tree-pub-year" style="display: inline-block; margin-right: 10px;">2000</div>
 										<a href="#" target="_blank" id="tree-pub-link">View Additional Details</a>
 									</div>
+									<div id="tree-details-view-study-type"></div>
+									<div id="tree-details-view-study-statistics"></div>
 									<p id="study-organisms-csv" style="margin: 0; padding: 0; margin-bottom: 10px;"></p>
 									<p id="study-genotypes-count" style="margin: 0; padding: 0; margin-bottom: 10px;"></p>
 									<p id="study-phenotypes-count" style="margin: 0; padding: 0; margin-bottom: 10px;"></p>	
@@ -2512,6 +2542,27 @@
 							<div id="tree-specific-unique-genotypes-container" style="display: inline-block; width: 50%">
 								<h3 id="tree-specific-unique-genotypes-count-label" style="padding-bottom: 5px; font-size: 16px;">Unique Genotypes</h3>
 								<span style='font-size: 14px;' class="badge badge-primary" id="tree-specific-unique-genotypes-count">0</span>
+							</div>
+						</div>
+						<div id="treesnap-images-container" class="hidden" style="display: inline-block; height: 100%; width: 48%; vertical-align: top; border-left: 1px solid #dbdbdb; padding-left: 20px;">
+							<div class="view view-cascade">
+								<div id="treesnap-img-carousel" class="carousel" data-interval="false">
+								<ol class="carousel-indicators" id="treesnap-imgs-indicators">
+								</ol>
+								<div class="carousel-inner" id="tree-imgs-slides">
+								</div>
+								<a class="carousel-control-prev" role="button">
+									<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+									<span class="sr-only">Next</span>
+								</a>
+								<a class="carousel-control-next" role="button">
+									<span class="carousel-control-next-icon" aria-hidden="true"></span>
+									<span class="sr-only">Prev</span>
+								</a>
+								</div>
+								<a>
+									<div class="mask rgba-white-slight"></div>
+								</a>
 							</div>
 						</div>
 					</div>

@@ -235,9 +235,12 @@ var ct_ready_map_onload_events = function() {
 					var coordKey = coords[1] + "_" + coords[0];
 					cartograplant.showTreeDetails(coordKey);
 
-					cartograplant.addEnvData("#tree-details-extra", bbox, cartograplant.map.queryRenderedFeatures(treesBbox), e);
+					// cartograplant.addEnvData("#tree-details-extra", bbox, cartograplant.map.queryRenderedFeatures(treesBbox), e);
 					
-				}				
+				}
+				//else {
+				//	cartograplant.showEnvData(e.lngLat, bbox, treesBbox, e);
+				// }				
 			}
 
             cartograplant.renderNeonPopup = renderNeonPopup;

@@ -2,8 +2,10 @@
 var mapState;
 //var treeDataStore = {};
 var cartograplant = {};
+cartograplant['timers'] = {};
 cartograplant['scripts'] = {};
 cartograplant['ajax_calls'] = {}; // this contains ajax handles used for control/aborts if necessary
+cartograplant['ajax_requests'] = {};
 var ct_ready_mainjs = function () {
 	console.log(Drupal.settings);
 	//query builder set up
