@@ -1235,24 +1235,45 @@ var ct_ready_map_analysis = function() {
 		var el_tc = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 6em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Plants</div><div style="text-align: center;">' + trees_count + '</div></div>').fadeOut(100);
 
 
-		// Unique Species count
-		// Try to get species for each selected tree
-		var species_unique = [];
-		for (var i = 0; i < analysis_includedTrees.length; i++) {
-			var tree = cartograplant.searchTreeDataStore(analysis_includedTrees[i]);
-			var species = "";
-			try {
-				species = tree.data.species;
-			}
-			catch(err) {
+		// // Unique Species count
+		// // Try to get species for each selected tree
+		// var species_unique = [];
+		// for (var i = 0; i < analysis_includedTrees.length; i++) {
+		// 	var tree = cartograplant.searchTreeDataStore(analysis_includedTrees[i]);
+		// 	var species = "";
+		// 	try {
+		// 		species = tree.data.species.toLowerCase();
+		// 		console.log('tree ' + (i+1) + ' species', species);
+		// 	}
+		// 	catch(err) {
 
-			}
-			if(species_unique.includes(species) != true) {
-				species_unique.push(species);
+		// 	}
+		// 	if(species_unique.includes(species) != true) {
+		// 		species_unique.push(species);
+		// 	}
+		// }
+		console.log('unique species', cartograplant['analysis_unique_species']);
+		//if (cartograplant['analysis_unique_species'] == undefined) {
+		cartograplant['analysis_unique_species'] = {}; // reset
+		//}
+
+		// Check whether the studies checkboxes are checked, if they are, add it to the (cartograplant['analysis_unique_species'])
+		var study_selected_checkboxes = $('#analysis_detections_study_summary .checkbox_option input[type="checkbox"]');
+		for (var i = 0; i < study_selected_checkboxes.length; i++) {
+			var checkbox = study_selected_checkboxes.eq(i);
+			if (checkbox.is(':checked')) {
+				// Get the closest tr that contains the attribute data-species
+				var tr_element = checkbox.closest('tr');
+				var species = tr_element.attr('data-species');
+				if (species != undefined) {
+					cartograplant['analysis_unique_species'][species] = true;
+				}
 			}
 		}
-		var el_sp = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 7em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Species</div><div style="text-align: center;">' + species_unique.length + '</div></div>').fadeOut(100);
-		$('#analysis-num-species').html(species_unique.length);
+
+		var el_sp = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 7em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Species</div><div style="text-align: center;">' + Object.keys(cartograplant['analysis_unique_species']).length + '</div></div>').fadeOut(100);
+		// $('#analysis-num-species').html(species_unique.length);
+		$('#analysis-num-species').html(Object.keys(cartograplant['analysis_unique_species']).length);
 
 
 		var phenotypes_selected_count = 0;
@@ -1787,7 +1808,8 @@ var ct_ready_map_analysis = function() {
 		
 		console.log('Genotype tab click');
 		// Overlapping Genotype tab
-		var study_info_html = '';
+		var study_info_html = 'Instructions: Please select the studies or study intersections by clicking on the Upset plot bars below. Then you can perform a genotypes check to identify potential duplicate samples across studies. Finally, you can merge the VCF files from the selected studies into a single VCF file for downstream analysis.<br /><br />';
+		study_info_html += '';
 		if (studies.length == 0) {
 			study_info_html += '⚠️ ';
 		}
@@ -1868,10 +1890,10 @@ var ct_ready_map_analysis = function() {
 						}
 						else {
 							if (i == 0) {
-								ref_genomes_string += data['organism_names'][i] + ' has no reference genome';
+								// ref_genomes_string += data['organism_names'][i] + ' has no reference genome';
 							}
 							else {
-								ref_genomes_string += ', ' + data['organism_names'][i] + ' has no reference genome';
+								// ref_genomes_string += ', ' + data['organism_names'][i] + ' has no reference genome';
 							}
 						}
 					}
@@ -1968,19 +1990,19 @@ var ct_ready_map_analysis = function() {
 		});			
 
 		// Overlapping Genotype tab
-		$.ajax({
-			method: 'POST',
-			data: {
-				studies: JSON.stringify(studies) // array in JSON format
-			},
-			url: Drupal.settings.base_url + '/cartogratree/api/v2/genotypes/by_study_ids',
-			success: function(data) {
-				console.log('overlapping_genotypes', data);
-				if(data.length > 0) {
-					$('#analysis-overlapping-genotypes-across-studies').html('Overlapping genotypes: ' + data[0]['cardinality']);
-				}
-			}
-		});
+		// $.ajax({
+		// 	method: 'POST',
+		// 	data: {
+		// 		studies: JSON.stringify(studies) // array in JSON format
+		// 	},
+		// 	url: Drupal.settings.base_url + '/cartogratree/api/v2/genotypes/by_study_ids',
+		// 	success: function(data) {
+		// 		console.log('overlapping_genotypes', data);
+		// 		if(data.length > 0) {
+		// 			$('#analysis-overlapping-genotypes-across-studies').html('Overlapping genotypes: ' + data[0]['cardinality']);
+		// 		}
+		// 	}
+		// });
 
 
 		// $.ajax({
@@ -2321,6 +2343,7 @@ var ct_ready_map_analysis = function() {
 
 							var upset_plot_2_studies_finished = 0;
 							$('#analysis-overlapping-genotypes-upset-2-status').html('UpSet plot queued for generation... please wait while system establishes requirements');
+							$('.upset_plot_bar_author_text').remove();
 							for (var i = 0; i < studies.length; i++) {
 								var study = studies[i];
 								console.log('study', study);
@@ -2437,8 +2460,49 @@ var ct_ready_map_analysis = function() {
 												$(image_element).css('display', 'none');
 												parent_element.appendChild(image_element);
 
-
+												
 											});
+
+											// Find g element that has an attribute data-upset="sets"
+											var g_sets_element = $('#analysis-overlapping-genotypes-upset-2 g[data-upset="sets"]');
+											// Get each text element that starts with class text 'setTextStyle-upset-'
+											var study_name_text_elements = g_sets_element.find('text[class^="setTextStyle-upset-"]');
+											// Go through each text element using a for statement
+											for (var i = 0; i < study_name_text_elements.length; i++) {
+												var text_element = $(study_name_text_elements[i]);
+
+												// Get the parent g element - class starts with interactive-upset-
+												var parent_g_element = text_element.closest('g')[0];
+
+												// Get the study name from the text element
+												var study_name = text_element.html();
+												// Get the x and y position of the text element
+												var x_position = text_element.attr('x');
+												var y_position = text_element.attr('y');
+
+												// Create text element
+												var text2_element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+												
+												text2_element.setAttribute('href', '/' + Drupal.settings.cartogratree.url_path + '/theme/templates/ui_icons_imgs/checkbox-checked-regular-24.png');
+												text2_element.setAttribute('x', parseFloat(x_position) - 38);
+												text2_element.setAttribute('y', parseFloat(y_position) + 20);
+												text2_element.setAttribute('font-size', '12px');
+												text2_element.classList.add("upset_plot_bar_author_text");
+												
+
+												// Get year from study information
+												var year = $('#analysis_detections_study_summary tr[data-value="' + study_name + '"]').attr('data-year');
+												// Get author from study information
+												var author_name = $('#analysis_detections_study_summary tr[data-value="' + study_name + '"]').attr('data-author');
+												// Remove trailing , if one exists from author
+												if (author_name.endsWith(',')) {
+													author_name = author_name.slice(0, -1);
+												}
+												text2_element.textContent = author_name + '  (' + year + ')';
+
+												// Append the author text element to the g_sets_element
+												parent_g_element.appendChild(text2_element);
+											}
 
 											var upset_bar_selector = '#analysis-overlapping-genotypes-upset-2 g[class^="interactive-upset-"]';
 											// On hover event for when an upset bar mouse is over it
@@ -2470,7 +2534,20 @@ var ct_ready_map_analysis = function() {
 												// console.log('mouseout');
 												// Reset all other text back to black
 												$('#analysis-overlapping-genotypes-upset-2 text[class^="setTextStyle-upset-"]').css('fill', '#000000');
-											});											
+											});	
+											
+											$(document).off('hover', upset_bar_selector);
+											$(document).on('hover', upset_bar_selector, function() {
+												// Find the checkbox_image class element
+												var display_value = $(this).find('.checkbox_image').css('display');
+												if (display_value == 'none') {
+													$(this).find('rect[class^="fillPrimary-upset-"]').css('fill', 'rgb(255, 176, 0)');
+													
+												}
+												else {
+													$(this).find('rect[class^="fillPrimary-upset-"]').css('fill', 'rgb(0 169 114)');
+												}
+											});
 
 											// On click event for when an upset bar is selected
 											$(document).off('click', upset_bar_selector);
@@ -2480,6 +2557,8 @@ var ct_ready_map_analysis = function() {
 												// Find the checkbox_image class element
 												var display_value = $(this).find('.checkbox_image').css('display');
 												if (display_value == 'none') {
+													// Change color to fill: rgb(0, 169, 114);
+													$(this).find('rect[class^="fillPrimary-upset-"]').css('fill', 'rgb(0 169 114)');
 													// Select it
 													$(this).find('.checkbox_image').css('display', 'block')
 													// checked so call the API function to insert the data
@@ -2513,6 +2592,8 @@ var ct_ready_map_analysis = function() {
 												}
 											
 												else {
+													// Change color back to fill: rgb(255, 176, 0);
+													$(this).find('rect[class^="fillPrimary-upset-"]').css('fill', 'rgb(255, 176, 0)');
 													// Deselect it
 													$(this).find('.checkbox_image').css('display', 'none')
 													// unchecked so call the API function to delete the data
@@ -4549,7 +4630,7 @@ var ct_ready_map_analysis = function() {
 			analysis_detections_html += '<div id="analysis_detections_phenotype_capability" class="mt-1 mb-3"></div>';
 			
 			analysis_detections_html += '<div class="mt-2" id="analysis_detections_study_summary">';
-			analysis_detections_html += '<table><tr><th>Filter</th><th>Accession</th><th>Title</th><th>Genotypes</th><th>Phenotypes</th><th>Trees</th><tr></table>';
+			analysis_detections_html += '<table><tr><th>Select study data</th><th>Accession</th><th>Title</th><th>Genotypes</th><th>Phenotypes</th><th>Plants</th><tr></table>';
 			analysis_detections_html += '</div>';
 			analysis_detections_html += '<div class="mt-2" id="analysis_detections_confirm_selection">';
 			analysis_detections_html += '<button id="analysis_detections_confirm_selection_button" class="btn btn-primary">Apply selections to this analysis session</button>';
@@ -4566,6 +4647,7 @@ var ct_ready_map_analysis = function() {
 		var study_data = [];
 		var studies_with_genotypes_count = 0;
 		var studies_with_phenotypes_count = 0;
+		cartograplant['analysis_unique_species'] = {};
 		for (var i = 0; i<studies.length; i++) {
 			var study = studies[i];
 
@@ -4615,9 +4697,13 @@ var ct_ready_map_analysis = function() {
 					url: '/cartogratree_uianalysis/cartogratree_analysisapi_lookup_study_info/' + study,
 					method: 'GET',
 					success: function(data) {
+						cartograplant['analysis_unique_species'][data['species']] = true;
 						console.log('lookup_study_info study row data', data);
 						study_data.push(data);
 						$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .accession').html(data['accession']);
+						$('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"]').attr("data-species", data["species"]);
+						$('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"]').attr("data-author", data["author"]);
+						$('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"]').attr("data-year", data["year"]);
 						if (data['title'] !== undefined && data['title'] != null && data['title'] != "null" && data['title'].length > 0) {
 							$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .title').html(data['title']);
 						}
@@ -4664,9 +4750,12 @@ var ct_ready_map_analysis = function() {
 							$('#analysis_detections_phenotype_capability').html('Phenotypic overlap analysis may be possible for these studies. ✅');
 						}
 					}
+					
+					analysis_summary_update();
 				});
 			}
 			analysis_initial_configuration_tab = true;
+
 
 
 		}

@@ -903,7 +903,7 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title lazy" id="cartogratreeTitle"><img id="ct-logo" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/cp_logo.png"></h5>
+                <h5 class="modal-title lazy" id="cartogratreeTitle"><img style="width: 20em; margin-left: 1.5em;" id="ct-logo" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/cp_logo.png"></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
                 </button>
@@ -931,204 +931,328 @@
 				</style>
 				<div class="ct_left_card">
                 	<h2>Introduction</h2>
-                	<p>The original concept of CartograPlant was envisioned by a group of forest tree biology researchers that represented traditionally separate research areas including physiology, ecology, genomics, and systematics. Guided by the NSF-funded iPlant Cyberinfrastructure, the focus was to enable interdisciplinary forest tree biology research through geo-referenced data with an application that could be easily deployed, expanded, and used by members of all disciplines. CartograPlant is a web-based application that allows researchers to identify, filter, compare, and visualize geo-referenced biotic and abiotic data. Its goal is to support numerous multi-disciplinary research endeavors including: phylogenetics, population structure, and association studies.</p>
+                	<!-- <p>The original concept of CartograPlant was envisioned by a group of forest tree biology researchers that represented traditionally separate research areas including physiology, ecology, genomics, and systematics. Guided by the NSF-funded iPlant Cyberinfrastructure, the focus was to enable interdisciplinary forest tree biology research through geo-referenced data with an application that could be easily deployed, expanded, and used by members of all disciplines. CartograPlant is a web-based application that allows researchers to identify, filter, compare, and visualize geo-referenced biotic and abiotic data. Its goal is to support numerous multi-disciplinary research endeavors including: phylogenetics, population structure, and association studies.</p>-->
+					 <p>
+					 The idea for CartograPlant began in June of 2011, when a group of forest tree biology researchers from different fields like physiology, ecology, genomics, and systematics realized the need for a unified platform to integrate and visualize spatial biological data. These researchers came together through workshops and collaborations funded by the NSF iPlant Collaborative (now CyVerse), a project designed to support data-driven biological research.<br />
+Their goal was to create a tool that could help bridge the gaps between disciplines and enable easier access to georeferenced population data, with traits and genotypes. The focus was on building a web-based application that could be deployed and used by researchers from various backgrounds, making complex data more accessible and useful for a wide range of studies.<br /><br />
+The first version of CartograPlant (then, CartograTree) was released in 2012, built on the resources and infrastructure provided by iPlant. By 2015, a more refined version of the platform was launched, allowing users to identify, filter, compare, and visualize spatial data. The tool was designed to handle different types of datasets, including species distributions, genetic information, and environmental factors.<br /><br />
+Today, CartograPlant continues to support the forest tree community, and increasingly, other plant systems as well. The application supports advanced analysis through HPC and reproducible workflows, such as population structure, genetic diversity, and association genetics. CarograPlant aims to help scientists understand how environmental and genetic factors influence the diversity and global distribution of plant species, engaging scientist and practitioners at all levels.<br />
+					 </p>
 				</div>
 				
-				<div class='ct_left_card'>
-					<h2>TreeGenes Database</h2>
-					<div class='about_treegenesdatabase'>The TreeGenes database provides custom informatics tools to manage the flood of information resulting from high-throughput genomics projects in forest trees from sample collection to downstream analysis. This resource is enhanced with systems that are well connected with federated databases, automated data flows, machine learning analysis, standardized annotations and quality control processes. The database itself contains several curated modules that support the storage of data and provide the foundation for web-based searches and visualization tools.
+					<div class='ct_left_card'>
+						<h2>TreeGenes Database</h2>
+						<!-- <div class='about_treegenesdatabase'>The TreeGenes database provides custom informatics tools to manage the flood of information resulting from high-throughput genomics projects in forest trees from sample collection to downstream analysis. This resource is enhanced with systems that are well connected with federated databases, automated data flows, machine learning analysis, standardized annotations and quality control processes. The database itself contains several curated modules that support the storage of data and provide the foundation for web-based searches and visualization tools. -->
+						<p>
+						The TreeGenes Database traces its origins to the Dendrome Project, launched in the mid-1990s as one of the first USDA Agricultural Research Service (ARS) genome databases. Conceived as a centralized resource for forest tree genetics, Dendrome was developed to manage and share emerging molecular data for conifers and other tree species. It served as the first of three ARS genome databases, alongside those for maize and grasses, and provided early tools for the storage, retrieval, and visualization of genetic maps, expressed sequence tags (ESTs), and marker data.<br /><br />
+	Over time, Dendrome evolved into TreeGenes, expanding both its taxonomic scope and infrastructure to meet the demands of large-scale sequencing and comparative genomics. As high-throughput sequencing changed life science research, TreeGenes grew to accommodate large genetic datasets and diverse data types, from genome assemblies and transcriptomes to population genetics and environmental metadata.<br /><br />
+	A key development in TreeGenes’ evolution was its full adoption of the Tripal platform, an open-source toolkit that integrates the Chado schema with modern web content management (Drupal) to create flexible, interoperable biological databases. This transition enabled TreeGenes to modularize its infrastructure, enhance its scalability, and connect with other Tripal-based resources. Within this framework, TreeGenes develops and maintains custom Tripal modules, including CartograPlant, a map-based interface that visualizes genotypes, phenotypes, and environmental variables to support landscape and association genomics.  The platform also integrates workflows that support metadata/data annotation, quality control, and analysis within a FAIR (Findable, Accessible, Interoperable, Reusable) data ecosystem.<br /><br />
+	Today, TreeGenes stands as one of the largest and longest running plant genomics databases in the world. It provides curated modules to access reference genome assemblies, transcriptomic data, variant calls, phenotypic observations, and environmental context, linked through standardized metadata and georeferenced accessions.
+						</p>
 					</div>
-				</div>	
-							
-				<div class="ct_left_card">
-					<h2>Development Team</h2>
-					<!-- <table style="width: 100%">
-						<tr>
-							<th>Member</th>
-							<th>Institution</th>
-							<th>Position</th>
-						</tr>
-						<tr>
-							<td>Nic Herndon</td>
-							<td>University of Connecticut</td>
-							<td>Programmer</td>
-						</tr>
-						<tr>
-							<td>Emily Grau</td>
-							<td>University of Connecticut</td>
-							<td>TreeGenes Lead Database Administrator</td>
-						</tr>
-						<tr>
-							<td>Charlie Demurjian</td>
-							<td>University of Connecticut</td>
-							<td>Curator</td>
-						</tr>
-						<tr>
-							<td>Isaac McEvoy</td>
-							<td>University of Connecticut</td>
-							<td>Curator</td>
-						</tr>
-						<tr>
-							<td>Irene Cobo</td>
-							<td>University of Connecticut</td>
-							<td>Postdoctoral Scholar</td>
-						</tr>
-						<tr>
-							<td>Peter Richter</td>
-							<td>University of Connecticut</td>
-							<td>Developer</td>
-						</tr>
-						<tr>
-							<td>Risharde Ramnath</td>
-							<td>Dove Technologies</td>
-							<td>TreeGenes Developer</td>
-						</tr>
-						<tr>
-							<td>Jill Wegrzyn</td>
-							<td>University of Connecticut</td>
-							<td>Principal Investigator</td>
-						</tr>
-					</table> -->
-					<table style="width: 100%; text-align: left;">
-						<tbody>
-							<tr>
-								<th style="width: 32%;">Member</th>
-								<th style="width: 32%;">Institution</th>
-								<th style="width: 32%;">Position</th>
-							</tr>
-							<tr>
-								<td>Jill Wegrzyn</td>
-								<td>University of Connecticut</td>
-								<td>Principal Investigator</td>
-							</tr>
-							<tr>
-								<td>Brandon Lind</td>
-								<td>University of Connecticut</td>
-								<td>Postdoctoral Scholar</td>
-							</tr>
-							<tr>
-								<td>Meghan Myles</td>
-								<td>University of Connecticut</td>
-								<td>PhD Student</td>
-							</tr>
-							<tr>
-								<td>Risharde Ramnath</td>
-								<td>University of Connecticut</td>
-								<td>Lead Developer</td>
-							</tr>
-							<tr>
-								<td>Emily Grau</td>
-								<td>University of Connecticut</td>
-								<td>Lead Database Administrator</td>
-							</tr>
-							<tr>
-								<td>Gabe Barrett</td>
-								<td>University of Connecticut</td>
-								<td>Developer</td>
-							</tr>
-							<tr>
-								<td>Vlad Savitsky</td>
-								<td>University of Connecticut</td>
-								<td>Developer</td>
-							</tr>
-							<tr>
-								<td>Phoebe Zhou</td>
-								<td>University of Connecticut</td>
-								<td>Curator</td>	
-							</tr>
-							<tr>
-								<td>Trang Nguyen</td>
-								<td>University of Connecticut</td>
-								<td>Curator</td>	
-							</tr>				
-						</tbody>
-					</table>
+
+					<div class="featurette-divider"></div>
+					<div class="ct_left_card">
+						<h2>TreeSnap</h2>
+						<!-- <p><a href="treesnap.org">TreeSnap</a> is a forest tree map utility that allows users to locate and take pictures of trees around the nation. TreeSnap was developed as a collaboration between Scientists at the University of Kentucky and the University of Tennessee. CartograPlant makes use of the tree data collected by TreeSnap</p>-->
+						<p>
+							<a href="treesnap.org" target="_blank">Treesnap</a> is a citizen science application designed to connect researchers and the public in the effort to monitor and understand forest trees, and their diseases, across North America. Developed through a collaboration between scientists at the University of Kentucky and the University of Tennessee, TreeSnap allows users to locate, photograph, and record observations of individual trees in their local environments. Each submission contributes valuable data on species distribution, health, and phenotypic variation, supporting large-scale studies.<br /><br />
+							By engaging landowners, naturalists, and students alongside researchers, TreeSnap enables a nationwide network of tree observations. These data integrate with platforms such as CartograPlant. Together, TreeSnap and CartograPlant create a connected framework that links public participation with advanced genomic research, enhancing efforts to track forest health, identify resilient individuals, and guide species restoration and conservation strategies.<br />
+						</p>
+					</div>
 				</div>
-                <div class="featurette-divider"></div>
-				<div class="ct_left_card">
-					<h2>TreeSnap</h2>
-					<p><a href="treesnap.org">TreeSnap</a> is a forest tree map utility that allows users to locate and take pictures of trees around the nation. TreeSnap was developed as a collaboration between Scientists at the University of Kentucky and the University of Tennessee. CartograPlant makes use of the tree data collected by TreeSnap</p>
-					<table style="width: 100%">
+				<div style="padding: 15px;">	
+					<table style="width: 100%">	
 						<tr>
-							<th>Member</th>
-							<th>Institution</th>
-							<th>Position</th>
+							<td width="33%" style="vertical-align: top;">
+								<div class="ct_left_card" style="height: 280px;">
+
+									<h2>Cartograplant Team</h2>
+									<div style="float: right; position: relative; top: 20px; right: 20px;">
+										<img class="lazy" style="width:7em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/cp_logo.png">
+									</div>
+									<table style="width: 100%; text-align: left; position: relative;top: -30px;">
+										<tbody>
+											<!-- <tr>
+												<th style="width: 32%;">Member</th>
+												<th style="width: 32%;">Institution</th>
+												<th style="width: 32%;">Position</th>
+											</tr> -->
+											<tr>
+												<td>University of Connecticut</td>
+											</tr>
+											<tr>
+												<td>Jill Wegrzyn (Principal Investigator)</td>
+											</tr>
+											<tr>
+												<td>Brandon Lind (Postdoctoral Scholar)</td>
+											</tr>
+											<tr>
+												<td>Meghan Myles (PhD Student)</td>
+											</tr>
+											<tr>
+												<td>Risharde Ramnath (Lead Developer)</td>
+											</tr>
+											<tr>
+												<td>Emily Grau (Lead Database Administrator)</td>
+											</tr>
+											<tr>
+												<td>Gabe Barrett (Developer)</td>
+											</tr>
+											<tr>
+												<td>Vlad Savitsky (Developer)</td>
+											</tr>
+											<tr>
+												<td>Phoebe Zhou (Curator)</td>	
+											</tr>
+											<tr>
+												<td>Trang Nguyen (Curator)</td>	
+											</tr>				
+										</tbody>
+									</table>
+								</div>
+							</td>
+							<td width="33%" style="vertical-align: top;">
+								<div class="ct_left_card" style="height: 280px;">
+									<h2>Treesnap Team</h2>
+									<div style="float: right; position: relative; top: 20px; right: 20px;">
+										<img class="lazy" style="width:4em; height:4em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TreeSnap.jpg">
+									</div>
+									<table style="width: 100%; position: relative;top: -45px;">
+										<!-- <tr>
+											<th>Member</th>
+											<th>Institution</th>
+											<th>Position</th>
+										</tr> -->
+										<tr>
+											<td>University of Tennessee<br />Meg Staton (Principal Investigator)</td>
+										</tr>
+										<tr>
+											<td>Florence Caldwell (Mobile and Web Developer)</td>
+										</tr>
+										<tr>
+											<td>Chance Stribling (Mobile Developer)</td>
+										</tr>
+										<!-- <tr>
+											<td>Abdullah Almsaeed</td>
+											<td>University of Tennessee</td>
+											<td>TreeSnap Developer</td>
+										</tr>-->
+										<tr>
+											<td><br />University of Kentucky<br />Ellen Crocker (Extension and Outreach Specialist)</td>
+										</tr>					
+									</table>
+								</div>
+							</td>
+							<td width="34%" style="vertical-align: top;">
+								<div class="ct_left_card" style="height: 280px;">
+									<h2>MaMa Team</h2>
+									<div style="float: right; position: relative; top: 20px; right: 20px;">
+										<img class="lazy" style="width:4em; height:4em;"src="https://www.monitoringash.org/wp-content/uploads/2025/05/MaMa-logo-150x150-1.png">
+									</div>
+									<table style="width: 100%; position: relative;top: -50px;">
+										<!-- <tr>
+											<th>Member</th>
+											<th>Institution</th>
+											<th>Position</th>
+										</tr> -->
+										<tr>
+											<td>Ecological Research Institute<br />Jonathan Rosenthal</td>
+										</tr>
+										<tr>
+											<td>Radka Wildova</td>
+										</tr>
+
+										<!-- <tr>
+											<td>Abdullah Almsaeed</td>
+											<td>University of Tennessee</td>
+											<td>TreeSnap Developer</td>
+										</tr>-->					
+									</table>
+								</div>
+							</td>
 						</tr>
-						<tr>
-							<td>Meg Staton</td>
-							<td>University of Tennessee</td>
-							<td>Principal Investigator</td>
-						</tr>
-						<tr>
-							<td>Florence Caldwell</td>
-							<td>University of Tennessee</td>
-							<td>Mobile and Web Developer</td>
-						</tr>
-						<!-- <tr>
-							<td>Abdullah Almsaeed</td>
-							<td>University of Tennessee</td>
-							<td>TreeSnap Developer</td>
-						</tr>-->
-						<tr>
-							<td>Ellen Crocker</td>
-							<td>College of Agriculture, Food and Environment</td>
-							<td>Extension and Outreach Specialist</td>
-						</tr>					
 					</table>
-				</div>
+				
+
 				<div class="featurette-divider"></div>
-				<div class="ct_left_card">
-					<h2>Citations</h2>
-					<!-- 
-					<p>Wegrzyn J.L., Staton M.A., Street N. R., Main D., Grau E., Herndon N., Buehler S., Falk T., Zaman S., Ramnath R., Richter P., Sun L., Condon B., Almsaeed A., Chen M.,Mannapperuma C., Jung S., Ficklin S. Cyberinfrastructure to Improve Forest Health and Productivity: The Role of Tree Databases in Connecting Genomes, Phenomes, and the Environment, TreeGenes. Database, Volume 2019. doi:10.3389/fpls.2019.00813</p>
-					<p>Falk, T., Herndon, N., Grau, E., Buehler, S., Richter, P., Zaman, S., Baker, E. M., Ramnath, R., Ficklin, S., Staton, M., Feltus, F. A., Jung, S., Main, D., & Wegrzyn, J. L (2018) <a href=" http://dx.doi.org/10.1093/database/bay084">Growing and cultivating the forest genomics database, TreeGenes</a> <i>Database, Volume 2018</i></p>
-					-->
-					<p>Staton, S. E., Ramirez, J. D., Dziedzic, A., Austillo, C., Massey, A. R., Allu, M. K., Mock, S. A., Almsaeed, A., Ficklin, S. P., & Feltus, F. A. (2021). Tripal, a community update after 10 years of supporting open source standards-based genetic, genomic and breeding databases. Briefings in Bioinformatics, 22(6), bbab238. doi:10.1093/bib/bbab238</p>
-					
-					<p>Wegrzyn J.L., Falk T., Grau E., Buehler S., Ramnath R., Herndon N. (2019). Cyberinfrastructure and resources to enable an integrative approach to studying forest trees. Evolutionary Applications, 13(1), 228-241. doi:doi.org/10.1111/eva.12860</p>
-					
-					<p>Wegrzyn J.L., Staton M.A., Street N. R., Main D., Grau E., Herndon N., Buehler S., Falk T., Zaman S., Ramnath R., Richter P., Sun L., Condon B., Almsaeed A., Chen M.,Mannapperuma C., Jung S., Ficklin S. (2019) Cyberinfrastructure to Improve Forest Health and Productivity: The Role of Tree Databases in Connecting Genomes, Phenomes, and the Environment, TreeGenes. Database, Volume 2019. doi:10.3389/fpls.2019.00813</p>
+				<table>
+					<tr>
+						<td width="50%" style="vertical-align: top;">
+							<div class="ct_left_card" style="height: 300px; overflow-y: auto;">
+							<h2>Citations</h2>
+								<table style="">
+									<tr>
+										<td style="vertical-align: top;">
+											<p style="padding: 5px;">Lind, Cobo Simon, Myles et al (2025). CartograPlant: Bridging genomic, phenotypic, and environmental data to advance plant resilience and eco-evolutionary insight. EcoEvo Rxiv. <a href="https://doi.org/10.32942/X2Q06D">doi:10.32942/X2Q06D</a></p>
 
-					<p>Falk, T., Herndon, N., Grau, E., Buehler, S., Richter, P., Zaman, S., Baker, E. M., Ramnath, R., Ficklin, S., Staton, M., Feltus, F. A., Jung, S., Main, D., & Wegrzyn, J. L. (2018). Growing and cultivating the forest genomics database, TreeGenes Database, Volume 2018</p>
+											<p style="padding: 5px;">Staton et al (2021). Tripal, a community update after 10 years of supporting open source standards-based genetic, genomic and breeding databases. Briefings in Bioinformatics, 22(6), bbab238. <a href="https://doi.org/10.1093/bib/bbab238">doi:10.1093/bib/bbab238</a></p>
 
-					<p>Herndon, N., Grau, E. S., Batra, I., Demurjian Jr., S. A., Vasquez-Gross, H. A., Staton, M. E., and Wegrzyn, J. L. (2016) CartograTree: Enabling Landscape Genomics for Forest Trees. In Proceedings of the Open Source Geospatial Research & Education Symposium (OGRS 2016), Perugia, Italy.</p>
+											<p style="padding: 5px;">Crocker et al (2020). TreeSnap: A citizen science app connecting tree enthusiasts and forest scientists. Plants, People, Planet. 2020 Jan;2(1):47-52. <a href="https://doi.org/10.1002/ppp3.41">doi:10.1002/ppp3.41</a></p>
 
-					<p>Vasquez-Gross H.A., Yu J.J., Figueroa B., Gessler D.D.G., Neale D.B., and Wegrzyn J.L. (2013) CartograTree: connecting tree genomes, phenotypes, and environment Molecular Ecology Resources, 13(3), 528-537</p>					<!-- <p>Herndon, N., Grau, E. S., Batra, I., Demurjian Jr., S. A., Vasquez-Gross, H. A., Staton, M. E., and Wegrzyn, J. L. (2016) <a href="https://peerj.com/preprints/2345v4.pdf">CartograTree: Enabling Landscape Genomics for Forest Trees</a>. In <i>Proceedings of the Open Source Geospatial Research & Education Symposium</i> (OGRS 2016), Perugia, Italy.</p> -->
-				</div>
+											<p style="padding: 5px;">Wegrzyn et al (2019). Cyberinfrastructure and resources to enable an integrative approach to studying forest trees. Evolutionary Applications, 13(1), 228-241. <a href="https://doi.org/10.1111/eva.12860">doi:10.1111/eva.12860</a></p>
+
+											<p style="padding: 5px;">Wegrzyn et al (2019). Cyberinfrastructure to Improve Forest Health and Productivity: The Role of Tree Databases in Connecting Genomes, Phenomes, and the Environment, TreeGenes. Database, Volume 2019. <a href="https://doi.org/10.3389/fpls.2019.00813">doi:10.3389/fpls.2019.00813</a></p>
+
+											<p style="padding: 5px;">Falk et al (2018). Growing and cultivating the forest genomics database, TreeGenes Database, Volume 2018. <a href="https://doi.org/10.1093/database/bay084">doi:10.1093/database/bay084</a></p>
+
+											<p style="padding: 5px;">Vasquez-Gross et al (2013). CartograTree: connecting tree genomes, phenotypes, and environment Molecular Ecology Resources, 13(3), 528-537. <a href="https://doi.org/10.1111/1755-0998.12067">doi:10.1111/1755-0998.12067</a></p>				
+
+											<!-- 
+
+											<p style="padding: 5px;">Lind, B. M., Cobo-Simón, I., Myles, M., Barrett, G., Grau, E., Ramnath, R., Savitsky, V., & Wegrzyn, J. L. (2025). CartograPlant: Bridging genomic, phenotypic, and environmental data to advance plant resilience and eco-evolutionary insight. EcoEvo Rxiv. doi:10.32942/X2Q06D</p>
+
+											<p style="padding: 5px;">Staton, S. E., Ramirez, J. D., Dziedzic, A., Austillo, C., Massey, A. R., Allu, M. K., Mock, S. A., Almsaeed, A., Ficklin, S. P., & Feltus, F. A. (2021). Tripal, a community update after 10 years of supporting open source standards-based genetic, genomic and breeding databases. Briefings in Bioinformatics, 22(6), bbab238. doi:10.1093/bib/bbab238</p>
+
+											<p style="padding: 5px;">Crocker E, Condon B, Almsaeed A, Jarret B, Nelson CD, Abbott AG, Main D, Staton M. (2020). TreeSnap: A citizen science app connecting tree enthusiasts and forest scientists. Plants, People, Planet. 2020 Jan;2(1):47-52.</p>
+											
+											<p style="padding: 5px;">Wegrzyn J.L., Falk T., Grau E., Buehler S., Ramnath R., Herndon N. (2019). Cyberinfrastructure and resources to enable an integrative approach to studying forest trees. Evolutionary Applications, 13(1), 228-241. doi:doi.org/10.1111/eva.12860</p>
+										
+											<p style="padding: 5px;">Wegrzyn J.L., Staton M.A., Street N. R., Main D., Grau E., Herndon N., Buehler S., Falk T., Zaman S., Ramnath R., Richter P., Sun L., Condon B., Almsaeed A., Chen M.,Mannapperuma C., Jung S., Ficklin S. (2019) Cyberinfrastructure to Improve Forest Health and Productivity: The Role of Tree Databases in Connecting Genomes, Phenomes, and the Environment, TreeGenes. Database, Volume 2019. doi:10.3389/fpls.2019.00813</p>
+
+											<p style="padding: 5px;">Falk, T., Herndon, N., Grau, E., Buehler, S., Richter, P., Zaman, S., Baker, E. M., Ramnath, R., Ficklin, S., Staton, M., Feltus, F. A., Jung, S., Main, D., & Wegrzyn, J. L. (2018). Growing and cultivating the forest genomics database, TreeGenes Database, Volume 2018</p>
+
+											<p style="padding: 5px;">Vasquez-Gross H.A., Yu J.J., Figueroa B., Gessler D.D.G., Neale D.B., and Wegrzyn J.L. (2013) CartograTree: connecting tree genomes, phenotypes, and environment Molecular Ecology Resources, 13(3), 528-537</p>				
+											
+											-->
+										</td>
+									</tr>
+								</table>
+							</div>
+						</td>
+						<td width="50%" style="vertical-align: top;">
+							<div class="ct_left_card" style="height: 300px;">				
+								<h2>Project Alumni</h2>
+								<table style="width: 100%">
+									<tr>
+										<th></th>
+										<!-- <th>Position</th> -->
+									</tr>							
+									<tr>
+										<td>Nic Herndon</td>
+									</tr>
+									<!-- <tr>
+										<td>Meg Staton</td>
+										<td>University of Tennessee</td>
+										<td>Co-Principal Investigator</td>
+									</tr> -->
+									<tr>
+										<td>Irene Cobo</td>
+									</tr>
+									<tr>
+										<td>Damian Gessler</td>
+									</tr>
+									<tr>
+										<td>Taylor Falk</td>
+									</tr>
+									<tr>
+										<td>Ronald Santos</td>
+									</tr>
+									<tr>
+										<td>Peter Richter</td>
+									</tr>
+									<tr>
+										<td>Charles Demurjian</td>
+									</tr>											
+									<tr>
+										<td>Isaac McEvoy</td>
+									</tr>
+									<tr>
+										<td>Madison Gadomski</td>
+									</tr>
+									<tr>
+										<td>Nicola Bacon</td>
+									</tr>
+									<tr>
+										<td>Isabella Harding</td>
+									</tr>									
+								</table>
+							</div>
+						</td>
+					</tr>
+				</table>
+
+				<table width="100%" style="margin-top: 10px; margin-bottom: 10px;">
+					<tr>
+						<td width="50%" style="vertical-align: top;">
+							<div class="ct_left_card" style="height: 200px;">
+								<h2>Participating Groups</h2>
+								<table style="width: 100%; margin-top: 10px;">
+									<tr>
+										<td style="text-align: center; width: 25%; padding: 10px;"><img style="height: 2em;" src='/sites/default/files/uploads/uconn.png' /></td>
+										<td style="text-align: center; width: 25%; padding: 10px;"><img style="height: 2.5em;" src='/sites/default/files/uploads/wsu.png' /></td>
+										<td style="text-align: center; width: 25%; padding: 10px;"><img style="height: 2.5em;" src='/sites/default/files/uploads/utk.png' /></td>
+										<td style="text-align: center; width: 25%; padding: 10px;"><img style="height: 2.5em;" src='https://www.agbiodata.org/agbiodata-header.png' /></td>
+									</tr>
+									<tr>
+										<td style="text-align: center; width: 25%; padding: 10px;"><img style="height: 4em;" src='https://www.monitoringash.org/wp-content/uploads/2025/05/MaMa-logo-150x150-1.png' /></td>
+										<td style="text-align: center; width: 25%; padding: 10px;"></td>
+										<td style="text-align: center; width: 25%; padding: 10px;"></td>
+										<td style="text-align: center; width: 25%; padding: 10px;"></td>
+									</tr>
+								</table>
+								<!-- <div class="d-flex justify-content-between" style='align-items: center;'>
+									<img style="height: 5em;" src='/sites/default/files/uploads/uconn.png' />
+									<img style="height: 6em;" src='/sites/default/files/uploads/wsu.png' />
+									<img style="height: 6em;" src='/sites/default/files/uploads/utk.png' />
+								</div> -->
+							</div>
+						</td>
+						<td width="50%" style="vertical-align: top;">
+							<div class="ct_left_card" style="height: 200px;">	
+								<h2>Technologies </h2>
+								<table style="margin-top: 10px; width: 100%">
+									<tr>
+										<td style="text-align: center; width: 25%; padding: 10px;">
+											<img class="lazy" style="width:7em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/GMod_Chado.png">
+										</td>
+										<td style="text-align: center; width: 25%; padding: 10px;">
+											<img class="lazy" style="width:7em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TripalLogo_dark.png">
+										</td>
+										<td style="text-align: center; width: 25%; padding: 10px;">
+											<img class="lazy" style="width:7em;" src="https://geoserver.org/img/geoserver-logo.png" />
+										</td>
+										
+										<td style="text-align: center; width: 25%; padding: 10px;">
+											<img class="lazy" style="width: 7em; margin-bottom: 3px;" src="https://www.nextflow.io/img/nextflow.svg">
+										</td>
+									</tr>
+								</table>
+								<div id="sources-imgs" class="d-flex justify-content-between" style="margin-left: 2em; margin-right: 2em; align-items: center;">	
+									<!-- <img class="lazy" style="width:15em; height:5em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/GMod_Chado.png">
+									<img class="lazy" style="width:15em; height:4.5em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TripalLogo_dark.png">
+									<img class="lazy" style="width:8em; height:8em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TreeSnap.jpg"> -->
+								</div>
+								<div id="sources-imgs-2" class="d-flex justify-content-between" style="margin-left: 2em; margin-right: 2em; align-items: center;">
+									<!-- 
+									<img class="lazy" style="width:12em; height:7em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/wfid.png">
+									<img class="lazy" style="width:15em; height:5em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/wildtype.png">
+									-->
+								</div>
+							</div>
+						</td>
+					</tr>
+				</table>
+
 				
-				<div class="ct_left_card">
-					<h2>Participating Groups</h2>
-					<table style="width: 100%;">
-						<tr>
-							<td style="width: 33%; text-align: center;"><img style="height: 4em;" src='/sites/default/files/uploads/uconn.png' /></td>
-							<td style="width: 33%; text-align: center;"><img style="height: 5em;" src='/sites/default/files/uploads/wsu.png' /></td>
-							<td style="width: 33%; text-align: center;"><img style="height: 5em;" src='/sites/default/files/uploads/utk.png' /></td>
-						</tr>
-					</table>
-					<!-- <div class="d-flex justify-content-between" style='align-items: center;'>
-						<img style="height: 5em;" src='/sites/default/files/uploads/uconn.png' />
-						<img style="height: 6em;" src='/sites/default/files/uploads/wsu.png' />
-						<img style="height: 6em;" src='/sites/default/files/uploads/utk.png' />
-					</div> -->
-				</div>
-				
+		
 				<div class="ct_left_card">
 					<h2>Funding</h2>
 					<table style="margin-top:20px;">
 						<tr>
 							<td width="33%">
 								<div style='text-align: center;'>
-									<img class="lazy" style='width: 50%;' src='https://nsf-gov-resources.nsf.gov/styles/featured_content_tablet/s3/2023-10/NSF_Official_logo_Med_Res_600ppi_rectangle.png?VersionId=_BzE41fXUTKWnh2WWSpDiBtR5xAf4YQs&itok=G01s-MfI' />
+									<img class="lazy" style='width: 25%;' src='https://nsf-gov-resources.nsf.gov/styles/featured_content_tablet/s3/2023-10/NSF_Official_logo_Med_Res_600ppi_rectangle.png?VersionId=_BzE41fXUTKWnh2WWSpDiBtR5xAf4YQs&itok=G01s-MfI' />
 								</div>
 							</td>
 							<td width="33%">
 								<div style='text-align: center;'>
-									<img class="lazy" style='width: 40%;' src='https://treegenesdb.org/Drupal/sites/default/files/uploads/USDA_logo-cmp.png' />
+									<img class="lazy" style='width: 25%;' src='https://treegenesdb.org/Drupal/sites/default/files/uploads/USDA_logo-cmp.png' />
 								</div>
 							</td>
 							<td width="34%">
 								<div style='text-align: center;'>
-									<img class="lazy" style='width: 50%;' src='https://www.nature.org/content/dam/tnc/nature/en/logos/tnc-logo-primary-registered-dark-text.svg' />
+									<img class="lazy" style='width: 25%;' src='https://www.nature.org/content/dam/tnc/nature/en/logos/tnc-logo-primary-registered-dark-text.svg' />
 								</div>
 							</td>
 						</tr>
@@ -1147,106 +1271,8 @@
 							</td>
 						</tr>
 					</table>
-				</div>							
-				
-				<div class="ct_left_card">	
-					<h2>In collaboration with: </h2>
-					<table style="width: 100%">
-						<tr>
-							<td style="width: 33%; text-align: center;">
-								<img class="lazy" style="width:15em; height:5em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/GMod_Chado.png">
-							</td>
-							<td style="width: 33%; text-align: center;">
-								<img class="lazy" style="width:15em; height:4.5em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TripalLogo_dark.png">
-							</td>
-							<td style="width: 33%; text-align: center;">
-								<img class="lazy" style="width:8em; height:8em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TreeSnap.jpg">
-							</td>
-						</tr>
-					</table>
-					<div id="sources-imgs" class="d-flex justify-content-between" style="margin-left: 2em; margin-right: 2em; align-items: center;">	
-						<!-- <img class="lazy" style="width:15em; height:5em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/GMod_Chado.png">
-						<img class="lazy" style="width:15em; height:4.5em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TripalLogo_dark.png">
-						<img class="lazy" style="width:8em; height:8em;"src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/TreeSnap.jpg"> -->
-					</div>
-					<div id="sources-imgs-2" class="d-flex justify-content-between" style="margin-left: 2em; margin-right: 2em; align-items: center;">
-						<!-- 
-						<img class="lazy" style="width:12em; height:7em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/wfid.png">
-						<img class="lazy" style="width:15em; height:5em;" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/wildtype.png">
-						-->
-					</div>
-				</div>
-				
-				<div class="ct_left_card">				
-					<h2>Project Alumni</h2>
-					<table style="width: 100%">
-						<tr>
-							<th>Member</th>
-							<th>Institution</th>
-							<th>Position</th>
-						</tr>								
-						<tr>
-							<td>Nic Herndon</td>
-							<td>University of Connecticut</td>
-							<td>Co-Principal Investigator</td>
-						</tr>
-						<!-- <tr>
-							<td>Meg Staton</td>
-							<td>University of Tennessee</td>
-							<td>Co-Principal Investigator</td>
-						</tr> -->
-						<tr>
-							<td>Irene Cobo</td>
-							<td>University of Connecticut</td>
-							<td>Postdoctoral Scholar</td>
-						</tr>
-						<tr>
-							<td>Damian Gessler</td>
-							<td>Semantic Options, LLC</td>
-							<td>Advisory member</td>
-						</tr>
-						<tr>
-							<td>Taylor Falk</td>
-							<td>University of Connecticut</td>
-							<td>Bioinformatics Developer</td>
-						</tr>
-						<tr>
-							<td>Ronald Santos</td>
-							<td>University of Connecticut</td>
-							<td>Programmer</td>
-						</tr>
-						<tr>
-							<td>Peter Richter</td>
-							<td>University of Connecticut</td>
-							<td>Programmer</td>
-						</tr>
-						<tr>
-							<td>Charles Demurjian</td>
-							<td>University of Connecticut</td>
-							<td>Curator</td>
-						</tr>											
-						<tr>
-							<td>Isaac McEvoy</td>
-							<td>University of Connecticut</td>
-							<td>Curator</td>
-						</tr>
-						<tr>
-							<td>Madison Gadomski</td>
-							<td>University of Connecticut</td>
-							<td>Curator</td>
-						</tr>
-						<tr>
-							<td>Nicola Bacon</td>
-							<td>University of Connecticut</td>
-							<td>Curator</td>
-						</tr>
-						<tr>
-							<td>Isabella Harding</td>
-							<td>University of Connecticut</td>
-							<td>Curator</td>
-						</tr>									
-					</table>
 				</div>	
+				</div>					
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -1795,7 +1821,10 @@
 									echo $layer['layer_title'] . '</div>';
 									echo '</div><div class="col-6">';
 									echo '<button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button>';
-									echo '<center><i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 45px;" class="fas fa-info-circle"></i></center>';
+									echo '<div style="position: relative; left: -15px; width: 100px;">';
+									echo '<i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px;" class="fas fa-info-circle"></i>';
+									echo '<i title="Legend details" id="legend_legend_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 0px; display: none; font-size:18px;" class="fas fa-chart-bar"></i>';
+									echo '</div>';
 									echo '</div></div>';
 									echo '<div id="opacity-ctrl-' . $layer['layer_id'] . '" class="row inner-layer-op row-100 hidden">';
 									echo '<div class="col-5"><label>Opacity <span id="opacity-value-' . $layer['layer_id'] . '">100%</span></label></div>';
@@ -2035,7 +2064,10 @@
 													echo $layer['layer_title'] . '</div>';
 													echo '</div><div class="col-3">';
 													echo '<button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button>';
-													echo '<center><i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 45px;" class="fas fa-info-circle"></i></center>';
+													echo '<div style="position: relative; left: -15px; width: 100px;">';
+													echo '<i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 45px;" class="fas fa-info-circle"></i>';
+													echo '<i title="Legend details" id="legend_legend_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 0px; display: none; font-size:18px;" class="fas fa-chart-bar"></i>';
+													echo '</div>';
 													echo '</div></div>';
 													echo '<div id="opacity-ctrl-' . $layer['layer_id'] . '" class="row inner-layer-op row-100 hidden">';
 													echo '<div class="col-5"><label>Opacity <span id="opacity-value-' . $layer['layer_id'] . '">100%</span></label></div>';
@@ -2125,7 +2157,7 @@
 											<div class="" style="width: 100%;">
 												<div class="" style="display: inline-block; width: 60%;">
 													<h6 class="" style="line-height: 20px;">
-														<div style="display: inline-block; width: 20%;"><i class="fas fa-tree" style="position: relative; top: -5px;"></i></div><div style="display: inline-block; width: 70%;">Internal submissions</div><!-- TreeGenes -->
+														<div style="display: inline-block; width: 20%;"><!-- <i class="fas fa-tree" style="position: relative; top: -5px;"></i> --> <img src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/trees_imgs/plant.png" /></div><div style="display: inline-block; width: 70%;">Internal submissions</div><!-- TreeGenes -->
 													</h6>
 												</div>
 												<div class="" style="display: inline-block; width: 20%;">
@@ -2139,7 +2171,7 @@
 											<div class="" style="width: 100%;">
 												<div class="d-inline-block" style="width: 60%;">
 													<h6 class="">
-														<i class="fas fa-mobile-alt" style="margin-right: 5px;"></i> TreeSnap
+														<!-- <i class="fas fa-mobile-alt" style="margin-right: 5px;"></i>--> <img src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/trees_imgs/plant_treesnap.png" /> TreeSnap
 													</h6>
 												</div>
 												<div class="" style="display: inline-block; width: 20%;">
@@ -2152,8 +2184,22 @@
 										<li class="list-group-item list-group-item-action d-flex">
 											<div class="" style="width: 100%;">
 												<div class="" style="display: inline-block; width: 60%;">
+													<h6 class="">
+														<!-- <i class="fas fa-database" style="margin-right: 5px;"></i>--> <img src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/trees_imgs/plant_treesnap.png" /> MAMA EAB
+													</h6>
+												</div>
+												<div class="" style="display: inline-block; width: 20%;">
+													<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="mamaeab-data" aria-pressed="false" autocomplete="off">
+														<div class="handle"></div>
+													</button>
+												</div>
+											</div>
+										</li>
+										<li class="list-group-item list-group-item-action d-flex">
+											<div class="" style="width: 100%;">
+												<div class="" style="display: inline-block; width: 60%;">
 													<h6 class="" style="line-height: 20px;">
-														<div style="display: inline-block; width: 20%;"><i class="fas fa-database" style="position:relative; top:-5px;"></i></div><div style="display: inline-block; width: 70%;">Direct submissions</div> <!-- DRYAD -->
+														<div style="display: inline-block; width: 20%;"><!-- <i class="fas fa-database" style="position:relative; top:-5px;"></i>--><img src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/trees_imgs/plant.png" /></div><div style="display: inline-block; width: 70%;">Direct submissions</div> <!-- DRYAD -->
 													</h6>
 												</div>
 												<div class="" style="display: inline-block; width: 20%;">
@@ -2206,7 +2252,13 @@
 												<div class="" style="width: 100%;">
 													<div class="" style="display: inline-block; width: 60%;">
 														<h6 class="">
-															<i class="fas fa-table" style="margin-right: 5px;"></i> <?php echo $r['geoserver_dataset_name']; ?>
+															<?php if ($r['geoserver_dataset_name'] == 'BIEN' ) { ?>
+																<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#00992e" class="bi bi-circle-fill" viewBox="0 0 16 16">
+																	<circle cx="8" cy="8" r="8"/>
+																</svg>
+															<?php } else { ?>
+															<i class="fas fa-table" style="margin-right: 5px;"></i>
+															<?php } ?> <?php echo $r['geoserver_dataset_name']; ?>
 														</h6>
 													</div>
 													<div class="" style="display: inline-block; width: 20%;">
@@ -2223,7 +2275,7 @@
 											<div class="" style="width: 100%;">
 												<div class="" style="display: inline-block; width: 60%;">
 													<h6 class="">
-														<i class="fas fa-database" style="margin-right: 5px;"></i> EVOME
+														<!-- <i class="fas fa-database" style="margin-right: 5px;"></i>--><img src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/trees_imgs/plant_treesnap.png" /> EVOME
 													</h6>
 												</div>
 												<div class="" style="display: inline-block; width: 20%;">
@@ -2233,20 +2285,7 @@
 												</div>
 											</div>
 										</li>
-										<li class="list-group-item list-group-item-action d-flex">
-											<div class="" style="width: 100%;">
-												<div class="" style="display: inline-block; width: 60%;">
-													<h6 class="">
-														<i class="fas fa-database" style="margin-right: 5px;"></i> MAMA EAB
-													</h6>
-												</div>
-												<div class="" style="display: inline-block; width: 20%;">
-													<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="mamaeab-data" aria-pressed="false" autocomplete="off">
-														<div class="handle"></div>
-													</button>
-												</div>
-											</div>
-										</li>
+
 										<!-- WFID TODO -->
 										<?php if( user_access("access cartogratree wfid") ) { ?>
 										
@@ -2336,12 +2375,24 @@
 							<button class="btn btn-danger" id="btn-reset">Reset filter</button>
 						</div>
 						<div id="builder" style="margin-left: 5px;"></div>
-						<div id="pop-struct-options-toggles"></div>
+						<!-- <div id="pop-struct-options-toggles"></div> -->
 
 					</div>
 				</div>
 				<button class="map-top-button" data-state="closed">
 					Filters <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span>
+				</button>
+			</div>
+
+			<div class="map-top-buttons-parent-container map-top-popstruct-filter-container" style="">
+				<div id="map-top-popstruct-filters" class="map-top-container map-top-hidden" style="overflow-x: auto;">
+					<div class="" id="popstruct-filter-options" aria-expanded="false">
+						<div style="float: right; z-index: 1002; position: relative;top: 5px; right: 5px; color: #ffffff;"></div>
+						<div id="pop-struct-options-toggles" style="background-color: #FFFFFF; padding: 5px;">Please perform a filter first</div>
+					</div>
+				</div>
+				<button class="map-top-button" data-state="closed">
+					Population Structure <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span>
 				</button>
 			</div>
 			

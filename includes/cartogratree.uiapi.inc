@@ -165,8 +165,10 @@ function cartogratree_uiapi_get_pop_struct_icon($population_group_id) {
 
     $image_file_path = $images_path . "/popstruct_exact_" . $population_group_id . ".png";
 
+    $time_start = microtime(true);
     if(file_exists($image_file_path)) {
         // do nothing
+        // echo "1";
     }
     else {
         // echo $images_path;
@@ -187,11 +189,14 @@ function cartogratree_uiapi_get_pop_struct_icon($population_group_id) {
         
         imagepng($im, $image_file_path);
         // imagedestroy($im);
+        // echo "2";
     }
 
     header('Content-type: image/png');
     echo file_get_contents($image_file_path);
-
+    //$time_end = microtime(true);
+    //$time_taken = $time_end - $time_start;
+    //echo "Time taken: " . $time_taken;
 }
 
 /**
@@ -329,7 +334,7 @@ function cartogratree_uiapi_get_vcf_studies_indexed($tgdr_numbers_csv) {
     }
 
     $return_results['study_count'] = $study_count;
-    $sql = 'SELECT DISTINCT tgdr_accession, analysis_name, vcf_path FROM chado.vcf_locations WHERE (' . $where_clause . ') ORDER BY analysis_name DESC';
+    $sql = 'SELECT DISTINCT tgdr_accession, analysis_name, vcf, is_original FROM chado.vcf_locations_view WHERE (' . $where_clause . ') ORDER BY analysis_name DESC';
     // print_r($sql);
     // echo $sql;
     $results_data = chado_query($sql, []);
@@ -344,13 +349,13 @@ function cartogratree_uiapi_get_vcf_studies_indexed($tgdr_numbers_csv) {
             $found_counter = 1;
             // $return_results['vcf_locations'] = [];
             if (!isset($return_results['vcf_locations'][$row->tgdr_accession])) {
-                $return_results['vcf_locations'][$row->tgdr_accession] = $row->vcf_path;
+                $return_results['vcf_locations'][$row->tgdr_accession] = $row->vcf;
             }
         }
         else {
             $found_counter = $found_counter + 1;
             if (!isset($return_results['vcf_locations'][$row->tgdr_accession])) {
-                $return_results['vcf_locations'][$row->tgdr_accession] = $row->vcf_path;
+                $return_results['vcf_locations'][$row->tgdr_accession] = $row->vcf;
             }
         }
         if ($found_counter == $study_count) {

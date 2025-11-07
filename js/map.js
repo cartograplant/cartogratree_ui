@@ -3785,12 +3785,15 @@ var ct_ready_mapjs = function() {
 							})
 
 							$('#tree-details-view-study-statistics').html('Looking up study statistics... <img style="height: 16px;" src="' + loading_icon_src + '" />');
+							
 							$.ajax({
 								url: Drupal.settings.base_url + '/cartogratree_uianalysis/cartogratree_analysisapi_lookup_study_info/' + data[0].accession,
 								method: 'GET',
 								success: function(data) {
+									
 									$('#tree-details-view-study-statistics').removeClass("hidden");
 									$('#tree-details-view-study-statistics').html('');
+									
 									// tree-details-view-study-statistics
 									var html = '';
 									if (data['tree_count'] != undefined && data['tree_count'] != null) {
@@ -6191,6 +6194,7 @@ var ct_ready_mapjs = function() {
 		mapStatusNotification('Updating map, please wait...','info',true, 3000, 0);
 		
 		var active = getActiveDatasets();
+		// No datasets active, so clear the map data
 		if (active.length == 0) {
 			setData([]);
 			toastr.success("No datasets active.");
@@ -6206,7 +6210,9 @@ var ct_ready_mapjs = function() {
 			$('#map-dataset-loading').slideUp(1000);
 			$('#map-summary-loading').slideUp(1000);
 		}
+		// Datasets are active, so process the filter query
 		else {
+			// The default dataset filter (no filters applied)
 			if (Object.keys(filterQuery) == 0 && active.length == 3 && getActiveDatasetsOfTypeGeoserverTileset().length <= 0) {
 				// Try to abort all calls to ajax
 				try {
@@ -6243,6 +6249,7 @@ var ct_ready_mapjs = function() {
 					}
 				});	
 			}
+			// There is a filter query to process
 			else {
 				if(debug) {
 					console.log('-- filterQuery:');
@@ -6838,37 +6845,84 @@ var ct_ready_mapjs = function() {
 		updateMapSummary(res["num_trees"], map_unique_species.length, res["num_pubs"]);
 
 		// Call check to see if any studies are detected from the filters
-		console.log('Pop struct debug');
-		var rule_filter_containers = $('.rule-container .rule-filter-container select');
-		var rule_value_containers =  $('.rule-container .rule-value-container .selectized');
-		// Search to see whether filter option is a study filter
-		if(rule_filter_containers.length > 0) {
-			$('#pop-struct-options-toggles').html('');
-			console.log('rule_filter_containers found:' + rule_filter_containers.length);
-			console.log('rule_value_containers found:' + rule_value_containers.length);
-			for(var i=0; i<rule_filter_containers.length;i++) {
-				var filter_element = rule_filter_containers.eq(i);
-				var value_element = rule_value_containers.eq(i);
-				console.log('pop struct study filter:', filter_element.val());
-				if(filter_element.val() == "accession") {
-					console.log('pop struct study value:' + value_element.val());
+		// DEPRECATED CODE - RISH - 11/5/2025
+		// console.log('Pop struct UI debug');
+		// var rule_filter_containers = $('.rule-container .rule-filter-container select');
+		// var rule_value_containers =  $('.rule-container .rule-value-container .selectized');
+		// // Search to see whether filter option is a study filter
+		// if(rule_filter_containers.length > 0) {
+		// 	$('#pop-struct-options-toggles').html('');
+		// 	console.log('rule_filter_containers found:' + rule_filter_containers.length);
+		// 	console.log('rule_value_containers found:' + rule_value_containers.length);
+		// 	for(var i=0; i<rule_filter_containers.length;i++) {
+		// 		var filter_element = rule_filter_containers.eq(i);
+		// 		var value_element = rule_value_containers.eq(i);
+		// 		console.log('pop struct study filter:', filter_element.val());
+		// 		if(filter_element.val() == "accession") {
+		// 			console.log('pop struct study value:' + value_element.val());
 
-					// Check to see whether a pop_struct exists for this study
-					if (Drupal.settings.popstruct_studies.includes(value_element.val())) {
-						console.log('Adding pop struct UI toggle element');
-						cartograplant.ui_add_pop_struct_toggle({
-							caption: value_element.val() + ' Population Structure',
-							name: value_element.val()
-						});
-					}
+		// 			// Check to see whether a pop_struct exists for this study
+		// 			if (Drupal.settings.popstruct_studies.includes(value_element.val())) {
+		// 				console.log('Adding pop struct UI toggle element');
+		// 				cartograplant.ui_add_pop_struct_toggle({
+		// 					caption: value_element.val() + ' Population Structure',
+		// 					name: value_element.val()
+		// 				});
+		// 			}
+		// 		}
+		// 	}
+		// 	if ($('#pop-struct-options-toggles').html() == '') {
+		// 		$('#pop-struct-options-container').slideUp(500); // hide since empty
+		// 	}
+		// 	else {
+		// 		$('#pop-struct-options-container').slideDown(500); // show since it contains content
+		// 	}
+		// }
+
+		// Pop Struct UI debug - new feature request to check overall trees
+		// Go through each res["features"]
+
+		console.log("Pop Struct UI debug - overall tree features check");
+		// Clear all data in the popstruct-filter-options container
+		$('#pop-struct-options-toggles').html('');
+		var pop_struct_studies_added = {};
+		for (var i=0; i < res["features"].length; i++) {
+			var feature = res["features"][i];
+			var feature_id = feature["properties"]["id"];
+			if (feature_id.startsWith('TGDR')) {
+				var study_id = feature_id.split('-')[0];
+				// Check to see whether a pop_struct exists for this study
+				if (Drupal.settings.popstruct_studies.includes(study_id)) {
+					pop_struct_studies_added[study_id] = true;
 				}
 			}
-			if ($('#pop-struct-options-toggles').html() == '') {
-				$('#pop-struct-options-container').slideUp(500); // hide since empty
+		}
+
+		// Go through each pops_struct_studies_added and add to UI
+		for (var i = 0; i < Object.keys(pop_struct_studies_added).length; i++) {
+			var study_id = Object.keys(pop_struct_studies_added)[i];
+			// Check to see whether UI element already exists
+			if ($('#pop-struct-option-' + study_id).length == 0) {
+				console.log('Adding pop struct UI toggle element from overall tree features');
+				cartograplant.ui_add_pop_struct_toggle({
+					caption: study_id + ' Population Structure',
+					name: study_id
+				});
 			}
-			else {
-				$('#pop-struct-options-container').slideDown(500); // show since it contains content
+		}
+		if (Object.keys(pop_struct_studies_added).length > 0) {
+			if ($('#map-top-popstruct-filters').css('display') == 'none') {
+				$('.map-top-popstruct-filter-container .map-top-button').click();
 			}
+			$('#pop-struct-options-container').slideDown(500); // show since it contains content
+		}
+		else {
+			$('#popstruct-filter-options').html('<div style="padding: 5px; background-color: #FFFFFF">No population structure data available for the current filtered plants.</div>');
+			// Hide the popstruct filter container
+			if ($('#map-top-popstruct-filters').css('display') != 'none') {
+				$('.map-top-popstruct-filter-container .map-top-button').click();
+			}
+			$('#pop-struct-options-container').slideUp(500); // hide since empty
 		}
 	}
 
@@ -9191,6 +9245,7 @@ var ct_ready_mapjs = function() {
 				$('#legend_legend_icon_' + layerNum).hide();
 			}
 			else {
+				console.log('Showing legend icon for layerNum:' + layerNum);
 				$('#legend_legend_icon_' + layerNum).show();
 			}
 			

@@ -269,12 +269,12 @@ select {
 
 .map-top-buttons-parent-container {
   display: inline-block; 
-  width: 250px;
+  width: 215px;
   vertical-align: top;
   z-index: 2;
   position: relative;
   top: -16px;
-  padding-left: 25px;
+  padding-left: 10px;
 
 }
 

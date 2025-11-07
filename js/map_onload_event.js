@@ -5,9 +5,14 @@ var ct_ready_map_onload_events = function() {
 	
 	window.addEventListener('load', (event) => {
 		console.log('Page is fully loaded');
+		// console.log('Now booting Cartograplant map addon onload events');
+		// cartograplant_boot_map_onload_events();
 	});
 
-	window.onload = function () {
+	cartograplant_boot_map_onload_events();
+	// window.onload = function () {
+	function cartograplant_boot_map_onload_events() {
+		console.log('Cartograplant boot map onload event fired - map_onload_event.js');
 		cartograplant.map.on("load", function () {
 			//mapActivityStatus = 'map-loading-finished';
 			if(cartograplant.debug) {
@@ -63,7 +68,8 @@ var ct_ready_map_onload_events = function() {
 
 			//load popstruct images
 			for(var i=0; i<7; i++) {
-				cartograplant.loadImageWrapper(Drupal.settings.base_url + '/cartogratree_uiapi/get_popstruct_icon/' + i, "popstruct_" + i);
+				// cartograplant.loadImageWrapper(Drupal.settings.base_url + '/cartogratree_uiapi/get_popstruct_icon/' + i, "popstruct_" + i);
+				cartograplant.loadImageWrapper(Drupal.settings.base_url + '/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/trees_imgs/popstruct_exact_' + i + '.png', "popstruct_" + i);
 			}
 
 			//intialize reusable mapbox popups
