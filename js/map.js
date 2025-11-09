@@ -96,6 +96,9 @@ var ct_ready_mapjs = function() {
 	// This variable attempts to keep track / hold all jQuery ajax calls
 	cartograplant.ajax_requests = {
 		'map_filtering': null,
+		'popstruct_filtering': {
+			'data_lookup_objects': {},
+		},
 		'environmental_data_lookups': {
 			'current_bbox': null,
 			'data_lookup_objects': {},
@@ -1770,14 +1773,15 @@ var ct_ready_mapjs = function() {
 		// }
 		var html = '';
 		html += '<li class="list-group-item list-group-item-action d-flex">';
-		html += '	<div class="row row-100">';
-		html += '		<div class="col-7">';
+		html += '	<div class="row">';
+		html += '		<div class="col-4">';
 		html += '			<h6 class="text-muted" style="line-height: 20px;">';
-		html += '				<div style="display: inline-block; width: 20%;"><i class="fas fa-database" style="position:relative; top:-5px;"></i></div><div style="display: inline-block; width: 70%;">' + settings['caption'] + '</div>';
+		html += '				<div style="display: inline-block; width: 30%;"><i class="fas fa-database" style="position:relative; top:0px;"></i></div>'
+		html += '				<div style="display: inline-block; width: 70%;">' + settings['caption'] + '</div>';
 		html += '			</h6>';
 		html += '		</div>';
-		html += '		<div class="col-4">';
-		html += '			<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="' + settings['name'] + 'popstruct_geojson-data" aria-pressed="true" autocomplete="off">';
+		html += '		<div class="col-3">';
+		html += '			<button type="button" data-toggle="button" style="scale: 0.5;" class="btn btn-toggle tree-dataset-btn" id="' + settings['name'] + 'popstruct_geojson-data" aria-pressed="true" autocomplete="off">';
 		html += '				<div class="handle"></div>';
 		html += '			</button>';
 		html += '		</div>';
@@ -6886,43 +6890,88 @@ var ct_ready_mapjs = function() {
 		// Clear all data in the popstruct-filter-options container
 		$('#pop-struct-options-toggles').html('');
 		var pop_struct_studies_added = {};
+
+		var pop_struct_studies_arr = Object.keys(Drupal.settings.popstruct_studies_info);
 		for (var i=0; i < res["features"].length; i++) {
 			var feature = res["features"][i];
 			var feature_id = feature["properties"]["id"];
 			if (feature_id.startsWith('TGDR')) {
 				var study_id = feature_id.split('-')[0];
 				// Check to see whether a pop_struct exists for this study
-				if (Drupal.settings.popstruct_studies.includes(study_id)) {
-					pop_struct_studies_added[study_id] = true;
+				if (pop_struct_studies_arr.includes(study_id)) {
+					if (pop_struct_studies_added[study_id] == undefined) {
+						pop_struct_studies_added[study_id] = 0;
+					}
+					pop_struct_studies_added[study_id] = pop_struct_studies_added[study_id] + 1;
 				}
 			}
 		}
 
-		// Go through each pops_struct_studies_added and add to UI
+		// Stop all lookups previously running
+		var ajax_requests_keys = Object.keys(cartograplant.ajax_requests['popstruct_filtering']['data_lookup_objects']);
+		for (var i = 0; i < ajax_requests_keys.length; i++) {
+			var ajax_request_key = ajax_requests_keys[i];
+			try {
+				cartograplant.ajax_requests['popstruct_filtering']['data_lookup_objects'][ajax_request_key].abort();
+			}
+			catch (err) {
+				console.log(err);
+			}
+		}
+
+		// Lookup each study_id to get the dbxref_id to lookup plants counts via CT API
+		
+		var lookups_done = 0;
 		for (var i = 0; i < Object.keys(pop_struct_studies_added).length; i++) {
 			var study_id = Object.keys(pop_struct_studies_added)[i];
-			// Check to see whether UI element already exists
-			if ($('#pop-struct-option-' + study_id).length == 0) {
-				console.log('Adding pop struct UI toggle element from overall tree features');
-				cartograplant.ui_add_pop_struct_toggle({
-					caption: study_id + ' Population Structure',
-					name: study_id
-				});
-			}
-		}
-		if (Object.keys(pop_struct_studies_added).length > 0) {
-			if ($('#map-top-popstruct-filters').css('display') == 'none') {
-				$('.map-top-popstruct-filter-container .map-top-button').click();
-			}
-			$('#pop-struct-options-container').slideDown(500); // show since it contains content
-		}
-		else {
-			$('#popstruct-filter-options').html('<div style="padding: 5px; background-color: #FFFFFF">No population structure data available for the current filtered plants.</div>');
-			// Hide the popstruct filter container
-			if ($('#map-top-popstruct-filters').css('display') != 'none') {
-				$('.map-top-popstruct-filter-container .map-top-button').click();
-			}
-			$('#pop-struct-options-container').slideUp(500); // hide since empty
+			var dbxref_id = Drupal.settings.popstruct_studies_info[study_id]['dbxref_id'];
+			// console.log(Drupal.settings.ct_nodejs_api);
+			cartograplant.ajax_requests['popstruct_filtering']['data_lookup_objects']['plant_count_' + dbxref_id] = $.ajax({
+				method: "POST",
+				url: Drupal.settings.ct_nodejs_api + "/v2/popstruct/study_plants_count",
+				data: {
+					dbxref_id: dbxref_id,
+					study_id: study_id
+				},
+				dataType: "json",
+				success: function (data) {
+					console.log('Pop Struct Plant Count data for study ' + study_id + ' dbxref: ' + dbxref_id, data);
+					if(debug) {
+						console.log('Pop Struct Plant Count for study ' + study_id + ': ' + data.length);
+					}
+					if (data['count'] == pop_struct_studies_added[data['study_id']]) {
+						// Check to see whether UI element already exists, if it does not, add the toggle element
+						if ($('#pop-struct-option-' + study_id).length == 0) {
+							console.log('Adding pop struct UI toggle element from overall tree features');
+							cartograplant.ui_add_pop_struct_toggle({
+								caption: study_id, // population structure accession
+								name: study_id
+							});
+						}
+					}
+					lookups_done += 1;
+					// After all lookups are done, check to see whether to show or hide the popstruct options container
+					if (lookups_done == Object.keys(pop_struct_studies_added).length) {
+						if (Object.keys(pop_struct_studies_added).length > 0) {
+							if ($('#map-top-popstruct-filters').css('display') == 'none') {
+								$('.map-top-popstruct-filter-container .map-top-button').click();
+							}
+							$('#pop-struct-options-container').slideDown(500); // show since it contains content
+						}
+						else {
+							$('#popstruct-filter-options').html('<div style="padding: 5px; background-color: #FFFFFF">No population structure data available for the current filtered plants.</div>');
+							// Hide the popstruct filter container
+							if ($('#map-top-popstruct-filters').css('display') != 'none') {
+								$('.map-top-popstruct-filter-container .map-top-button').click();
+							}
+							$('#pop-struct-options-container').slideUp(500); // hide since empty
+						}
+					}
+				},
+				error: function (xhr, textStatus, errorThrown) {
+					lookups_done += 1;
+				}
+			});
 		}
 	}
 

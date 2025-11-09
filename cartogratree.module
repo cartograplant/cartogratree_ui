@@ -1163,6 +1163,7 @@ function cartogratree_preprocess_page(&$variables)
 
 
         $popstruct_studies = cartogratree_get_popstruct_studies_list();
+        $popstruct_studies_info = cartogratree_get_popstruct_studies_info_list();
         //$variables['total_publications'] = count($tgdr);
         $fields_data['categories'] = cartogratree_get_category_options($api_key);	
 
@@ -1297,6 +1298,7 @@ function cartogratree_preprocess_page(&$variables)
             'fields' => cartogratree_get_fields($layer_ids),
             'options_tgdr' => $tgdr,
             'popstruct_studies' => $popstruct_studies,
+            'popstruct_studies_info' => $popstruct_studies_info,
             'session' => $session,
             'user' => $user_info,
 
@@ -1774,6 +1776,21 @@ function cartogratree_get_popstruct_studies_list()
         $popstruct_studies[] = $row->accession;
     }
     return $popstruct_studies;
+}
+
+function cartogratree_get_popstruct_studies_info_list()
+{
+    // $sql = 'SELECT distinct(accession) as accession FROM public.ct_trees_all_view WHERE population IS NOT NULL;';
+    $sql = 'SELECT distinct(cpl.study_accession) as accession, dbxref_id FROM public.cartogratree_popstruct_layer cpl
+        JOIN chado.dbxref dbxref ON cpl.study_accession = dbxref.accession;';
+    $results = chado_query($sql, array());
+    $popstruct_studies_info = [];
+    foreach ($results as $row) {
+        $popstruct_studies_info[$row->accession] = [
+            'dbxref_id' => $row->dbxref_id
+        ];
+    }
+    return $popstruct_studies_info;
 }
 
 function cartogratree_get_publications_info()
