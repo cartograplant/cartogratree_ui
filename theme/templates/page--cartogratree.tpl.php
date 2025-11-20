@@ -2388,7 +2388,7 @@ Today, CartograPlant continues to support the forest tree community, and increas
 				<div id="map-top-popstruct-filters" class="map-top-container map-top-hidden" style="overflow-x: auto;">
 					<div class="" id="popstruct-filter-options" aria-expanded="false">
 						<div style="float: right; z-index: 1002; position: relative;top: 5px; right: 5px; color: #ffffff;"></div>
-						<div id="pop-struct-options-toggles" style="background-color: #FFFFFF; padding: 5px;">Please perform a filter first</div>
+						<div id="pop-struct-options-toggles" style="background-color: #FFFFFF; padding: 5px;"></div>
 					</div>
 				</div>
 				<button class="map-top-button" data-state="closed">

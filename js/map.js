@@ -1772,21 +1772,27 @@ var ct_ready_mapjs = function() {
 		// 	'name': 'default_name'
 		// }
 		var html = '';
-		html += '<li class="list-group-item list-group-item-action d-flex">';
-		html += '	<div class="row">';
-		html += '		<div class="col-4">';
-		html += '			<h6 class="text-muted" style="line-height: 20px;">';
-		html += '				<div style="display: inline-block; width: 30%;"><i class="fas fa-database" style="position:relative; top:0px;"></i></div>'
-		html += '				<div style="display: inline-block; width: 70%;">' + settings['caption'] + '</div>';
+		//html += '<li class="list-group-item list-group-item-action d-flex">';
+		html += '<div class="p-1" style="border-bottom: 1px solid #e9ecef; margin-bottom: 5px;">';
+		html += '	<div class="row w-100">';
+		html += '		<div class="col-6">';
+		html += '			<h6 class="text-muted" style="line-height: 10px;">';
+		html += '				<div style="display: inline-block; width: 100%;">' + settings['caption'] + '</div>';
 		html += '			</h6>';
 		html += '		</div>';
-		html += '		<div class="col-3">';
-		html += '			<button type="button" data-toggle="button" style="scale: 0.5;" class="btn btn-toggle tree-dataset-btn" id="' + settings['name'] + 'popstruct_geojson-data" aria-pressed="true" autocomplete="off">';
+		html += '		<div class="col-2">';
+		html += '			<button type="button" data-toggle="button" style="scale: 0.6;" class="btn btn-toggle tree-dataset-btn" id="' + settings['name'] + 'popstruct_geojson-data" aria-pressed="true" autocomplete="off">';
 		html += '				<div class="handle"></div>';
 		html += '			</button>';
 		html += '		</div>';
 		html += '	</div>';
-		html += '</li>';
+		html += '	<div class="row w-100">';
+		html += '		<div class="col-12">';
+		html += '			<small class="text-muted">' + settings['small_caption'] + '</small>';
+		html += '		</div>';
+		html += '	</div>';
+		html += '</div>';
+		//html += '</li>';
 		
 		// Append html to container
 		$('#pop-struct-options-toggles').append(html);
@@ -1884,6 +1890,24 @@ var ct_ready_mapjs = function() {
  	* Initialize the trees of the map and the methods associated with the trees on load of the webpage *
 
 	***************************************************************************************************/
+
+	cartograplant.ui_show_all_population_structures_toggles = ui_show_all_population_structures_toggles;
+	ui_show_all_population_structures_toggles();
+	function ui_show_all_population_structures_toggles() {
+		var pop_struct_studies = Object.keys(Drupal.settings.popstruct_studies_info);
+		$('#pop-struct-options-toggles').html(''); //clear existing toggles
+		for (var i = 0; i < pop_struct_studies.length; i++) {
+			var study_id = pop_struct_studies[i];
+			var author = Drupal.settings.popstruct_studies_info[study_id]['author'];
+			var year = Drupal.settings.popstruct_studies_info[study_id]['year'];
+			var small_caption = author + ' (' + year + ')';
+			cartograplant.ui_add_pop_struct_toggle({
+				'caption': study_id,
+				'name': study_id,
+				'small_caption': small_caption
+			});
+		}
+	}
 
 
 	/*
@@ -2362,7 +2386,7 @@ var ct_ready_mapjs = function() {
 		// We need to get elevation
 		// Get Elevation from the GeoServer layer instead
 		console.log('showEnvData function');
-		var baseUrl = "https://treegenesdb.org/geoserver/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&QUERY_LAYERS=";
+		var baseUrl = "https://treegenesdb.org/geoserver/wms?SERVICE=WMS&VERSION=1.3.0&FEATURE_COUNT=1000&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&QUERY_LAYERS=";
 		var elevation_layer_name = "ct:elevation";
 		var getInfoUrl = baseUrl + elevation_layer_name + "&LAYERS=" + elevation_layer_name + "&INFO_FORMAT=application%2Fjson&I=128&J=128&WIDTH=256&HEIGHT=256&CRS=EPSG:4326&STYLES=&BBOX=" + bbox;
 		console.log('getInfoUrl elevation:' . getInfoUrl);
@@ -5413,7 +5437,7 @@ var ct_ready_mapjs = function() {
 		console.log('addEnvData function called');
 		$(htmlEle).html("");
 		//var baseUrl = "https://tgwebdev.cam.uchc.edu/geoserver/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&QUERY_LAYERS=";
-		var baseUrl = "https://treegenesdb.org/geoserver/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&QUERY_LAYERS=";
+		var baseUrl = "https://treegenesdb.org/geoserver/wms?SERVICE=WMS&VERSION=1.3.0&FEATURE_COUNT=1000&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&QUERY_LAYERS=";
 		// goes through each active layer, and adds the bounding box, and layer to be queried to the request url
 		let activeLayers = layersList.getActiveLayers();
 		if(debug) {
@@ -5737,7 +5761,7 @@ var ct_ready_mapjs = function() {
 						console.log('displayGeoserverLayersData:' + envLayer.name);
 						console.log(envLayer);
 						//var getInfoUrl = "https://treegenesdb.org/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&typeName="+ envLayer.name + "&maxFeatures=50&outputFormat=csv&BBOX=" + bbox;
-						var baseUrl = "https://treegenesdb.org/geoserver/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&QUERY_LAYERS=";
+						var baseUrl = "https://treegenesdb.org/geoserver/wms?SERVICE=WMS&VERSION=1.3.0&FEATURE_COUNT=1000&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&QUERY_LAYERS=";
 						var getInfoUrl = baseUrl + envLayer.name + "&LAYERS=" + envLayer.name + "&INFO_FORMAT=application%2Fjson&I=128&J=128&WIDTH=256&HEIGHT=256&CRS=EPSG:4326&STYLES=&BBOX=" + bbox;
 						console.log(getInfoUrl);
 						var xhr2 = $.ajax({
@@ -5748,39 +5772,60 @@ var ct_ready_mapjs = function() {
 									console.log(data);
 								}
 								try {
-									var featureProps = JSON.parse(data).features[0].properties;
-									console.log(featureProps);
-									console.log(envLayer);
-									var layer_text_element = '<div style="font-size: 9px; text-transform: uppercase;width: 100%; background-color: #18bb70; color: #FFFFFF; padding: 4px;">Environmental layer: ' + envLayer.title + '</div>';
-									$('.environmental-values').append(layer_text_element);
-									var table_container = '<table id="env_layer_' + envLayer.layer_id +  '_values" style="width: 100%;"></table>';
-									$('.environmental-values').append(table_container);
-									for (var k in featureProps) {
-										var feature = featureProps[k];
-										console.log(k);
-										console.log('feature:' + feature);
-										if (feature !== " " && feature !== "") { 
-											if(data_fields_hide['layer_embedded_fields_hide'].includes(k)) {
-												//hide it
-												console.log('Hiding embedded field with key:' + k + ' and values:' + feature);
+									var features_count = JSON.parse(data).features.length;
+									for (var fc_index = 0; fc_index < features_count; fc_index++) {
+										try {
+											var featureProps = JSON.parse(data).features[fc_index].properties;
+											console.log(featureProps);
+											console.log(envLayer);
+											
+											if (fc_index <= 0) { // Do not repeat the heading
+												var layer_text_element = '<div style="font-size: 9px; text-transform: uppercase;width: 100%; background-color: #18bb70; color: #FFFFFF; padding: 4px;">Environmental layer: ' + envLayer.title + '</div>';
+												$('.environmental-values').append(layer_text_element);
+												var features_count_element = '';
+												features_count_element += '<div style="font-size: 9px; text-transform: uppercase;width: 100%; background-color:rgb(86, 222, 159); color: #333333; padding: 4px;">';
+												// features_count_element += '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-diagram-3-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5zm-6 8A1.5 1.5 0 0 1 1.5 10h1A1.5 1.5 0 0 1 4 11.5v1A1.5 1.5 0 0 1 2.5 14h-1A1.5 1.5 0 0 1 0 12.5zm6 0A1.5 1.5 0 0 1 7.5 10h1a1.5 1.5 0 0 1 1.5 1.5v1A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5zm6 0a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5z"/></svg>';
+												features_count_element +=  features_count;
+												features_count_element += ' feature(s) available';
+												// features_count_element += '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-diagram-3-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5zm-6 8A1.5 1.5 0 0 1 1.5 10h1A1.5 1.5 0 0 1 4 11.5v1A1.5 1.5 0 0 1 2.5 14h-1A1.5 1.5 0 0 1 0 12.5zm6 0A1.5 1.5 0 0 1 7.5 10h1a1.5 1.5 0 0 1 1.5 1.5v1A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5zm6 0a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5z"/></svg>';
+												features_count_element += '</div>';
+												$('.environmental-values').append(features_count_element);
 											}
-											else {
-												if(isFloat(feature)) {
-													//try to round precision to 3 decimal places
-													if(envLayer.layer_embedded_data_decimal_precision != null) {
-														feature = feature.toFixed(envLayer.layer_embedded_data_decimal_precision);
+											var feature_text_element = '<div style="font-size: 9px; text-transform: uppercase;width: 100%; background-color:rgb(164, 255, 213); color:rgb(27, 77, 33); padding: 4px;">Feature ' + (fc_index + 1) + '</div>';
+											$('.environmental-values').append(feature_text_element);
+											var table_container = '<table id="env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index + '" style="width: 100%;"></table>';
+											$('.environmental-values').append(table_container);
+											for (var k in featureProps) {
+												var feature = featureProps[k];
+												console.log(k);
+												console.log('feature:' + feature);
+												if (feature !== " " && feature !== "") { 
+													if(data_fields_hide['layer_embedded_fields_hide'].includes(k)) {
+														//hide it
+														console.log('Hiding embedded field with key:' + k + ' and values:' + feature);
 													}
 													else {
-														// if null, precision should be set to 3
-														feature = feature.toFixed(3);
+														if(isFloat(feature)) {
+															//try to round precision to 3 decimal places
+															if(envLayer.layer_embedded_data_decimal_precision != null) {
+																feature = feature.toFixed(envLayer.layer_embedded_data_decimal_precision);
+															}
+															else {
+																// if null, precision should be set to 3
+																feature = feature.toFixed(3);
+															}
+														}
+														var url_uiapi_get_layer_embedded_data_eval = Drupal.settings.base_url + '/cartogratree_uiapi/get_layer_embedded_data_eval/' + envLayer.layer_id;
+														console.log(url_uiapi_get_layer_embedded_data_eval);
+														perform_layer_embedded_data_eval(url_uiapi_get_layer_embedded_data_eval, fc_index, k, feature, replace_keys, replace_keys_new, envLayer, bbox);
 													}
 												}
-												var url_uiapi_get_layer_embedded_data_eval = Drupal.settings.base_url + '/cartogratree_uiapi/get_layer_embedded_data_eval/' + envLayer.layer_id;
-												console.log(url_uiapi_get_layer_embedded_data_eval);
-												perform_layer_embedded_data_eval(url_uiapi_get_layer_embedded_data_eval, k, feature, replace_keys, replace_keys_new, envLayer, bbox);
+												//var units = getClimUnits(k);
 											}
 										}
-										//var units = getClimUnits(k);
+										catch (err) {
+											console.log(err);
+										}
 									}					
 								}
 								catch (err) {
@@ -5934,7 +5979,7 @@ var ct_ready_mapjs = function() {
 
 	}
 
-	function perform_layer_embedded_data_eval(url_uiapi_get_layer_embedded_data_eval, k, feature, replace_keys, replace_keys_new, envLayer, bbox) {
+	function perform_layer_embedded_data_eval(url_uiapi_get_layer_embedded_data_eval, fc_index, k, feature, replace_keys, replace_keys_new, envLayer, bbox) {
 		var edl = {};
 		var edl_key = Date.now() + '-data-eval';
 		var xhr = $.ajax({
@@ -5953,7 +5998,7 @@ var ct_ready_mapjs = function() {
 						if(data_embedded_data_eval_part_name == data_embedded_data_eval_i + 1) {
 							eval(data_embedded_data_eval_part_value);
 							var item_container = '<tr><td style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
-							$('#env_layer_' + envLayer.layer_id +  '_values').append(item_container);																	
+							$('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);																	
 						}
 						else if(data_embedded_data_eval_part_name == k) {
 							//Check to see if any of the keys need to be renamed
@@ -5970,11 +6015,11 @@ var ct_ready_mapjs = function() {
 							//eval("feature = feature + '_ok';");
 							eval(data_embedded_data_eval_part_value);
 							var item_container = '<tr><td style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
-							$('#env_layer_' + envLayer.layer_id +  '_values').append(item_container);																	
+							$('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);																	
 						}
 						else {
 							var item_container = '<tr><td style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
-							$('#env_layer_' + envLayer.layer_id +  '_values').append(item_container);	
+							$('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);	
 						}
 					}
 
@@ -5995,7 +6040,7 @@ var ct_ready_mapjs = function() {
 					//console.log('It came here 3:' + k + "=" + feature);
 					//eval("feature = feature + '_ok';");
 					var item_container = '<tr><td style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
-					$('#env_layer_' + envLayer.layer_id +  '_values').append(item_container);															
+					$('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);															
 				}
 				delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl_key];
 			},
@@ -6907,6 +6952,8 @@ var ct_ready_mapjs = function() {
 			}
 		}
 
+		console.log('Pop Struct Studies detected from overall tree features:', pop_struct_studies_added);
+
 		// Stop all lookups previously running
 		var ajax_requests_keys = Object.keys(cartograplant.ajax_requests['popstruct_filtering']['data_lookup_objects']);
 		for (var i = 0; i < ajax_requests_keys.length; i++) {
@@ -6935,17 +6982,21 @@ var ct_ready_mapjs = function() {
 				},
 				dataType: "json",
 				success: function (data) {
-					console.log('Pop Struct Plant Count data for study ' + study_id + ' dbxref: ' + dbxref_id, data);
+					console.log('Pop Struct Plant Count data for study ' + data['study_id'] + ' dbxref: ' + data['dbxref_id'], data);
 					if(debug) {
-						console.log('Pop Struct Plant Count for study ' + study_id + ': ' + data.length);
+						console.log('Pop Struct Plant Count for study ' + data['study_id'] + ': ' + data.length);
 					}
 					if (data['count'] == pop_struct_studies_added[data['study_id']]) {
 						// Check to see whether UI element already exists, if it does not, add the toggle element
-						if ($('#pop-struct-option-' + study_id).length == 0) {
+						if ($('#pop-struct-option-' + data['study_id']).length == 0) {
 							console.log('Adding pop struct UI toggle element from overall tree features');
+							var author = Drupal.settings.popstruct_studies_info[data['study_id']]['author'];
+							var year = Drupal.settings.popstruct_studies_info[data['study_id']]['year'];
+							var small_caption = author + ' (' + year + ')';
 							cartograplant.ui_add_pop_struct_toggle({
-								caption: study_id, // population structure accession
-								name: study_id
+								caption: data['study_id'], // population structure accession
+								name: data['study_id'],
+								small_caption: small_caption
 							});
 						}
 					}
@@ -7661,7 +7712,10 @@ var ct_ready_mapjs = function() {
 		}
 		catch(err) {
 			
-		}		
+		}
+		
+		ui_show_all_population_structures_toggles();
+		
 		resetFilters();
 
 		removeAllPopStructLayers();
@@ -9192,7 +9246,7 @@ var ct_ready_mapjs = function() {
 			console.log('[LAYERS-STATE]', getLayersState());
 
 			// Search to make sure the layer isn't already in the UI list container
-			var layer_unique_id = $(this).closest('.inner-layer-header').find('h7[id*="ct-layer-title"]').attr('id');
+			var layer_unique_id = $(this).closest('.inner-layer-header').find('div[id*="ct-layer-title"]').attr('id');
 			if ($('#map-opened-layers-list .opened-layer-' + layer_unique_id).length != 0) {
 				// This item already exists, so remove it
 				$('#map-opened-layers-list .opened-layer-' + layer_unique_id).remove();
@@ -9268,8 +9322,8 @@ var ct_ready_mapjs = function() {
 			console.log('[LAYERS-STATE]', getLayersState());
 
 			// Add to to layer list UI
-			var layer_unique_id = $(this).closest('.inner-layer-header').find('h7[id*="ct-layer-title"]').attr('id');
-			var layer_label = $(this).closest('.inner-layer-header').find('h7[id*="ct-layer-title"]').html();
+			var layer_unique_id = $(this).closest('.inner-layer-header').find('div[id*="ct-layer-title"]').attr('id');
+			var layer_label = $(this).closest('.inner-layer-header').find('div[id*="ct-layer-title"]').html();
 			var opened_layer_ui_html = '';
 			opened_layer_ui_html += '<div class="row opened-layer-list-item opened-layer-' + layer_unique_id + '">';
 			opened_layer_ui_html += '<div class="col-1"><i class="opened-layer-remove-icon fas fa-times-circle" style="cursor: pointer; font-size: 1.5em !important;!i;!; padding-left: 4px; color: #FFFFFF;"></i></div>';

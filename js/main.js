@@ -140,13 +140,12 @@ var ct_ready_mainjs = function () {
 			cartograplant.buildSelectOption("species", "Species", "string", ["equal", "not_equal"]), // 2
 			// cartograplant.buildSelectOption("marker_type", "Markers", "string", ["equal", "not_equal"]),
 			cartograplant.buildSelectOption("markers", "Markers", "string", ["equal", "not_equal"]), // 3
-			cartograplant.buildSelectOption("category", "Treesnap Category", "string", ["equal", "not_equal"]), // 4
+			//cartograplant.buildSelectOption("category", "Treesnap Category", "string", ["equal", "not_equal"]), // 4
 			// cartograplant.buildSelectOption("structure_name", "Plant Structure", "string", ["equal", "not_equal"]), //5
 			cartograplant.buildAutocompleteOption("structure_name", "Plant Structure", "string", Drupal.settings.options_data["plant_ontology"]), // 5
 			// cartograplant.buildSelectOption("phenotype_name", "Phenotype Attribute", "string", ["equal", "not_equal"]), // 6
 			cartograplant.buildAutocompleteOption("phenotype_name", "Phenotype Attribute", "string", Drupal.settings.options_data["cvterm"]), // 6
 			cartograplant.buildSelectOption("title", "Study Title", "string", ["equal", "not_equal"]), // 7
-
 			cartograplant.buildAutocompleteOption("author", "Study First Author", "string", Drupal.settings.options_tgdr["pub_author"].sort()), // 8
 			
 			cartograplant.buildAutocompleteOption("accession", "Study Accession", "string", Drupal.settings.options_tgdr["pub_tgdr"]), // 9
@@ -160,11 +159,11 @@ var ct_ready_mainjs = function () {
 		// cartograplant.populateOptions(3, Drupal.settings.options_data.marker_type, {'SSR':'nSSR'});
 		// cartograplant.populateOptions(3, Drupal.settings.options_data.markers, {'SSR':'nSSR'});
 		cartograplant.populateOptions(3, Drupal.settings.options_data.markers, {'microsatellite':'SSR'});
-		cartograplant.populateOptions(4, Drupal.settings.options_data.categories);
+		// cartograplant.populateOptions(4, Drupal.settings.options_data.categories);
 		// cartograplant.populateOptions(5, Drupal.settings.options_data.plant_ontology);
 		// cartograplant.populateOptions(6, Drupal.settings.options_data["cvterm"]);
 		// populateOptions(5, Drupal.settings.options_data.phenotype);
-		cartograplant.populateOptions(7, Drupal.settings.options_tgdr["pub_title"].sort());
+		cartograplant.populateOptions(6, Drupal.settings.options_tgdr["pub_title"].sort());
 		// cartograplant.populateOptions(7, Drupal.settings.options_tgdr["pub_author"].sort());
 		// cartograplant.populateOptions(8, Drupal.settings.options_tgdr["pub_tgdr"].sort());
 

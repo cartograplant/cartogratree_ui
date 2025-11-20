@@ -1781,13 +1781,19 @@ function cartogratree_get_popstruct_studies_list()
 function cartogratree_get_popstruct_studies_info_list()
 {
     // $sql = 'SELECT distinct(accession) as accession FROM public.ct_trees_all_view WHERE population IS NOT NULL;';
-    $sql = 'SELECT distinct(cpl.study_accession) as accession, dbxref_id FROM public.cartogratree_popstruct_layer cpl
-        JOIN chado.dbxref dbxref ON cpl.study_accession = dbxref.accession;';
+    $sql = 'SELECT distinct(cpl.study_accession) as accession, dbxref_id, author, year FROM public.cartogratree_popstruct_layer cpl
+        JOIN chado.dbxref dbxref ON cpl.study_accession = dbxref.accession LEFT JOIN chado.tpps_study_summary tss ON tss.accession = cpl.study_accession 
+        ORDER BY cpl.study_accession';
     $results = chado_query($sql, array());
     $popstruct_studies_info = [];
     foreach ($results as $row) {
+        $author = $row->author;
+        $author = rtrim($author, ',');
         $popstruct_studies_info[$row->accession] = [
-            'dbxref_id' => $row->dbxref_id
+            'dbxref_id' => $row->dbxref_id,
+            'author' => $author,
+            'year' => $row->year,
+
         ];
     }
     return $popstruct_studies_info;
