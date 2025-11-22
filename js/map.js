@@ -1773,7 +1773,7 @@ var ct_ready_mapjs = function() {
 		// }
 		var html = '';
 		//html += '<li class="list-group-item list-group-item-action d-flex">';
-		html += '<div class="p-1" style="border-bottom: 1px solid #e9ecef; margin-bottom: 5px;">';
+		html += '<div class="p-1" id="pop-struct-option-' + settings['name'] + '" style="border-bottom: 1px solid #e9ecef; margin-bottom: 5px;">';
 		html += '	<div class="row w-100">';
 		html += '		<div class="col-6">';
 		html += '			<h6 class="text-muted" style="line-height: 10px;">';
@@ -6984,12 +6984,12 @@ var ct_ready_mapjs = function() {
 				success: function (data) {
 					console.log('Pop Struct Plant Count data for study ' + data['study_id'] + ' dbxref: ' + data['dbxref_id'], data);
 					if(debug) {
-						console.log('Pop Struct Plant Count for study ' + data['study_id'] + ': ' + data.length);
+						console.log('Pop Struct Plant Count for study ' + data['study_id'] + ': ' + data['count']);
 					}
 					if (data['count'] == pop_struct_studies_added[data['study_id']]) {
 						// Check to see whether UI element already exists, if it does not, add the toggle element
 						if ($('#pop-struct-option-' + data['study_id']).length == 0) {
-							console.log('Adding pop struct UI toggle element from overall tree features');
+							console.log('Adding pop struct UI toggle element from overall tree features: ' + data['study_id']);
 							var author = Drupal.settings.popstruct_studies_info[data['study_id']]['author'];
 							var year = Drupal.settings.popstruct_studies_info[data['study_id']]['year'];
 							var small_caption = author + ' (' + year + ')';

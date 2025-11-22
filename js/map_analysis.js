@@ -1582,42 +1582,49 @@ var ct_ready_map_analysis = function() {
 							
 							var gt_check_study_refinement_html = '';
 							var study_combinations = Object.keys(data['response']['sampleDiscordance']);
-							for (var i = 0; i<study_combinations.length; i++) {
-								var study_combination = study_combinations[i];
-								var study_comb_arr = study_combination.split('-');
-								gt_check_study_refinement_html += '<div>Marker discordance between pairwise comparisons of genotypes in study ' + study_comb_arr[0] + ' and study ' + study_comb_arr[1] +'</div>';
+							if (study_combinations.length == 0) {
+								gt_check_study_refinement_html += '<div>No marker discordance was detected between samples in the selected studies.</div>';
+								gt_check_study_refinement_html += '<div style="margin-top: 5px;">You may now continue to MERGE VCFS</div>';
+								$('#analysis_gt_check_study_refinement').html(gt_check_study_refinement_html);
 							}
-							gt_check_study_refinement_html += '<div style="max-height: 200px; overflow-y: auto;">';
-							gt_check_study_refinement_html += '<table border=1 style="width: 100%;">';
-							gt_check_study_refinement_html += '<tr><th>Sample names</th>';
-							var study_combinations = Object.keys(data['response']['sampleDiscordance']);
-							for (var i = 0; i<study_combinations.length; i++) {
-								var study_combination = study_combinations[i];
-								gt_check_study_refinement_html += '<th>' + study_combination + '</th>';
-							}
-							gt_check_study_refinement_html += '</tr>';
-
-							for (var i = 0; i<study_combinations.length; i++) {
-								var study_combination = study_combinations[i];
-								var samples = Object.keys(data['response']['sampleDiscordance'][study_combination]);
-								for (var samples_i = 0; samples_i< samples.length; samples_i++) {
-									var sample = samples[samples_i];
-									gt_check_study_refinement_html += '<tr>';
-									gt_check_study_refinement_html += '<td>' + sample + '</td>';
-									gt_check_study_refinement_html += '<td>' + data['response']['sampleDiscordance'][study_combination][sample]['normDiscordance'] + '</td>';
-									gt_check_study_refinement_html += '</tr>';
+							else {
+								for (var i = 0; i<study_combinations.length; i++) {
+									var study_combination = study_combinations[i];
+									var study_comb_arr = study_combination.split('-');
+									gt_check_study_refinement_html += '<div>Marker discordance between pairwise comparisons of genotypes in study ' + study_comb_arr[0] + ' and study ' + study_comb_arr[1] +'</div>';
 								}
+								gt_check_study_refinement_html += '<div style="max-height: 200px; overflow-y: auto;">';
+								gt_check_study_refinement_html += '<table border=1 style="width: 100%;">';
+								gt_check_study_refinement_html += '<tr><th>Sample names</th>';
+								var study_combinations = Object.keys(data['response']['sampleDiscordance']);
+								for (var i = 0; i<study_combinations.length; i++) {
+									var study_combination = study_combinations[i];
+									gt_check_study_refinement_html += '<th>' + study_combination + '</th>';
+								}
+								gt_check_study_refinement_html += '</tr>';
+
+								for (var i = 0; i<study_combinations.length; i++) {
+									var study_combination = study_combinations[i];
+									var samples = Object.keys(data['response']['sampleDiscordance'][study_combination]);
+									for (var samples_i = 0; samples_i< samples.length; samples_i++) {
+										var sample = samples[samples_i];
+										gt_check_study_refinement_html += '<tr>';
+										gt_check_study_refinement_html += '<td>' + sample + '</td>';
+										gt_check_study_refinement_html += '<td>' + data['response']['sampleDiscordance'][study_combination][sample]['normDiscordance'] + '</td>';
+										gt_check_study_refinement_html += '</tr>';
+									}
+								}
+								gt_check_study_refinement_html += '</table>';
+								gt_check_study_refinement_html += '</div>';
+								gt_check_study_refinement_html += '<div style="margin-top: 10px;">* Please select one study to retain clones and then continue to MERGE VCFS</div>';
+								var studies = Object.keys(data['response']['vcfs']);
+								for (var i = 0; i < studies.length; i++) {
+									var study = studies[i];
+									gt_check_study_refinement_html += '<div><input type="checkbox" class="gt_check_study_refinement_checkbox" data-study="' + study + '" /> ' + study + '</div>';
+								}
+								
+								$('#analysis_gt_check_study_refinement').html(gt_check_study_refinement_html);
 							}
-							gt_check_study_refinement_html += '</table>';
-							gt_check_study_refinement_html += '</div>';
-							gt_check_study_refinement_html += '<div style="margin-top: 10px;">* Please select one study to retain clones and then continue to MERGE VCFS</div>';
-							var studies = Object.keys(data['response']['vcfs']);
-							for (var i = 0; i < studies.length; i++) {
-								var study = studies[i];
-								gt_check_study_refinement_html += '<div><input type="checkbox" class="gt_check_study_refinement_checkbox" data-study="' + study + '" /> ' + study + '</div>';
-							}
-							
-							$('#analysis_gt_check_study_refinement').html(gt_check_study_refinement_html);
 
 						}
 						else if (data['response']['success'] == 'false') {
@@ -1764,7 +1771,7 @@ var ct_ready_map_analysis = function() {
 							$('#analysis_merge_vcfs_status').html('<i class="fas fa-triangle-exclamation"></i> Study context failed - please contact administration for more details.<br />');
 							$('#analysis_merge_vcfs_status').append(generate_completion_message_html(data));
 							try {
-								clearInterval(analysis_timers['study_context_completion_json']);
+								clearInterval(analysis_timers['merge_vcfs_completion_json']);
 							} catch  (err) {
 								console.log('Error clearing timer', err);
 							}
