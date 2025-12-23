@@ -341,7 +341,20 @@ function cartogratree_uiapi_get_vcf_studies_indexed($tgdr_numbers_csv) {
     $analysis_name = "";
     $found_counter = 0;
     // This goes through the results where the analysis_name is in descending order
+    $analysis_indexer = [];
     foreach ($results_data as $row) {
+        $analysis_name_tmp = $row->analysis_name;
+        $analysis_name_tmp_parts = explode('genome v', $analysis_name_tmp);
+        if (empty($analysis_indexer[$row->analysis_name])) {
+            $analysis_indexer[$row->analysis_name] = [
+                'found_count' => 0,
+                'vcf_locations' => []
+            ];
+        }
+        $analysis_indexer[$row->analysis_name]['found_count'] = $analysis_indexer[$row->analysis_name]['found_count'] + 1;
+        if (!isset($analysis_indexer[$row->analysis_name]['vcf_locations'][$row->tgdr_accession])) {
+            $analysis_indexer[$row->analysis_name]['vcf_locations'][$row->tgdr_accession] = $row->vcf;
+        }
         // print_r($row);
         //print_r("\n");
         if ($row->analysis_name != $analysis_name) {
@@ -358,16 +371,30 @@ function cartogratree_uiapi_get_vcf_studies_indexed($tgdr_numbers_csv) {
                 $return_results['vcf_locations'][$row->tgdr_accession] = $row->vcf;
             }
         }
-        if ($found_counter == $study_count) {
-            $return_results['shared_analysis'] = $analysis_name;
-            $return_results['success'] = true;
-            break; // exit the for
+        // if ($found_counter == $study_count) {
+        //     $return_results['shared_analysis'] = $analysis_name;
+        //     $return_results['success'] = true;
+        //     break; // exit the for
+        // }
+    }
+    // if (!isset($return_results['success'])) {
+    //     $return_results['shared_analysis'] = "";
+    //     $return_results['success'] = false;
+    // }
+
+    // Go through each analysis indexer and see if all studies were found
+    $max_analysis_name = null;
+    $max_found_count = 0;
+    foreach ($analysis_indexer as $analysis_name_key => $analysis_data) {
+        if ($analysis_data['found_count'] > $max_found_count) {
+            $max_found_count = $analysis_data['found_count'];
+            $max_analysis_name = $analysis_name_key;
+            $return_results['vcf_locations'] = $analysis_data['vcf_locations'];
         }
     }
-    if (!isset($return_results['success'])) {
-        $return_results['shared_analysis'] = "";
-        $return_results['success'] = false;
-    }
+    $return_results['analysis_indexer'] = $analysis_indexer;
+    $return_results['success'] = true;
+    $return_results['shared_analysis'] = $max_analysis_name;
     drupal_json_output($return_results);
 }
 

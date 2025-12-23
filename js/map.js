@@ -8,6 +8,7 @@ var generate_snps_to_missing_freq_objects_array = [];
 var generate_snps_to_missing_freq_objects_total = 0;
 var generate_snps_to_missing_freq_objects_current = 0;
 
+var analysis_filter_and_imputation_structure_json = null;
 var ct_ready_mapjs = function() {
 //$(function () {
 	console.log(Drupal.settings);
@@ -5747,8 +5748,8 @@ var ct_ready_mapjs = function() {
 							replace_keys.push(data_fields_rename['layer_embedded_fields_rename'][field_rename_iterator].split(',')[0]);
 							replace_keys_new.push(data_fields_rename['layer_embedded_fields_rename'][field_rename_iterator].split(',')[1]);
 						}	
-						console.log(replace_keys);
-						console.log(replace_keys_new);
+						console.log('replace_keys', replace_keys);
+						console.log('replace_keys_new', replace_keys_new);
 						delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl1];
 
 						/*
@@ -5776,8 +5777,8 @@ var ct_ready_mapjs = function() {
 									for (var fc_index = 0; fc_index < features_count; fc_index++) {
 										try {
 											var featureProps = JSON.parse(data).features[fc_index].properties;
-											console.log(featureProps);
-											console.log(envLayer);
+											console.log('featurePropers', featureProps);
+											console.log('envLayer', envLayer);
 											
 											if (fc_index <= 0) { // Do not repeat the heading
 												var layer_text_element = '<div style="font-size: 9px; text-transform: uppercase;width: 100%; background-color: #18bb70; color: #FFFFFF; padding: 4px;">Environmental layer: ' + envLayer.title + '</div>';
@@ -5797,7 +5798,7 @@ var ct_ready_mapjs = function() {
 											$('.environmental-values').append(table_container);
 											for (var k in featureProps) {
 												var feature = featureProps[k];
-												console.log(k);
+												console.log('k in featureProps', k);
 												console.log('feature:' + feature);
 												if (feature !== " " && feature !== "") { 
 													if(data_fields_hide['layer_embedded_fields_hide'].includes(k)) {
@@ -5817,6 +5818,7 @@ var ct_ready_mapjs = function() {
 														}
 														var url_uiapi_get_layer_embedded_data_eval = Drupal.settings.base_url + '/cartogratree_uiapi/get_layer_embedded_data_eval/' + envLayer.layer_id;
 														console.log(url_uiapi_get_layer_embedded_data_eval);
+														console.log('perform_layer_embedded_data_eval with fc_index:' + fc_index + ', k:' + k + ', feature:' + feature);
 														perform_layer_embedded_data_eval(url_uiapi_get_layer_embedded_data_eval, fc_index, k, feature, replace_keys, replace_keys_new, envLayer, bbox);
 													}
 												}
@@ -5826,7 +5828,11 @@ var ct_ready_mapjs = function() {
 										catch (err) {
 											console.log(err);
 										}
-									}					
+									}
+									// Caters for raster layers that do not have features
+									if (fc_index == 0) {
+										// Only replace the default value for raster layers
+									}
 								}
 								catch (err) {
 									console.log(err);
@@ -5986,6 +5992,22 @@ var ct_ready_mapjs = function() {
 			url: url_uiapi_get_layer_embedded_data_eval,
 			dataType: "json",
 			success: function(data_embedded_data_eval) {
+				// Priority 1 - Rename any keys first based on replace_keys and replace_keys_new arrays
+				//Check to see if any of the keys need to be renamed
+				console.log('replace_keys', replace_keys);
+				if(replace_keys.includes(k)) {
+					for(var replace_keys_iterator=0; replace_keys_iterator < replace_keys.length; replace_keys_iterator++) {
+						console.log('Replace_keys found k:' + k + ' with ' + replace_keys_new[replace_keys_iterator]);
+						if(replace_keys[replace_keys_iterator] == k) {
+							console.log('IF STATEMENT - Replace_keys found k:' + k + ' with ' + replace_keys_new[replace_keys_iterator]);
+							k = replace_keys_new[replace_keys_iterator];
+							break;
+						}
+					}
+				}
+														
+				
+				// Priority 2 - Then perform any evals based on the embedded data eval settings
 				if(data_embedded_data_eval['layer_embedded_data_eval'].length != 0) {
 					for(var data_embedded_data_eval_i = 0; data_embedded_data_eval_i < data_embedded_data_eval['layer_embedded_data_eval'].length; data_embedded_data_eval_i++) {
 						var data_embedded_data_eval_parts = data_embedded_data_eval['layer_embedded_data_eval'][data_embedded_data_eval_i].split(',',2);
@@ -6022,25 +6044,12 @@ var ct_ready_mapjs = function() {
 							$('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);	
 						}
 					}
-
 				}
 				else {
-					//Check to see if any of the keys need to be renamed
-					console.log('replace_keys', replace_keys);
-					if(replace_keys.includes(k)) {
-						for(var replace_keys_iterator=0; replace_keys_iterator < replace_keys.length; replace_keys_iterator++) {
-							console.log('Replace_keys found k:' + k + ' with ' + replace_keys_new[replace_keys_iterator]);
-							if(replace_keys[replace_keys_iterator] == k) {
-								console.log('IF STATEMENT - Replace_keys found k:' + k + ' with ' + replace_keys_new[replace_keys_iterator]);
-								k = replace_keys_new[replace_keys_iterator];
-								break;
-							}
-						}
-					}
 					//console.log('It came here 3:' + k + "=" + feature);
 					//eval("feature = feature + '_ok';");
 					var item_container = '<tr><td style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
-					$('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);															
+					$('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);	
 				}
 				delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl_key];
 			},
@@ -8180,7 +8189,8 @@ var ct_ready_mapjs = function() {
 		// 	return;			
 		// }
 
-		var html = '<div style="float: left;" class="vcf_detection_loading"><!-- <img style="width: 48px; margin-top: 18px; margin-left: 15px; margin-right: 15px;" src="' + cartograplant.loading_icon_src + '"/> --></div>';
+		var html = '<div>This page enables the filtering of marker data. All data filtered out at this step will be unavailable for continuing analysis. Filtering can be performed at the marker, genotype, or individual level. Histograms describing the distribution of each selected statistic will be displayed to aid in filtering.</div>';
+		html += '<div style="float: left;" class="vcf_detection_loading"><!-- <img style="width: 48px; margin-top: 18px; margin-left: 15px; margin-right: 15px;" src="' + cartograplant.loading_icon_src + '"/> --></div>';
 		
 		html += '<div class="status"></div>';
 		html += '<div class="detected_vcf_information"></div>';
@@ -8304,6 +8314,7 @@ var ct_ready_mapjs = function() {
 					}
 					// This function now handles multiple studies using a different options compared to the previous version
 					console.log('Structured JSON', structured_json);
+					analysis_filter_and_imputation_structure_json = structured_json; // Make it global for other functions to use
 					cartograplant['generate_nextflow_variant_filtering_ui'](structured_json);
 
 
@@ -8318,10 +8329,6 @@ var ct_ready_mapjs = function() {
 			}
 		});
 		
-
-		
-
-
 		$("#snp-chart").html("");
 
 		// append the svg object to the body of the page

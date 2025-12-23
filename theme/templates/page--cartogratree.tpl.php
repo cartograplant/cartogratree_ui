@@ -253,7 +253,7 @@
 
 <!-- Analysis form -->
 <div class="modal fade" id="analysis-form" tabindex="-1" role="dialog" aria-labelledby="analyzeMap" aria-hidden="true">
-    <div class="modal-dialog" style="width: 100% !important; max-width: 75% !important;" role="document">
+    <div class="modal-dialog" style="width: 100% !important; max-width: 90% !important;" role="document">
         <div class="modal-content">
             <div class="modal-header">
 				<div class="row" style="width: 100%;">
@@ -483,6 +483,11 @@
 							<div id="analysis-overlapping-traits" class="tab-pane fade in inactive">	
 								<div class="analysis-tab-content">
 									<div style="margin-bottom: 10px;">
+										<div class="top-description">
+										This page enables the study-level selection of phenotypic data. Measure counts both per study and per intersection of studies are displayed within the UpSet plot below. Clicking a bar within this plot will select all measures associated with the bar's associated study or studies. Measures must be selected to be used later in analysis.
+										</div>
+									</div>
+									<div style="margin-bottom: 10px;">
 										<div id="analysis-overlapping-traits-studies"></div>
 									</div>
 									
@@ -617,15 +622,16 @@
 
 							<div id="analysis-popstruct-section" class="tab-pane fade">
 								<div class="analysis-tab-content">
+									<div class="top-description">This page enables the inference of population structure within a dataset. You may choose to infer population structure at a range of complexity values K: to do so, enter a comma-separated list of integer values (e.g., 3,4,5). Additional parameters exist to enable the pruning of linkage disequilibrium and for the tuning of the inference algorithm.</div>
 									<h4>Nextflow Population Structure Workflow</h4>
-									<table id="nextflow-population-structure-workflow-container">
+									<table id="nextflow-population-structure-workflow-container" style="width: 100%;">
 										<tr>
-											<td style="width: 35%">
+											<td style="width: 100%">
 												<div id="nextflow-population-structure-workflow" ></div>
 											</td>
-											<td style="width: 65%">
+											<!-- <td style="width: 65%">
 												<div id="nextflow-population-structure-visualization" style="vertical-align: top;"></div>
-											</td>
+											</td> -->
 										</tr>
 									</table>
 									<div style="display: none;">
@@ -673,6 +679,7 @@
 								<div class="analysis-tab-content">
 									<div class="row">
 										<div class="col">
+											<div class="top-description" style="margin-bottom:10px;">This page enables the selection of stored environmental layer data. Selected data can be downloaded or used for further analysis.</div>
 											<!-- class: align-items-center -->
 											<div class="form-row" style="height: 100%;">
 												<div class="col-md-8 my-1">
@@ -711,6 +718,7 @@
 							<!-- analysis-create-analysis-section -->
 							<div id="analysis-create-analysis-section" class="tab-pane fade">
 								<div class="analysis-tab-content" >
+									<div class="top-description" style="margin-bottom:10px;">This page enables the performance of genome-wide association analysis. GEMMA can be used to analyze associations between genotypic and environmental data with its LFMM (latent factor mixed model), or it can be used to analyze associations between genotypic and phenotypic data with its LM (linear model).</div>
 									<div id="nextflow-gwas-interface-container">
 										<div><h4>Nextflow - Marker Association Workflow</h4></div>
 										<table width="100%">

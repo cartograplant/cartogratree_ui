@@ -740,6 +740,15 @@ select {
   opacity: .5 !important;
 }
 
+.top-description {
+  background-color: #f3fff8;
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 14px;
+  color: #000000;
+  border: 1px solid #ddf3f0;
+}
+
 .navbar-brand img{
   width: 35vh;
 }

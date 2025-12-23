@@ -1174,7 +1174,7 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
         $form['fieldset_layer_data_manipulation_config']['layer_embedded_fields_rename'] = array(
         	'#type' => 'textarea',
         	'#title' => 'Layer embedded fields to rename',
-        	'#description' => 'List each field,replacement name on a single line (this is case sensitive)',
+        	'#description' => 'List each field,replacement name on a single line (this is case sensitive)<br />Example: GRAY_INDEX,Height',
             '#default_value' => (isset($obj->layer_embedded_fields_rename)) ? $obj->layer_embedded_fields_rename : '',
             '#suffix' => '<a target="_blank" href="/cartogratree_uiapi/get_layer_embedded_fields_rename/' . $obj->layer_id . '">API URL - Layer embedded fields to rename</a><br /><br />',
         );    
@@ -1182,7 +1182,7 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
         $form['fieldset_layer_data_manipulation_config']['layer_embedded_data_eval'] = array(
         	'#type' => 'textarea',
         	'#title' => 'Layer embedded fields eval manipulations',
-        	'#description' => 'Field,Javascript eval code',
+        	'#description' => "Field,Javascript eval code<br />Example code: 1, feature = feature + ' meters';<br />Where the field index is 1 (meaning the first field) and feature variable which contains the value extracted from the layer, so this code would appending the text ' meters' to the feature variable.",
             '#default_value' => (isset($obj->layer_embedded_data_eval)) ? $obj->layer_embedded_data_eval : '',
             '#suffix' => '<a target="_blank" href="/cartogratree_uiapi/get_layer_embedded_data_eval/' . $obj->layer_id . '">API URL - Layer embedded data eval</a><br /><br />',
         );     
@@ -1253,22 +1253,38 @@ function cartogratree_admin_settings_layer_form_get_embedded_raw_field_names_cal
     if($gis != FALSE) {
         $layer_name = $form_state['values']['machine_name'];
         $bbox = '0,0,256,256';
-        $url = $gis . "?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&maxFeatures=1&QUERY_LAYERS=";
+        $url = $gis . "?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&maxFeatures=1&QUERY_LAYERS=" . $layer_name . "&LAYERS=" . $layer_name . "&INFO_FORMAT=application%2Fjson&I=128&J=128&WIDTH=256&HEIGHT=256&CRS=EPSG:4326&STYLES=";
+        // $url .= "&BBOX=" . $bbox;
+        $url_wfs = $gis . "/../wfs?service=WFS&version=1.0.0&request=DescribeFeatureType&typeName=" . $layer_name;
         //$getInfoUrl = $url . $layer_name . "&LAYERS=" . $layer_name . "&INFO_FORMAT=application%2Fjson&I=128&J=128&WIDTH=256&HEIGHT=256&CRS=EPSG:4326&STYLES=";
         //$getInfoUrl .= "&BBOX=" . $bbox; 
         if(substr($gis,strlen($gis)-1,strlen($gis)) != "/") {
             $gis = $gis . "/";
         }
-        $getInfoUrl = $gis . "../wfs?service=WFS&version=1.0.0&request=GetFeature&typeName=" . $layer_name . "&maxFeatures=1&outputFormat=csv&BBOX=" . $bbox;       
-        $results = file_get_contents($getInfoUrl);
+        $getInfoUrl_small_area = $gis . "../wfs?service=WFS&version=1.0.0&request=GetFeature&typeName=" . $layer_name . "&maxFeatures=1&outputFormat=csv&BBOX=" . $bbox;
+        $getInfoUrl_whole_world = $url . "&BBOX=-180,-90,180,90";
+        try {    
+            $results = file_get_contents($getInfoUrl_small_area);
+        } catch (Exception $e) {
+            return "Error retrieving field names from GIS server.";
+        }
+        
         $lines = explode("\n", $results);
         $results_csv_parts = explode(",", trim(@$lines[0]));
         $results_html = "";
+
+        // for ($i = 0; $i < strlen($results_csv_parts[0]); $i++) {
+        //     // Get ASCII value of each character
+        //     $ascii_values[] = ord($results_csv_parts[0][$i]);
+        // }
+        // echo "ASCII values: " . implode(", ", $ascii_values);
+        // return implode(", ", $ascii_values);
+        // return "OK" . $results_csv_parts[0] . "OK";
         foreach($results_csv_parts as $field_name) {
             $results_html .= "<div style='background-color: #0fb360; color: #FFFFFF; padding: 5px; display: inline-block; margin-left: 5px; margin-right: 5px; border-radius: 4px;'>" . $field_name . "</div>";
         }
-        if(count($results) == 0) {
-            return "No field names returned.";
+        if(count($results_csv_parts) == 1 and stripos($results_csv_parts[0],'<?') !== FALSE) {
+            return "No field names returned. You may have to log into Geoserver to look for the field names manually if the layer is a rasterized layer.";
         }
         else {
             return $results_html;

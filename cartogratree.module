@@ -330,6 +330,19 @@ function cartogratree_menu()
         ),
     );
 
+    $items['cartogratree_uianalysis/cartogratree_analysisapi_lookup_study_info_overlap_count/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: lookup study info',
+        'title' => 'Cartogratree ANALYSIS API: lookup study info',
+        'page callback' => 'cartogratree_analysisapi_lookup_study_info_overlap_count',
+        'page arguments' => array(
+            2,
+        ),
+        'file' => 'includes/cartogratree.analysis.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
 
     $items['cartogratree_uianalysis/cartogratree_analysisapi_lookup_study_ref_genome/%'] = array(
         'description' => 'Cartogratree ANALYSIS API: lookup study ref genome',

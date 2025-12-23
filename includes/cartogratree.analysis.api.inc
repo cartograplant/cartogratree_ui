@@ -1,6 +1,26 @@
 <?php
 
+function cartogratree_analysisapi_lookup_study_info_overlap_count($study_accession) {
+    $sql = "SELECT scmo.overlap_count FROM chado.study_combinations_marker_overlaps scmo 
+    JOIN chado.vcf_locations_view vlv ON vlv.tgdr_accession = ANY(scmo.combo) 
+    WHERE vlv.tgdr_accession = :study_accession 
+    AND cardinality(scmo.combo) = 1 
+    AND vlv.is_original = 't' 
+    AND vlv.analysis_name = scmo.analysis_name 
+    ORDER BY vlv.analysis_name DESC;";
 
+    $results = chado_query($sql, [
+        ':study_accession' => $study_accession
+    ]);
+
+    $result = [];
+    foreach ($results as $row) {
+        $result['row'] = $row;
+    }
+    $result['accession'] = $study_accession;
+    drupal_json_output($result);
+
+}
 
 function cartogratree_analysisapi_lookup_study_info($study_accession) {
     $results = chado_query("SELECT * FROM chado.tpps_study_summary WHERE accession = :study_accession LIMIT 1", [

@@ -1,4 +1,5 @@
 var analysis_study_context = {};
+var shared_analysis_name = null;
 var analysis_completion_json = {
 	analysis_study_context: {},
 	analysis_study_filter_markers_and_genotypes: {},
@@ -954,7 +955,11 @@ var ct_ready_map_analysis = function() {
 		console.log('DEBUG: analysis_study_context', analysis_completion_json['analysis_study_context'])
 		console.log('DEBUG: payload', payload);
 		console.log('DEBUG: analysis_study_filter_markers_and_genotypes', analysis_completion_json['analysis_study_filter_markers_and_genotypes']);
-		payload['studies'][study_accession]['vcf'] = analysis_completion_json['analysis_study_filter_markers_and_genotypes'][study_accession]['studies'][study_accession]['vcf'];
+		// payload['studies'][study_accession]['vcf'] = analysis_completion_json['analysis_study_filter_markers_and_genotypes'][study_accession]['studies'][study_accession]['vcf'];
+		payload = analysis_filter_and_imputation_structure_json;
+		if (payload == null || payload == undefined) {
+			alert('Payload is empty, this data comes from the study context step, please redo that step.');
+		}
 		console.log('Payload generated for variant_filtering_panel_filter_and_imputation', payload);
 
 
@@ -973,6 +978,13 @@ var ct_ready_map_analysis = function() {
 			success: function (data) {
 				$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .status-process')
 				.html('Filtering has completed.');
+				console.log('Filter and imputation data response', data);
+				data = JSON.parse(data);
+				if (data['completion_message'] != undefined) {
+					console.log('data completion_message', data['completion_message']);
+					$('#analysis_summary_genotypes_count').html(data['completion_message']['studies']['combined_filltags']['markerCount'] + ' filtered');
+					$('#analysis_summary_plants_count').html(data['completion_message']['studies']['combined_filltags']['sampleCount'] + ' filtered');
+				}
 			}
 		});
 
@@ -1232,7 +1244,7 @@ var ct_ready_map_analysis = function() {
 		// Trees count
 		var trees_count = analysis_includedTrees.length;
 		//$('#analysis-num-pub').html(trees_count);
-		var el_tc = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 6em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Plants</div><div style="text-align: center;">' + trees_count + '</div></div>').fadeOut(100);
+		var el_tc = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 6em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Plants</div><div id="analysis_summary_plants_count" style="text-align: center;">' + trees_count + '</div></div>').fadeOut(100);
 
 
 		// // Unique Species count
@@ -1349,7 +1361,8 @@ var ct_ready_map_analysis = function() {
 
 
 
-		var el_ge = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 9em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Genotypes</div><div style="text-align: center;">' + genotypes_selected_count + '</div></div>').fadeOut(100);
+		var el_ge = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 9em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Genotypes</div><div id="analysis_summary_genotypes_count" style="text-align: center;">' + genotypes_selected_count + '</div></div>').fadeOut(100);
+		
 		var environmentals_selected_count = 0;
 		$('.analysis_category_groups_layer_property_checkbox').each(function () {
 			if ($(this).is(':checked')) {
@@ -1470,7 +1483,7 @@ var ct_ready_map_analysis = function() {
 		}
 		gt_check_payload = {
 			studies: {},
-			markers: [],
+			// markers: [], // DEPRECATED 12/10/2025 - Nextflow now looks up the markers from the DB based on the studies selected for overlap
 			sampleDiscordance: null
 		};
 		console.log('analysis_study_context', analysis_completion_json['analysis_study_context']);
@@ -1484,19 +1497,37 @@ var ct_ready_map_analysis = function() {
 			}
 
 			var studies_overlap_selections = [];
+
+			// OLD CODE - 12/10/2025 DEPRECATED IN FAVOR OF NEXTFLOW LOOKING UP THE QUERY FOR OVERLAPS FROM THE DB
+			// var studies_overlap_csv_keys = Object.keys(shared_marker_information);
+			// var markers_tmp = {};
+			// for (var i = 0; i < studies_overlap_csv_keys.length; i++) {
+			// 	var studies_csv = studies_overlap_csv_keys[i];
+
+			// 	// Use shared_marker_information to get the markers and put this into an object
+			// 	// so that we only get unique keys/markers
+			// 	var marker_information = shared_marker_information[studies_csv];
+			// 	for (var j = 0; j < marker_information['markers'].length; j++) {
+			// 		var marker = marker_information['markers'][j];
+			// 		markers_tmp[marker] = true;
+			// 	}
+
+			// 	// Now add the studies to the studies_overlap_selections
+			// 	// if the studies_overlap_selections does not include the study, then add it
+			// 	var studies_arr = studies_csv.split(',');
+			// 	for (var j = 0; j < studies_arr.length; j++) {
+			// 		// if the studies_overlap_selections does not include the study, then add it
+			// 		if (studies_overlap_selections.includes(studies_arr[j]) == false) {
+			// 			studies_overlap_selections.push(studies_arr[j]);
+			// 		}
+			// 	}
+			// }
+			// var markers = Object.keys(markers_tmp);
+			// gt_check_payload['markers'] = markers;
+
 			var studies_overlap_csv_keys = Object.keys(shared_marker_information);
-			var markers_tmp = {};
 			for (var i = 0; i < studies_overlap_csv_keys.length; i++) {
 				var studies_csv = studies_overlap_csv_keys[i];
-
-				// Use shared_marker_information to get the markers and put this into an object
-				// so that we only get unique keys/markers
-				var marker_information = shared_marker_information[studies_csv];
-				for (var j = 0; j < marker_information['markers'].length; j++) {
-					var marker = marker_information['markers'][j];
-					markers_tmp[marker] = true;
-				}
-
 				// Now add the studies to the studies_overlap_selections
 				// if the studies_overlap_selections does not include the study, then add it
 				var studies_arr = studies_csv.split(',');
@@ -1507,8 +1538,6 @@ var ct_ready_map_analysis = function() {
 					}
 				}
 			}
-			var markers = Object.keys(markers_tmp);
-			gt_check_payload['markers'] = markers;
 
 			var studies = Object.keys(analysis_completion_json['analysis_study_context']['studies']);
 			for (var i = 0; i < studies.length; i++) {
@@ -1811,11 +1840,12 @@ var ct_ready_map_analysis = function() {
 		// var studies = Object.keys(cartograplant.detected_studies);
 		var studies = get_selections_studies();
 
-		$('#analysis-overlapping-genotypes-summary-insights').html('<img style="height: 16px;" src="' + loading_icon_src + '" /> Loading genotypic information... please wait...');
-		
+		// $('#analysis-overlapping-genotypes-summary-insights').html('<img style="height: 16px;" src="' + loading_icon_src + '" /> Loading genotypic information... please wait...');
+		$('#analysis-overlapping-genotypes-summary-insights').html('');
 		console.log('Genotype tab click');
 		// Overlapping Genotype tab
-		var study_info_html = 'Instructions: Please select the studies or study intersections by clicking on the Upset plot bars below. Then you can perform a genotypes check to identify potential duplicate samples across studies. Finally, you can merge the VCF files from the selected studies into a single VCF file for downstream analysis.<br /><br />';
+		var study_info_html = "<div class='top-description' style='margin-bottom: 10px;'>This page enables the study-level selection of genotypic data. Marker counts both per study and per intersection of studies are displayed within the UpSet plot below. Clicking a bar within this plot will select all markers associated with the bar's associated study or studies. If a bar associated with more than one study is selected, the button Run VCF-merge must be clicked before continuing with analysis. This button merges all VCF data associated with selected studies into a single VCF.</div>";
+		// study_info_html += '<div>Instructions: Please select the studies or study intersections by clicking on the Upset plot bars below. Then you can perform a genotypes check to identify potential duplicate samples across studies. Finally, you can merge the VCF files from the selected studies into a single VCF file for downstream analysis.</div>';
 		study_info_html += '';
 		if (studies.length == 0) {
 			study_info_html += '⚠️ ';
@@ -1888,12 +1918,13 @@ var ct_ready_map_analysis = function() {
 					var ref_genomes_string = '';
 					for(var i = 0; i < data['ref_genomes'].length; i++) {
 						if (data['ref_genomes'][i] != null && data['ref_genomes'][i] != undefined) {
-							if (i == 0) {
-								ref_genomes_string += data['organism_names'][i] + ' has reference genome: ' + data['ref_genomes'][i];
-							}
-							else {
-								ref_genomes_string += ', ' + data['organism_names'][i] + ' has reference genome: ' + data['ref_genomes'][i];	
-							}
+							// if (i == 0) {
+							// 	ref_genomes_string += data['organism_names'][i] + ' has reference genome: ' + data['ref_genomes'][i];
+							// }
+							// else {
+							// 	ref_genomes_string += ', ' + data['organism_names'][i] + ' has reference genome: ' + data['ref_genomes'][i];	
+							// }
+							ref_genomes_string += '<li style="margin-left: 30px;">' + data['organism_names'][i] + ' has reference genome: ' + data['ref_genomes'][i] + '</li>';
 						}
 						else {
 							if (i == 0) {
@@ -1908,7 +1939,9 @@ var ct_ready_map_analysis = function() {
 					var set_html = "<div>";
 					set_html += data['study_accession'] + ': ' + ref_genomes_string;
 					set_html += "</div>";
-					$('#analysis-overlapping-genotypes-refgenome').append(set_html);
+					if (data['ref_genomes'].length > 0 && data['ref_genomes'][0] != null) {
+						$('#analysis-overlapping-genotypes-refgenome').append(set_html);
+					}
 				}
 			});
 		}
@@ -2127,132 +2160,132 @@ var ct_ready_map_analysis = function() {
 						success: function(data) {
 							console.log('snps_overlaps_by_studies_views data results', data);
 							data = JSON.parse(data);
-							var insights_html = "";
-							if(data.snps_grid_overlap_array != undefined) {
-								var overlap_arr = data.snps_grid_overlap_array;
-								insights_html += "<h4>Insights</h4>";
-								insights_html += "We analyzed " + overlap_arr.length + ' studies and discovered the following:<br />';
-								insights_html += "There are a total of " + overlap_arr[0]['overlap_all'] + ' SNP overlaps across all ' + overlap_arr.length + ' studies<br />';
-								insights_html += '<div id="genotype-insights-shared-dataset-status"></div>';
-								insights_html += '<div id="genotype-insights-shared-trees-status"></div>';
+							// var insights_html = "";
+							// if(data.snps_grid_overlap_array != undefined) {
+							// 	var overlap_arr = data.snps_grid_overlap_array;
+							// 	insights_html += "<h4>Insights</h4>";
+							// 	insights_html += "We analyzed " + overlap_arr.length + ' studies and discovered the following:<br />';
+							// 	insights_html += "There are a total of " + overlap_arr[0]['overlap_all'] + ' SNP overlaps across all ' + overlap_arr.length + ' studies<br />';
+							// 	insights_html += '<div id="genotype-insights-shared-dataset-status"></div>';
+							// 	insights_html += '<div id="genotype-insights-shared-trees-status"></div>';
 								
-								// Check for highest total overlaps
-								var highest_overlap_total_study = "";
-								var highest_overlap_total_value = -1;
-								for(var i=0; i<overlap_arr.length; i++) {
-									var study_id = overlap_arr[i]['study_name'];
-									if(highest_overlap_total_value < (parseInt(overlap_arr[i]['overlap_some']) + parseInt(overlap_arr[i]['overlap_all']))) {
-										highest_overlap_total_study = study_id;
-										highest_overlap_total_value = parseInt(overlap_arr[i]['overlap_some']) + parseInt(overlap_arr[i]['overlap_all']);
-									}
-								}
-								if(highest_overlap_total_value > -1 && highest_overlap_total_value > 0) {
-									if(studies.length > 2) {
-										insights_html += "Study " + highest_overlap_total_study + " contains the highest SNP overlaps (" + highest_overlap_total_value + ") between all studies<br />";
-									}
-								}					
+							// 	// Check for highest total overlaps
+							// 	var highest_overlap_total_study = "";
+							// 	var highest_overlap_total_value = -1;
+							// 	for(var i=0; i<overlap_arr.length; i++) {
+							// 		var study_id = overlap_arr[i]['study_name'];
+							// 		if(highest_overlap_total_value < (parseInt(overlap_arr[i]['overlap_some']) + parseInt(overlap_arr[i]['overlap_all']))) {
+							// 			highest_overlap_total_study = study_id;
+							// 			highest_overlap_total_value = parseInt(overlap_arr[i]['overlap_some']) + parseInt(overlap_arr[i]['overlap_all']);
+							// 		}
+							// 	}
+							// 	if(highest_overlap_total_value > -1 && highest_overlap_total_value > 0) {
+							// 		if(studies.length > 2) {
+							// 			insights_html += "Study " + highest_overlap_total_study + " contains the highest SNP overlaps (" + highest_overlap_total_value + ") between all studies<br />";
+							// 		}
+							// 	}					
 								
-								// Check for highest overlap some
-								var highest_overlap_some_study = "";
-								var highest_overlap_some_value = -1;
-								for(var i=0; i<overlap_arr.length; i++) {
-									var study_id = overlap_arr[i]['study_name'];
-									if(highest_overlap_some_value < parseInt(overlap_arr[i]['overlap_some'])) {
-										highest_overlap_some_study = study_id;
-										highest_overlap_some_value = parseInt(overlap_arr[i]['overlap_some']);
-									}
-								}
-								if(highest_overlap_some_value > -1 && highest_overlap_some_value > 0) {
-									insights_html += "Study " + highest_overlap_some_study + " contains the highest SNP overlaps (" + highest_overlap_some_value + ") between some studies<br />";
-								}
+							// 	// Check for highest overlap some
+							// 	var highest_overlap_some_study = "";
+							// 	var highest_overlap_some_value = -1;
+							// 	for(var i=0; i<overlap_arr.length; i++) {
+							// 		var study_id = overlap_arr[i]['study_name'];
+							// 		if(highest_overlap_some_value < parseInt(overlap_arr[i]['overlap_some'])) {
+							// 			highest_overlap_some_study = study_id;
+							// 			highest_overlap_some_value = parseInt(overlap_arr[i]['overlap_some']);
+							// 		}
+							// 	}
+							// 	if(highest_overlap_some_value > -1 && highest_overlap_some_value > 0) {
+							// 		insights_html += "Study " + highest_overlap_some_study + " contains the highest SNP overlaps (" + highest_overlap_some_value + ") between some studies<br />";
+							// 	}
 								
-								// Process the venn_array
-								// var track_data_venn_sets = {};
-								var set_html = "";
-								// set_html += '<div class="h4">Genotype marker overlaps between studies</div>';
-								// for(var i=0; i<sets.length; i++) {
-								// 	var set_object = sets[i];
-								// 	console.log('set_object', set_object);
-								// 	var set = set_object['sets'];
-								// 	// if the set size is more than 1, it's overlap between
-								// 	if(set != undefined) {
-								// 		if(set.length > 1) {
-								// 			var data_venn_sets = "";
-								// 			for(var j=0; j<set.length; j++) {
-								// 				if (j>0) {
-								// 					data_venn_sets += '_';
-								// 				}
-								// 				data_venn_sets += set[j];
-								// 			}
+							// 	// Process the venn_array
+							// 	// var track_data_venn_sets = {};
+							// 	var set_html = "";
+							// 	// set_html += '<div class="h4">Genotype marker overlaps between studies</div>';
+							// 	// for(var i=0; i<sets.length; i++) {
+							// 	// 	var set_object = sets[i];
+							// 	// 	console.log('set_object', set_object);
+							// 	// 	var set = set_object['sets'];
+							// 	// 	// if the set size is more than 1, it's overlap between
+							// 	// 	if(set != undefined) {
+							// 	// 		if(set.length > 1) {
+							// 	// 			var data_venn_sets = "";
+							// 	// 			for(var j=0; j<set.length; j++) {
+							// 	// 				if (j>0) {
+							// 	// 					data_venn_sets += '_';
+							// 	// 				}
+							// 	// 				data_venn_sets += set[j];
+							// 	// 			}
 											
-								// 			// check to data_venn_set overlap checkbox not already in the set_html code
-								// 			if(track_data_venn_sets[data_venn_sets] == undefined) {
-								// 				track_data_venn_sets[data_venn_sets] = true;
-								// 				set_html += "<div style='text-decoration: underline; display: inline-block;' class='selection_set_overlap' data-venn-sets='" + data_venn_sets + "'>";
-								// 				set_html += '<div class="d-inline-block" style="vertical-align:top; text-decoration: none; width: 25px;"><input class="snp_overlap_checkbox" type="checkbox" count="' + parseInt(set_object['size']) + '" value="' + data_venn_sets + '" /> </div>';
-								// 				set_html += "<div class='d-inline-block' style='width: 90%;'>";
+							// 	// 			// check to data_venn_set overlap checkbox not already in the set_html code
+							// 	// 			if(track_data_venn_sets[data_venn_sets] == undefined) {
+							// 	// 				track_data_venn_sets[data_venn_sets] = true;
+							// 	// 				set_html += "<div style='text-decoration: underline; display: inline-block;' class='selection_set_overlap' data-venn-sets='" + data_venn_sets + "'>";
+							// 	// 				set_html += '<div class="d-inline-block" style="vertical-align:top; text-decoration: none; width: 25px;"><input class="snp_overlap_checkbox" type="checkbox" count="' + parseInt(set_object['size']) + '" value="' + data_venn_sets + '" /> </div>';
+							// 	// 				set_html += "<div class='d-inline-block' style='width: 90%;'>";
 												
-								// 				set_html += "<div class='d-inline-block' style='text-decoration: underline;'>SNPs between ";
-								// 				for(var j=0; j<set.length; j++) {
-								// 					if (j>0) {
-								// 						set_html += ', ';
-								// 					}
-								// 					set_html += set[j];
-								// 				}
-								// 				set_html += '</div>';
-								// 				set_html += ' <div style="background-color: rgb(16, 166, 137); color: #FFFFFF; padding: 3px; padding-left: 5px; padding-right: 5px; font-size: 0.7em; border-radius: 2px;" class="d-inline-block">' +  parseInt(set_object['size']) + '</div>'
-								// 				set_html += '</div></div>';
-								// 			}
-								// 		}
-								// 	}
-								// }
-								// set_html += '<br />';
+							// 	// 				set_html += "<div class='d-inline-block' style='text-decoration: underline;'>SNPs between ";
+							// 	// 				for(var j=0; j<set.length; j++) {
+							// 	// 					if (j>0) {
+							// 	// 						set_html += ', ';
+							// 	// 					}
+							// 	// 					set_html += set[j];
+							// 	// 				}
+							// 	// 				set_html += '</div>';
+							// 	// 				set_html += ' <div style="background-color: rgb(16, 166, 137); color: #FFFFFF; padding: 3px; padding-left: 5px; padding-right: 5px; font-size: 0.7em; border-radius: 2px;" class="d-inline-block">' +  parseInt(set_object['size']) + '</div>'
+							// 	// 				set_html += '</div></div>';
+							// 	// 			}
+							// 	// 		}
+							// 	// 	}
+							// 	// }
+							// 	// set_html += '<br />';
 
-								// Do code for entire study
-								// set_html += '<div class="h4">Genotype markers per study</div>';
-								// for(var i=0; i<sets.length; i++) {
-								// 	var set_object = sets[i];
-								// 	console.log('set_object', set_object);
-								// 	var set = set_object['sets'];
-								// 	var size = set_object['size'];
-								// 	// if the set size is more than 1, it's overlap between
-								// 	if(set != undefined) {
-								// 		if(set.length == 1) {
-								// 			var study_name = set[0];
-								// 			set_html += "<div style='text-decoration: underline; display: inline-block;' class='selection_set_all' data-venn-sets='" + study_name + "'>";
+							// 	// Do code for entire study
+							// 	// set_html += '<div class="h4">Genotype markers per study</div>';
+							// 	// for(var i=0; i<sets.length; i++) {
+							// 	// 	var set_object = sets[i];
+							// 	// 	console.log('set_object', set_object);
+							// 	// 	var set = set_object['sets'];
+							// 	// 	var size = set_object['size'];
+							// 	// 	// if the set size is more than 1, it's overlap between
+							// 	// 	if(set != undefined) {
+							// 	// 		if(set.length == 1) {
+							// 	// 			var study_name = set[0];
+							// 	// 			set_html += "<div style='text-decoration: underline; display: inline-block;' class='selection_set_all' data-venn-sets='" + study_name + "'>";
 											
-								// 			set_html += '<input style="" class="snp_all_checkbox" count="' + size + '" type="checkbox" value="' + study_name + '" /> ';
-								// 			set_html += study_name + ' has ' + size + " ";
-								// 			set_html += " SNPs";
-								// 			set_html += "</div>";
-								// 		}
-								// 	}
-								// }
-								// set_html += '<br />';								
+							// 	// 			set_html += '<input style="" class="snp_all_checkbox" count="' + size + '" type="checkbox" value="' + study_name + '" /> ';
+							// 	// 			set_html += study_name + ' has ' + size + " ";
+							// 	// 			set_html += " SNPs";
+							// 	// 			set_html += "</div>";
+							// 	// 		}
+							// 	// 	}
+							// 	// }
+							// 	// set_html += '<br />';								
 
-								// Do code for non overlaps
-								// set_html += '<div class="h4">Non-overlapping genotype markers per study</div>';
-								// for(var i=0; i<sets.length; i++) {
-								// 	var set_object = sets[i];
-								// 	console.log('set_object', set_object);
-								// 	var set = set_object['sets'];
-								// 	// if the set size is more than 1, it's overlap between
-								// 	if(set != undefined) {
-								// 		if(set.length == 1) {
-								// 			var study_name = set[0];
-								// 			var overlap_none_value = overlap_none[study_name];
-								// 			set_html += "<div style='text-decoration: underline; display: inline-block;' class='selection_set_none_overlap' data-venn-sets='" + study_name + "'>";
+							// 	// Do code for non overlaps
+							// 	// set_html += '<div class="h4">Non-overlapping genotype markers per study</div>';
+							// 	// for(var i=0; i<sets.length; i++) {
+							// 	// 	var set_object = sets[i];
+							// 	// 	console.log('set_object', set_object);
+							// 	// 	var set = set_object['sets'];
+							// 	// 	// if the set size is more than 1, it's overlap between
+							// 	// 	if(set != undefined) {
+							// 	// 		if(set.length == 1) {
+							// 	// 			var study_name = set[0];
+							// 	// 			var overlap_none_value = overlap_none[study_name];
+							// 	// 			set_html += "<div style='text-decoration: underline; display: inline-block;' class='selection_set_none_overlap' data-venn-sets='" + study_name + "'>";
 											
-								// 			set_html += '<input style="display: none;" class="snp_none_overlap_checkbox" count="' + overlap_none_value + '" type="checkbox" value="' + study_name + '" /> ';
-								// 			set_html += study_name + ' has ' + overlap_none_value + " ";
-								// 			set_html += " non-overlaps";
-								// 			set_html += "</div>";
-								// 		}
-								// 	}
-								// }
-								// set_html += '<br />';
-							}
-							$('#analysis-overlapping-genotypes-summary-insights').html(insights_html + "<br />" + set_html);
+							// 	// 			set_html += '<input style="display: none;" class="snp_none_overlap_checkbox" count="' + overlap_none_value + '" type="checkbox" value="' + study_name + '" /> ';
+							// 	// 			set_html += study_name + ' has ' + overlap_none_value + " ";
+							// 	// 			set_html += " non-overlaps";
+							// 	// 			set_html += "</div>";
+							// 	// 		}
+							// 	// 	}
+							// 	// }
+							// 	// set_html += '<br />';
+							// }
+							// $('#analysis-overlapping-genotypes-summary-insights').html(insights_html + "<br />" + set_html);
 
 							// Lookups of shared trees by first getting all study combinations
 							// genotype-insights-shared-trees-status
@@ -2354,10 +2387,12 @@ var ct_ready_map_analysis = function() {
 							for (var i = 0; i < studies.length; i++) {
 								var study = studies[i];
 								console.log('study', study);
+								console.log('shared_analysis_name', shared_analysis_name);
 								$.ajax({
 									method: 'POST',
 									data: {
-										study: study // array in JSON format
+										study: study, // array in JSON format
+										analysis_name: shared_analysis_name
 									},
 									url: Drupal.settings.base_url + '/cartogratree/api/v2/genotypes/snps_by_study',
 									success: function(data) {
@@ -2367,7 +2402,10 @@ var ct_ready_map_analysis = function() {
 											data = [];
 										}
 										console.log('genotype_markers', data);
+										
 										if(data.length > 0) {
+											console.log('markers', data[0]['markers']);
+											console.log('markers_count', data[0]['markers'].length);
 											var set_object = {
 												name: data[0]['accession'],
 												elems: data[0]['markers']
@@ -2571,7 +2609,9 @@ var ct_ready_map_analysis = function() {
 													// checked so call the API function to insert the data
 													console.log('insert_snp_overlap')
 													var study_ids_arr = [];
-													study_ids_arr = $(this).find('text[class^="hoverBarTextStyle-upset-"]').html().split(' ∩ ');
+													study_ids_arr_text = $(this).find('text[class^="hoverBarTextStyle-upset-"]').html();
+													study_ids_arr_text = study_ids_arr_text.replaceAll(')','').replaceAll('(','');
+													study_ids_arr = study_ids_arr_text.split(' ∩ ');
 													if (study_ids_arr.length > 1) {
 														var url = Drupal.settings.base_url + '/cartogratree/api/v2/analysis/insert_markers_studies_overlap';
 														$.ajax({
@@ -3372,6 +3412,11 @@ var ct_ready_map_analysis = function() {
 									if (rows.length == 0) {
 										$('#analysis-overlapping-traits-traits-table td[phenotype_name="' + phenotype_name + '"].counts').html('0 phenotypes');
 										$('#analysis-overlapping-traits-traits-table td[phenotype_name="' + phenotype_name + '"].phenotype_overlap_status').html('');
+										// Hide this phenotype row since there are no phenotypes found for it
+										$('#analysis-overlapping-traits-traits-table td[phenotype_name="' + phenotype_name + '"]').parent().hide();
+									}
+									else {
+										$('#analysis-overlapping-traits-traits-table td[phenotype_name="' + phenotype_name + '"]').parent().show();
 									}				
 								}
 							});						
@@ -4293,6 +4338,7 @@ var ct_ready_map_analysis = function() {
 		return html;
 	}
 
+	$('body').off('click', '#analysis_detections_confirm_selection_button');
 	$('body').on('click', '#analysis_detections_confirm_selection_button', function() {
 		$('#analysis_detections_confirm_selection_status').html('<i class="fas fa-clock"></i> Processing, please wait...');
 		var payload = {};
@@ -4338,14 +4384,19 @@ var ct_ready_map_analysis = function() {
 			method: 'GET',
 			url: vcf_files_ui_api_url,
 			success: function(data) {
+				
 				var all_data = data;
-				data = data["vcf_locations"]
+				console.log('VCF Locations Data:', all_data);
+				data = data["vcf_locations"];
+				shared_analysis_name = all_data['shared_analysis'];
+				console.log('Shared Analysis Name:', shared_analysis_name);
 				var keys = Object.keys(data);
 				for (var i = 0; i<keys.length; i++) {
 					var key = keys[i];
 					var value = data[key];
 					payload['studies'][key] = [value];
 				}
+
 				// payload['studies'] = data;
 			}
 		});
@@ -4734,6 +4785,18 @@ var ct_ready_map_analysis = function() {
 						if (data['phen_count'] != null) {
 							$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .phen_count').html(parseInt(data['phen_count']).toLocaleString());
 						}
+
+						$.ajax({
+							url: '/cartogratree_uianalysis/cartogratree_analysisapi_lookup_study_info_overlap_count/' + study,
+							method: 'GET',
+							success: function(data) {
+								if (data['row']['overlap_count'] != null) {
+									$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .gen_count').html(parseInt(data['row']['overlap_count']).toLocaleString());
+								}
+							},
+							error: function() {
+							}
+						});
 					}
 				}).always(function() {
 					pop_study_table_state.study_retrieved_count = pop_study_table_state.study_retrieved_count + 1;
@@ -4894,6 +4957,7 @@ var ct_ready_map_analysis = function() {
 				var data = JSON.parse(data);
 				$('#nextflow-population-structure-workflow .status_output').html(data['status']);
 
+				$('#nextflow-population-structure-workflow .status_output').append('<div id="nextflow-population-structure-visualization" style="100%;"></div>');
 				// Load the visualization
 				// nextflow-population-structure-visualization
 				$('#nextflow-population-structure-visualization').html('');
@@ -5670,6 +5734,8 @@ var ct_ready_map_analysis = function() {
 				interface_html += '</div>';
 				interface_html += '<hr />';
 				$('#nextflow-gwas-interface').html(interface_html);
+				$('#nextflow-gwas-interface select[data-input-name="workflow"]').click()
+				$('#nextflow-gwas-interface-submodel-options #gwas_choose_sub_workflow').delay(2000).click();
 			}
 		});
 
