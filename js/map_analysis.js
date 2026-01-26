@@ -4,6 +4,7 @@ var analysis_completion_json = {
 	analysis_study_context: {},
 	analysis_study_filter_markers_and_genotypes: {},
 }
+var analysis_left_menu_collapsed = false;
 var ct_ready_map_analysis = function() {
 	var galaxy_id = null; // the galaxy server / connection to be used for analysis
 	var workflow_id = null; // the workflow id to be used for the analysis
@@ -12,6 +13,7 @@ var ct_ready_map_analysis = function() {
 	var detected_studies = null; // This contains detected studies and trees selected within each study from user selections on the map
 	var analysis_trees = []; // After necessary filter, this will contain the applicable trees
 	var analysis_timers = {};
+	var analysis_setup_configuration_tab = false;
 	var analysis_initial_configuration_tab = false;
 	var analysis_traits_configuration_tab = false;
 	var analysis_genotypes_configuration_tab = false;
@@ -94,9 +96,31 @@ var ct_ready_map_analysis = function() {
 			}
 		});
 
-		$('#analysis-initial-configuration-tab').click();
+		// $('#analysis-initial-configuration-tab').click();
+		$('#analysis-setup-configuration-tab').click();
 	}
 	// });
+
+
+	try {
+		$('#analysis-left-menu-collapse-control').off('click');
+	} catch (err) {}
+	$('#analysis-left-menu-collapse-control').on('click', function() {
+		if (analysis_left_menu_collapsed == false) {
+			// Do a collapse
+			$('.analysis-left-menu-text').hide();
+			$('#analysis-left-menu').removeClass('col-3').addClass('col-1').css('max-width', '58px');
+			$('#analysis-right-container').removeClass('col-9').addClass('col');
+			analysis_left_menu_collapsed = true;
+		}
+		else {
+			// Do an expand
+			$('.analysis-left-menu-text').show();
+			$('#analysis-left-menu').removeClass('col-1').addClass('col-3').css('max-width', 'unset');
+			$('#analysis-right-container').removeClass('col').addClass('col-9');
+			analysis_left_menu_collapsed = false;
+		}
+	});
 
 
 	/**
@@ -278,7 +302,7 @@ var ct_ready_map_analysis = function() {
 				html += '<div class="row" style="margin: 0px;">';
 				// html += '	<button class="tag" style="background-color: rgb(16, 166, 137); color: white; border: 0px; padding: 10px; margin-right: 5px;">Generate Site Statistics</button> ';
 				// html += '	<button class="tag" style="background-color: rgb(16, 166, 137); color: white; border: 0px; padding: 10px; margin-right: 5px;">Generate Sample Statistics</button>';
-				html += '	<button class="tag filter_and_imputation" style="background-color: rgb(16, 166, 137); color: white; border: 0px; padding: 10px; margin-right: 5px;">Filter and Imputation</button>';
+				html += '	<button class="tag filter_and_imputation" style="background-color: rgb(16, 166, 137); color: white; border: 0px; padding: 10px; margin-right: 5px;">Filter VCF</button>';
 				html += '</div>';
 				html += '<div class="status-process" style="padding: 5px"></div>';
 				html += '<div class="statistics-variables" style="padding: 5px"></div>';
@@ -976,12 +1000,20 @@ var ct_ready_map_analysis = function() {
 				payload: JSON.stringify(payload)
 			},
 			success: function (data) {
+				$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .status-process').html('');
 				$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .status-process')
-				.html('Filtering has completed.');
+				.append('<div>✅ Filtering has completed.</div>');
+
 				console.log('Filter and imputation data response', data);
 				data = JSON.parse(data);
 				if (data['completion_message'] != undefined) {
 					console.log('data completion_message', data['completion_message']);
+					// VCF File only without path
+					var vcf_filename = data['completion_message']['studies']['combined_filltags']['vcf'];
+					var vcf_filename_parts = vcf_filename.split('/');
+					vcf_filename = vcf_filename_parts[vcf_filename_parts.length - 1];
+					$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .status-process')
+					.append('<div style="padding: 5px; background-color: #defff5;display: inline-block;font-size: 1.2em;margin-top: 10px; border-radius: 4px;">File generated in your workspace: ' + vcf_filename + '</div>');
 					$('#analysis_summary_genotypes_count').html(data['completion_message']['studies']['combined_filltags']['markerCount'] + ' filtered');
 					$('#analysis_summary_plants_count').html(data['completion_message']['studies']['combined_filltags']['sampleCount'] + ' filtered');
 				}
@@ -1171,6 +1203,7 @@ var ct_ready_map_analysis = function() {
 		console.log('analysis_type', val);
 		if(val == 'GxPxE') {
 			cartograplant.analysis_tabs_enabled = [
+				'#analysis-setup-configuration-tab',
 				'#analysis-initial-configuration-tab',
 				'#analysis-overlapping-traits-tab',
 				'#analysis-overlapping-genotypes-tab',
@@ -1191,6 +1224,7 @@ var ct_ready_map_analysis = function() {
 		}
 		else if(val == "GxP") {
 			cartograplant.analysis_tabs_enabled = [
+				'#analysis-setup-configuration-tab',
 				'#analysis-initial-configuration-tab',
 				'#analysis-overlapping-traits-tab',
 				'#analysis-overlapping-genotypes-tab',
@@ -1210,6 +1244,7 @@ var ct_ready_map_analysis = function() {
 		}
 		else if(val == "GxE") {
 			cartograplant.analysis_tabs_enabled = [
+				'#analysis-setup-configuration-tab',
 				'#analysis-initial-configuration-tab',
 				'#analysis-overlapping-genotypes-tab',
 				'#analysis-filter-snp-section-tab',
@@ -1234,18 +1269,35 @@ var ct_ready_map_analysis = function() {
 
 		// Analysis ID
 		$('#analysis_summary_html').html(html);
-		var el_aid = $('<div class="d-inline-block tag" style="background-color: rgb(94 199 64); color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 5em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Analysis ID</div><div style="text-align: center;">' + cartograplant.current_analysis_id + '</div></div>').fadeOut(100);
-		
+		var analysis_html = '';
+		analysis_html += '<div class="d-inline-block tag" style="background-color: #effffc;color: #000000;margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 5em;">';
+		analysis_html += '<div style="text-align: center; font-weight: 600;">' + cartograplant.current_analysis_id + '</div>';
+		analysis_html += '<div style="font-size: 12px; margin: 0px !important;padding: 2px;text-align: center;">Analysis ID</div>';
+		analysis_html += '</div>';
+		// var el_aid = $('<div class="d-inline-block tag" style="background-color: rgb(94 199 64); color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 5em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Analysis ID</div><div style="text-align: center;">' + cartograplant.current_analysis_id + '</div></div>').fadeOut(100);
+		var el_aid = $(analysis_html).fadeOut(0);
+
 		// Studies count
 		var studies = Object.keys(cartograplant.detected_studies);
 		$('#analysis-num-pub').html(studies.length);
-		var el_st = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 5em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Studies</div><div style="text-align: center;">' + studies.length + '</div></div>').fadeOut(100);
+		var studies_html = '';
+		studies_html += '<div class="d-inline-block tag" style="background-color: #effffc;color: #000000;margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 5em;">';
+		studies_html += '<div style="text-align: center; font-weight: 600;">' + studies.length + '</div>';
+		studies_html += '<div style="font-size: 12px; margin: 0px !important;padding: 2px;text-align: center;">Studies</div>';
+		studies_html += '</div>';
+
+		var el_st = $(studies_html).fadeOut(0);
 
 		// Trees count
 		var trees_count = analysis_includedTrees.length;
 		//$('#analysis-num-pub').html(trees_count);
-		var el_tc = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 6em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Plants</div><div id="analysis_summary_plants_count" style="text-align: center;">' + trees_count + '</div></div>').fadeOut(100);
-
+		var plants_html = '';
+		plants_html += '<div class="d-inline-block tag" style="background-color: #effffc;color: #000000;margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 5em;">';
+		plants_html += '<div style="text-align: center; font-weight: 600;">' + trees_count + '</div>';
+		plants_html += '<div style="font-size: 12px; margin: 0px !important;padding: 2px;text-align: center;">Plants</div>';
+		plants_html += '</div>';
+		// var el_tc = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 6em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Plants</div><div id="analysis_summary_plants_count" style="text-align: center;">' + trees_count + '</div></div>').fadeOut(100);
+		var el_tc = $(plants_html).fadeOut(0);
 
 		// // Unique Species count
 		// // Try to get species for each selected tree
@@ -1283,7 +1335,15 @@ var ct_ready_map_analysis = function() {
 			}
 		}
 
-		var el_sp = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 7em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Species</div><div style="text-align: center;">' + Object.keys(cartograplant['analysis_unique_species']).length + '</div></div>').fadeOut(100);
+
+		var species_html = '';
+		species_html += '<div class="d-inline-block tag" style="background-color: #effffc;color: #000000;margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 5em;">';
+		species_html += '<div style="text-align: center; font-weight: 600;">' + Object.keys(cartograplant['analysis_unique_species']).length + '</div>';
+		species_html += '<div style="font-size: 12px; margin: 0px !important;padding: 2px;text-align: center;">Species</div>';
+		species_html += '</div>';
+
+		// var el_sp = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 7em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Species</div><div style="text-align: center;">' + Object.keys(cartograplant['analysis_unique_species']).length + '</div></div>').fadeOut(100);
+		var el_sp = $(species_html).fadeOut(0);
 		// $('#analysis-num-species').html(species_unique.length);
 		$('#analysis-num-species').html(Object.keys(cartograplant['analysis_unique_species']).length);
 
@@ -1300,16 +1360,50 @@ var ct_ready_map_analysis = function() {
 			}
 		}
 		$('#analysis-phenotypes').html(phenotypes_selected_count);
-		var el_ph = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 8em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Phenotypes</div><div style="text-align: center;">' + phenotypes_selected_count + '</div></div>').fadeOut(100);
+		
+		var phen_html = '';
+		phen_html += '<div class="d-inline-block tag" style="background-color: #effffc;color: #000000;margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 5em;">';
+		phen_html += '<div id="analysis_summary_phenotypes_count" style="text-align: center; font-weight: 600;">' + phenotypes_selected_count + '</div>';
+		phen_html += '<div style="font-size: 12px; margin: 0px !important;padding: 2px;text-align: center;">Phenotypes</div>';
+		phen_html += '</div>';
+		// var el_ph = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 7em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Phenotypes</div><div style="text-align: center;">' + phenotypes_selected_count + '</div></div>').fadeOut(100);
+		var el_ph = $(phen_html).fadeOut(0);
+		
 		var genotypes_selected_count = 0;
 		var elements = $('#analysis-overlapping-genotypes-upset-2 .checkbox_image');
+		var genotypes_checkboxes_checked_count = 0;
 		for(var i=0; i<elements.length; i++) {
 			var checkbox = elements.eq(i);
 			if (checkbox.css('display') == 'block') {
 				var text_el = checkbox.closest('g').find('text[class^="cBarTextStyle-upset-"]');
 				genotypes_selected_count += parseInt(text_el.html().replaceAll(',',''));
+				genotypes_checkboxes_checked_count += 1;
 			}
 		}
+
+		if (genotypes_checkboxes_checked_count == 0) {
+			genotypes_selected_count = 0;
+			// Check if anything was selected from the study summary table
+			var study_selected_checkboxes = $('#analysis_detections_study_summary .checkbox_option input[type="checkbox"]');
+			for (var i = 0; i < study_selected_checkboxes.length; i++) {
+				var checkbox = study_selected_checkboxes.eq(i);
+				if (checkbox.is(':checked')) {
+					// Get the closest tr that contains the attribute data-genotype-count
+					var tr_element = checkbox.closest('tr');
+					var genotype_count = tr_element.find('.gen_count');
+					if (genotype_count != undefined && genotype_count.length > 0) {
+						console.log('genotype_count', genotype_count.text());
+						genotype_count = genotype_count.text().replace(',','')
+						if (isNaN(parseInt(genotype_count)) == false) {
+							genotype_count = parseInt(genotype_count);
+							genotypes_selected_count += parseInt(genotype_count);
+						}
+					}
+				}
+			}
+		}
+
+
 		
 
 
@@ -1360,9 +1454,14 @@ var ct_ready_map_analysis = function() {
 		// }
 
 
+		var geno_html = '';
+		geno_html += '<div class="d-inline-block tag" style="background-color: #effffc;color: #000000;margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 5em;">';
+		geno_html += '<div id="analysis_summary_genotypes_count" style="text-align: center; font-weight: 600;">' + genotypes_selected_count + '</div>';
+		geno_html += '<div style="font-size: 12px; margin: 0px !important;padding: 2px;text-align: center;">Genotypes</div>';
+		geno_html += '</div>';
+		// var el_ge = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 7em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Genotypes</div><div id="analysis_summary_genotypes_count" style="text-align: center;">' + genotypes_selected_count + '</div></div>').fadeOut(100);
+		var el_ge = $(geno_html).fadeOut(0);
 
-		var el_ge = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 9em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Genotypes</div><div id="analysis_summary_genotypes_count" style="text-align: center;">' + genotypes_selected_count + '</div></div>').fadeOut(100);
-		
 		var environmentals_selected_count = 0;
 		$('.analysis_category_groups_layer_property_checkbox').each(function () {
 			if ($(this).is(':checked')) {
@@ -1370,17 +1469,24 @@ var ct_ready_map_analysis = function() {
 			}
 		});
 		$('#analysis-env-vals').html(environmentals_selected_count);
-		var el_el = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 10em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Environmental layers</div><div style="text-align: center;">' + environmentals_selected_count + '</div></div>').fadeOut(100);
-		
+
+		var env_html = '';
+		env_html += '<div class="d-inline-block tag" style="background-color: #effffc;color: #000000;margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 7em;">';
+		env_html += '<div style="text-align: center; font-weight: 600;">' + environmentals_selected_count + '</div>';
+		env_html += '<div style="font-size: 12px; margin: 0px !important;padding: 2px;text-align: center;">Environmentals</div>';
+		env_html += '</div>';
+		// var el_el = $('<div class="d-inline-block tag" style="background-color: rgb(16, 166, 137);color: rgb(255, 255, 255);margin-right: 10px;/* padding: 10px; */padding-left: 0px !important;padding-right: 0px !important;border-radius: 8px;width: 8em;"><div style="font-size: 12px;background-color: #00000033;margin: 0px !important;padding: 2px;text-align: center;">Environmentals</div><div style="text-align: center;">' + environmentals_selected_count + '</div></div>').fadeOut(100);
+		var el_el = $(env_html).fadeOut(0);
 
 		//$('#analysis_summary_html').html(html);
 		$('#analysis_summary_html').append(el_aid).append(el_st).append(el_tc).append(el_sp).append(el_ph).append(el_ge).append(el_el);
-		$(el_aid).fadeOut(200).delay(0).fadeIn(500);
-		$(el_st).fadeOut(200).delay(1000).fadeIn(500);
-		$(el_tc).fadeOut(200).delay(1000).fadeIn(500);
-		$(el_ph).fadeOut(200).delay(2000).fadeIn(500);
-		$(el_ge).fadeOut(200).delay(4000).fadeIn(500);
-		$(el_el).fadeOut(200).delay(6000).fadeIn(500);
+		$(el_aid).delay(0).fadeIn(50);
+		$(el_st).delay(20).fadeIn(50);
+		$(el_tc).delay(40).fadeIn(50);
+		$(el_sp).delay(60).fadeIn(50);
+		$(el_ph).delay(80).fadeIn(50);
+		$(el_ge).delay(100).fadeIn(50);
+		$(el_el).delay(120).fadeIn(50);
 	}
 
 	function analysis_update_type() {
@@ -1785,6 +1891,13 @@ var ct_ready_map_analysis = function() {
 							}
 							if (data['response']['success'] == "true") {
 								$('#analysis_merge_vcfs_status').html('✅ Merge VCFs completed! <br />');
+								try {
+									var vcf_loc_path_parts = data['response']['studies']['combined_filltags']['vcf'].split('/');
+									$('#analysis_merge_vcfs_status').append('<div style="padding: 5px; background-color: #defff5;display: inline-block;font-size: 1.2em;margin-top: 10px; border-radius: 4px;">A combined VCF has been added to your workspace:<br /> ' + vcf_loc_path_parts[vcf_loc_path_parts.length - 1] + '</div>');
+								}
+								catch (err) {
+									console.log('Error displaying combined VCF location', err);
+								}
 								$('#analysis_merge_vcfs_status').append(generate_completion_message_html(data));
 								try {
 									clearInterval(analysis_timers['study_context_completion_json']);
@@ -1824,7 +1937,10 @@ var ct_ready_map_analysis = function() {
 	} catch (err) {}
 	// This happens when someone clicks on the genotype overlap analysis tab
 	$('a[href="#analysis-overlapping-genotypes"]').on('click', function() {
-
+		if (Object.keys(cartograplant['detected_studies']).length > 25) {
+			alert('⚠️ Warning: More than 20 studies with genotypic data were detected based on your analysis study context. Loading the genotype overlap analysis may take a long time or fail due to system limitations. Please consider refining your study context to include fewer studies with genotypic data before proceeding.');
+			return;
+		}
 		if (analysis_genotypes_configuration_tab == true) {
 			console.log('#analysis-overlapping-genotypes tab already generated - bypassing');
 			return;
@@ -2531,7 +2647,7 @@ var ct_ready_map_analysis = function() {
 												text2_element.setAttribute('href', '/' + Drupal.settings.cartogratree.url_path + '/theme/templates/ui_icons_imgs/checkbox-checked-regular-24.png');
 												text2_element.setAttribute('x', parseFloat(x_position) - 38);
 												text2_element.setAttribute('y', parseFloat(y_position) + 20);
-												text2_element.setAttribute('font-size', '12px');
+												text2_element.setAttribute('font-size', '8px');
 												text2_element.classList.add("upset_plot_bar_author_text");
 												
 
@@ -2685,7 +2801,7 @@ var ct_ready_map_analysis = function() {
 							// Check to see whether studies are using shared datasets (if so, add a warning)
 							// VERSION 1 uses Form State lookup which we don't want any more
 							// var vcf_files_ui_api_url = Drupal.settings.base_url + '/cartogratree_uiapi/vcf_files/' + Object.keys(cartograplant['detected_studies']).join(',');
-							// VERSION 2 uses Gabe's vcf_location tabe
+							// VERSION 2 uses Gabe's vcf_location tab
 							var vcf_files_ui_api_url = Drupal.settings.base_url + '/cartogratree_uiapi/vcf_files_indexed/' + Object.keys(cartograplant['detected_studies']).join(',');
 							console.log('vcf_files_ui_api_url', vcf_files_ui_api_url);
 							$.ajax({
@@ -3667,10 +3783,12 @@ var ct_ready_map_analysis = function() {
 				// Perform a full pull and push (we could do this mostly with API only
 				// but this seems easier to manage)
 				var phenotype_name = $(element).attr('phenotype_name');
-				var studies = $(element).attr('studies');
-				if(studies != undefined) {
-					studies = studies.split(',');// since this is a csv, we split by commas
-				}
+				// OLD - DEPRECATED - 1/7/2026 - Reported by Brandon for PAG
+				// var studies = $(element).attr('studies');
+				// if(studies != undefined) {
+				// 	studies = studies.split(',');// since this is a csv, we split by commas
+				// }
+				var studies = get_selections_studies();
 				var url = Drupal.settings.base_url + "/cartogratree/api/v2/phenotypes/phenotypes_values_by_overlapping_studies";
 				$.ajax({
 					method: 'POST',
@@ -4618,20 +4736,15 @@ var ct_ready_map_analysis = function() {
 	})
 
 
-
-
-
 	try {
-		$('#analysis-initial-configuration-tab').off('click');
-	}
-	catch (err) {}
-	$('#analysis-initial-configuration-tab').click(function() {
-		console.log('Config/Manage tab load');
+		$('#analysis-setup-configuration-tab').off('click');
+	} catch (err) {}
+	$('#analysis-setup-configuration-tab').click(function() {
+		console.log('Setup/Config tab load');
 
-		if (analysis_initial_configuration_tab == true) {
+		if (analysis_setup_configuration_tab == true) {
 			return;
 		}
-
 
 		// Check to see if there are studies filtered (from UI filters) - add these trees
 		var rule_containers = $('.rule-container .rule-filter-container select');
@@ -4666,14 +4779,345 @@ var ct_ready_map_analysis = function() {
 		
 		console.log('cartograplant.detected_studies', cartograplant.detected_studies);
 		var studies = Object.keys(cartograplant.detected_studies);
+
+		// Protection against overloading system with too many studies
+		if (Object.keys(cartograplant['detected_studies']).length > 25) {
+			alert('⚠️ Warning: More than 20 studies with genotypic data were detected based on your analysis. To protect due our system, please consider refining your studies selection before proceeding.');
+			return;
+		}
+
 		// The code below generates the study summary table including the checkboxes to be used for filtering
 		$('#analysis_detections').html(''); // empty
 		var analysis_detections_html = '';
 		analysis_detections_html += '<div class="row mb-3">';
-		analysis_detections_html += '<div class="col-2">';
-		analysis_detections_html += '	<div class="tag-header" style="width: 100%;background-color: #fff3d7;color: #75736e;"><div style="text-transform: uppercase; font-size: 10px;">Step 3</div>Setup analysis study context</div>';
+		// analysis_detections_html += '<div class="col-2">';
+		// analysis_detections_html += '	<div class="tag-header" style="width: 100%;background-color: #effffc;color: #75736e;"><div style="text-transform: uppercase; font-size: 10px;">Step 3</div>Setup analysis study context</div>';
+		// analysis_detections_html += '</div>';
+		analysis_detections_html += '<div class="col-12">';
+		analysis_detections_html += '<div class="tag-header" style="width: 100%;background-color: #effffc;color: #75736e;"><div style="text-transform: uppercase; font-size: 10px;">Step 3</div>Setup analysis study context</div>';
+		if (studies.length == 0) {
+			analysis_detections_html += ' <div>No studies detected from your plant selections. ⚠️ <br />Please return to the map and select plants within studies to get most out of this analysis system.</div>';
+		}
+		else {
+			analysis_detections_html += '<h4 style="color:rgb(1, 77, 70) !important;margin-left: 4px;">Study summary</h4>';
+			analysis_detections_html += ' <div>' + studies.length + ' studies (' + studies.join(',') + ') found associated with the plants you selected. ✅</div>';
+
+			if (studies.length == 1) {
+				analysis_detections_html += '<div>To get the best out of the analysis system, 2 studies or more are recommended</div>';
+			}
+			analysis_detections_html += '<div id="analysis_detections_genotype_capability" class="mt-1 mb-1"></div>';
+			analysis_detections_html += '<div id="analysis_detections_phenotype_capability" class="mt-1 mb-3"></div>';
+			
+			analysis_detections_html += '<div class="mt-2" id="analysis_detections_study_summary">';
+			analysis_detections_html += '<table><tr><th>Select study data</th><th>Accession</th><th>Title</th><th>Genotypes</th><th>Phenotypes</th><th>Plants</th><tr></table>';
+			analysis_detections_html += '</div>';
+			analysis_detections_html += '<div class="mt-2" id="analysis_detections_confirm_selection">';
+			analysis_detections_html += '<button id="analysis_detections_confirm_selection_button" class="btn btn-primary">Apply selections to this analysis session</button>';
+			analysis_detections_html += '<div class="mt-2" id="analysis_detections_confirm_selection_status"></div>';
+			analysis_detections_html += '</div>';
+
+		}
+		analysis_detections_html += '</div> <!-- end of col-md-6 -->';
 		analysis_detections_html += '</div>';
-		analysis_detections_html += '<div class="col-10">';
+		
+		$('#analysis_detections').html(analysis_detections_html);
+		
+		// Dynamic lookup of study info is done to avoid slow page load - this will populate the study summary table
+		var study_data = [];
+		var studies_with_genotypes_count = 0;
+		var studies_with_phenotypes_count = 0;
+		cartograplant['analysis_unique_species'] = {};
+		for (var i = 0; i<studies.length; i++) {
+			var study = studies[i];
+
+			// Go through all filtered trees and see how many trees are associated with this study
+			var trees_in_study = 0;
+			var trees_csv = "";
+			for (var j = 0; j<analysis_includedTrees.length; j++) {
+				var tree = analysis_includedTrees[j];
+				if (tree.startsWith(study)) {
+					trees_in_study = trees_in_study + 1;
+					if (trees_csv.length == 0) {
+						trees_csv = tree;
+					}
+					else {
+						trees_csv = trees_csv + ',' + tree;
+					}
+				}
+			}
+
+
+			var table_row_html = "";
+			table_row_html += "<tr data-value='" + study + "'>";
+			table_row_html += "<td class='checkbox_option'><input type='checkbox' checked /></td>";
+			table_row_html += "<td class='accession'>" + study + "</td>";
+			table_row_html += "<td class='title_container'>";
+			table_row_html += '<div class="title" style="margin-bottom:10px; ">Attempting to gather data for this study...</div>';
+			table_row_html += '<div class="samples_container">';
+			table_row_html += '	<div class="samples" data-samples="' + trees_csv + '">';
+			table_row_html += '		<input type="checkbox" class="samples_checkbox" checked /> ';
+			table_row_html += '		<i class="fas fa-tree"></i> ' + trees_in_study + ' individual plants';
+			table_row_html += '	</div>';
+			table_row_html += '</div>';
+			table_row_html += "</td>";
+			table_row_html += "<td class='gen_count' style='text-align: center;'>-</td>";
+			table_row_html += "<td class='phen_count' style='text-align: center;'>-</td>";
+			table_row_html += "<td class='tree_count' style='text-align: center;'>-</td>";
+			table_row_html += "</tr>";
+
+			$('#analysis_detections_study_summary table').append(table_row_html);
+			var pop_study_table_state = {
+				study_retrieved_count: 0,
+			}
+			// var study_retrieved_count = 0;
+			populate_study_table_row(studies, study, study_data, trees_in_study, pop_study_table_state);
+			function populate_study_table_row(studies, study, study_data, trees_in_study, pop_study_table_state) {
+				$.ajax({
+					url: '/cartogratree_uianalysis/cartogratree_analysisapi_lookup_study_info/' + study,
+					method: 'GET',
+					success: function(data) {
+						cartograplant['analysis_unique_species'][data['species']] = true;
+						console.log('lookup_study_info study row data', data);
+						study_data.push(data);
+						$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .accession').html(data['accession']);
+						$('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"]').attr("data-species", data["species"]);
+						$('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"]').attr("data-author", data["author"]);
+						$('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"]').attr("data-year", data["year"]);
+						if (data['title'] !== undefined && data['title'] != null && data['title'] != "null" && data['title'].length > 0) {
+							$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .title').html(data['title']);
+						}
+						else {
+							$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .title').html('<i>No title found</i>');
+						}
+						$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .tree_count').html(data['tree_count']);
+
+						// Hide the individual samples checkbox if they are equal to the tree count
+						var tree_count = parseInt(data['tree_count']);
+						if (tree_count == trees_in_study) {
+							$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .samples_container').hide();
+						}
+						else {
+							$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .samples_container').show();
+						}
+
+						if (data['gen_count'] != null) {
+							$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .gen_count').html(parseInt(data['gen_count']).toLocaleString());
+						}
+						if (data['phen_count'] != null) {
+							$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .phen_count').html(parseInt(data['phen_count']).toLocaleString());
+							var current_phenotypes_count = parseInt($('#analysis_summary_phenotypes_count').html());
+							$('#analysis_summary_phenotypes_count').html(current_phenotypes_count + parseInt(data['phen_count']));
+						}
+
+						$.ajax({
+							url: '/cartogratree_uianalysis/cartogratree_analysisapi_lookup_study_info_overlap_count/' + study,
+							method: 'GET',
+							success: function(data) {
+								if (data['row']['overlap_count'] != null) {
+									$(document).find('#analysis_detections_study_summary table tr[data-value="' + data['accession'] + '"] .gen_count').html(parseInt(data['row']['overlap_count']).toLocaleString());
+									// var current_genotypes_count = parseInt($('#analysis_summary_genotypes_count').html());
+									// $('#analysis_summary_genotypes_count').html(current_genotypes_count + parseInt(data['row']['overlap_count']));
+								}
+							},
+							error: function() {
+							}
+						}).always(function() {
+							analysis_summary_update();
+						});
+					}
+				}).always(function() {
+					pop_study_table_state.study_retrieved_count = pop_study_table_state.study_retrieved_count + 1;
+					
+					if (pop_study_table_state.study_retrieved_count == studies.length) {
+						for (var j = 0; j<pop_study_table_state.study_retrieved_count; j++) {
+							// check if there are at least 2 studies with genotypes
+							var single_study_data = study_data[j];
+							if (single_study_data['gen_count'] != null) {
+								studies_with_genotypes_count = studies_with_genotypes_count + 1;
+							}
+							if (single_study_data['marker_count'] != null) {
+								studies_with_phenotypes_count = studies_with_phenotypes_count + 1;
+							}
+						}
+						if (studies_with_genotypes_count > 1) {
+							$('#analysis_detections_genotype_capability').html('Genotypic overlap analysis may be possible for these studies. ✅');
+
+						}
+						if (studies_with_phenotypes_count > 1) {
+							$('#analysis_detections_phenotype_capability').html('Phenotypic overlap analysis may be possible for these studies. ✅');
+						}
+					}
+					
+					analysis_summary_update();
+				});
+			}
+			analysis_setup_configuration_tab = true;
+
+
+
+		}
+
+
+		// [RISH] This code caters for when a study summary study checkbox is clicked or unclicked 
+		// This will filter out trees or filter in trees as is necessary into analysis_includedTrees
+		$(document).off('click', '#analysis_detections_study_summary table .checkbox_option input[type="checkbox"]');
+		$(document).on('click', '#analysis_detections_study_summary table .checkbox_option input[type="checkbox"]', function() {
+			console.log('analysis_detections_study_summary checkbox selection has been detected');
+			console.log('mapState.includedTrees', mapState.includedTrees);
+			console.log('analysis_includedTrees', analysis_includedTrees);
+
+			// This might not matter since once something is checked, we need to re-evaluate all trees
+			if ($(this).is(':checked')) {
+				console.log('is checked')
+			}
+			else {
+				console.log('is unchecked');
+			}
+
+			var selected_studies = [];
+			// Go through all checkboxes
+			var study_checkboxes = $('#analysis_detections_study_summary table .checkbox_option input[type="checkbox"]');
+			for (var i=0; i<study_checkboxes.length; i++) {
+				var checkbox = $(study_checkboxes.get(i));
+				var tr = $(checkbox.closest('tr'));
+				// console.log('tr',tr);
+				var study_acccession = tr.attr('data-value');
+				if (checkbox.is(':checked')) {
+					selected_studies.push(study_acccession);
+				}
+				//console.log(study_acccession);
+			}
+			console.log('selected_studies', selected_studies);
+			analysis_includedTrees = [];
+			for (var i = 0; i < selected_studies.length; i++) {
+				var study_accession = selected_studies[i];
+				for (var j = 0; j < mapState.includedTrees.length; j++) {
+					var treeid_tmp = mapState.includedTrees[j];
+					// Check if treeid contains study accession, add it to analysis_includedTrees
+					if (treeid_tmp.includes(study_accession)) {
+						analysis_includedTrees.push(treeid_tmp);
+					}
+				}
+			}
+			console.log('Analysis filtered trees: ' + analysis_includedTrees.length + ' compared with Map included trees: ' + mapState.includedTrees.length);
+			get_detected_studies_from_selected_trees();
+			// Reset the traits configuration
+			analysis_traits_configuration_tab = false;
+			// Reset the genotypes configuration
+			analysis_genotypes_configuration_tab = false;
+			analysis_summary_update();
+		});		
+
+		console.log($('#create-analysis-select-galaxy-account').html());
+		//if($('#create-analysis-select-galaxy-account').html() == "") {
+		// var url = Drupal.settings.base_url + "/cartogratree_uianalysis/get_all_galaxy_accounts";
+		// $.ajax({
+		// 	method: "GET",
+		// 	url: url,
+		// 	dataType: "json",
+		// 	success: function (data) {
+		// 		console.log(data);
+		// 		var html = '';
+		// 		var found_ct_default_server = false;
+		// 		var galaxy_server_name = 'TreeGenes w/ CartograPlant API Key';
+		// 		var default_galaxy_id = -1;
+		// 		for(var i=0; i<data.length; i++) {
+		// 			// Because now we use a specific galaxy account, search to see if it exists
+		// 			if (data[i].servername == galaxy_server_name) {
+		// 				found_ct_default_server = true;
+		// 				default_galaxy_id = data[i].galaxy_id;
+		// 			}
+		// 			html += '<option value="' + data[i].galaxy_id + '">' + data[i].servername +  '</option>';
+		// 		}
+		// 		$('#create-analysis-select-galaxy-account').html(html);
+
+		// 		if(found_ct_default_server) {
+		// 			console.log('default_galaxy_id', default_galaxy_id);
+		// 			cartograplant.galaxy_id = default_galaxy_id;
+		// 			$('#create-analysis-select-galaxy-account-container').hide();
+		// 			$('#create-analysis-select-galaxy-account').val(default_galaxy_id);
+		// 			$('#create-analysis-select-galaxy-account').click();
+		// 		}
+		// 		else {
+		// 			alert('Could not find default Cartograplant Galaxy ID. Please contact administration.');
+		// 		}
+
+		// 	}
+		// });
+		//}
+		//else {
+			//$('#analysis-retrieve-envdata-section-layers-list').html("");
+			console.log("Interface already populated with data");
+			
+			// Refresh the selected workflow to get file list
+			console.log('Refresh the file history');
+			$('#create-analysis-select-history').click();
+		//}
+	});
+
+
+	try {
+		$('#analysis-initial-configuration-tab').off('click');
+	}
+	catch (err) {}
+	$('#analysis-initial-configuration-tab').click(function() {
+		console.log('Config/Manage tab load');
+
+		if (analysis_initial_configuration_tab == true) {
+			return;
+		}
+
+		/*
+
+		// Check to see if there are studies filtered (from UI filters) - add these trees
+		var rule_containers = $('.rule-container .rule-filter-container select');
+
+		// This variable will keep track of if study filter has been selected
+		var found_study_filter_option = false;
+		
+		// Search to see whether filter option is a study filter
+		if(rule_containers.length > 0) {
+			for(var i=0; i<rule_containers.length;i++) {
+				var element = rule_containers.eq(i);
+				console.log('value', element.val());
+				if(element.val() == "accession") {
+					found_study_filter_option = true;
+					// Load all trees into included trees
+					mapState.includedTrees = cartograplant.currently_filtered_trees;
+				}	
+			}
+		}
+
+		// [RISH] 5/15/2024
+		// Order matters, this should be done before get_detected_studies_from_selected_trees
+		// since it is used by the function. Failure to do so will result in study detection inaccuracies.
+		// analysis_includedTrees will have the filtered trees based on the checkboxes on the first analysis page
+		// THIS FILTER DOES NOT TAKE PLACE HERE BUT RATHER FROM THE CHECKBOX CLICKS
+		// THIS JUST INITIALIZES THE VARIABLE SO IT DOES NOT REMAIN UNDEFINED AND HAS ALL SELECTED TREES FROM CP MAIN
+		analysis_includedTrees = JSON.parse(JSON.stringify(mapState.includedTrees)); // makes a complete copy
+		console.log('analysis_includedTrees', analysis_includedTrees);
+
+		// Populate cartograplant studies variables which is used throughout the panel
+		get_detected_studies_from_selected_trees();
+		
+		console.log('cartograplant.detected_studies', cartograplant.detected_studies);
+		var studies = Object.keys(cartograplant.detected_studies);
+
+		// Protection against overloading system with too many studies
+		if (Object.keys(cartograplant['detected_studies']).length > 25) {
+			alert('⚠️ Warning: More than 20 studies with genotypic data were detected based on your analysis. To protect due our system, please consider refining your studies selection before proceeding.');
+			return;
+		}
+
+		// The code below generates the study summary table including the checkboxes to be used for filtering
+		$('#analysis_detections').html(''); // empty
+		var analysis_detections_html = '';
+		analysis_detections_html += '<div class="row mb-3">';
+		// analysis_detections_html += '<div class="col-2">';
+		// analysis_detections_html += '	<div class="tag-header" style="width: 100%;background-color: #effffc;color: #75736e;"><div style="text-transform: uppercase; font-size: 10px;">Step 3</div>Setup analysis study context</div>';
+		// analysis_detections_html += '</div>';
+		analysis_detections_html += '<div class="col-12">';
+		analysis_detections_html += '<div class="tag-header" style="width: 100%;background-color: #effffc;color: #75736e;"><div style="text-transform: uppercase; font-size: 10px;">Step 3</div>Setup analysis study context</div>';
 		if (studies.length == 0) {
 			analysis_detections_html += ' <div>No studies detected from your plant selections. ⚠️ <br />Please return to the map and select plants within studies to get most out of this analysis system.</div>';
 		}
@@ -4926,6 +5370,7 @@ var ct_ready_map_analysis = function() {
 			console.log('Refresh the file history');
 			$('#create-analysis-select-history').click();
 		//}
+		*/
 	});
 
 
@@ -5363,7 +5808,8 @@ var ct_ready_map_analysis = function() {
 								$('#nextflow-gwas-results').append(generate_completion_message_html(data));
 								if (data['response']['image'] != null) {
 									$('#nextflow-gwas-visualization').html('');
-									$('#nextflow-gwas-visualization').html('<div class="vis-img-container"><img style="width: 100%;" src="' + Drupal.settings.base_url + '/cartogratree/api/v2/gwas/nextflow_visualization?analysis_id=' + cartograplant.current_analysis_id + '" /></div>');
+									var nowInMilliseconds = new Date().getTime();
+									$('#nextflow-gwas-visualization').html('<div class="vis-img-container"><img style="width: 100%;" src="' + Drupal.settings.base_url + '/cartogratree/api/v2/gwas/nextflow_visualization?nocache=' + Math.floor(nowInMilliseconds / 1000) + '&analysis_id=' + cartograplant.current_analysis_id + '" /></div>');
 									//$('#nextflow-gwas-visualization').html($('#nextflow-gwas-visualization').html() + '<div class="vis-img-zoom" style="height: 300px; width: 100%;"></div>');
 									//$('#nextflow-gwas-visualization .vis-img-container').zoom({
 									//	magnify:1.5,
@@ -5603,6 +6049,8 @@ var ct_ready_map_analysis = function() {
 			
 			$('#nextflow-gwas-interface-model-options').html('Please select model to see options');
 
+			$('#gwas_choose_sub_workflow').delay(2000).click();
+
 			// if (typeof model_data === 'object') {
 			// 	if (model_data['steps'] == undefined) {
 			// 		var sub_models = Object.keys(model_data);
@@ -5699,6 +6147,19 @@ var ct_ready_map_analysis = function() {
 								// interface_html += '</tr>';
 							}
 							break;
+						case 'integer':
+
+							interface_html += '<div style="padding-bottom: 5px; text-transform: capitalize;">' + input_properties[property_name]['description'] + '</div>';
+							interface_html += '<div style="padding-bottom: 5px;">';
+							interface_html += ' <input type="text" class="property_form_field" data-input-name="' + property_name + '" />';
+							interface_html += '</div>';
+							break;
+						case 'float':
+							interface_html += '<div style="padding-bottom: 5px; text-transform: capitalize;">' + input_properties[property_name]['description'] + '</div>';
+							interface_html += '<div style="padding-bottom: 5px;">';
+							interface_html += '<input type="text" class="property_form_field" data-input-name="' + property_name + '" />';
+							interface_html += '</div>';
+							break;
 						/*
 						case 'boolean':
 							interface_html += '<tr>';
@@ -5708,14 +6169,6 @@ var ct_ready_map_analysis = function() {
 							interface_html += '<option value="true">true</option>';
 							interface_html += '<option value="true">false</option>';
 							interface_html += '</select>';
-							interface_html += '</td>';
-							interface_html += '</tr>';
-							break;
-						case 'integer':
-							interface_html += '<tr>';
-							interface_html += '<td style="padding-bottom: 10px; text-transform: capitalize;">' + input_properties[property_name]['description'] + '</td>';
-							interface_html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
-							interface_html += '<input type="text" class="property_form_field" data-input-name="' + property_name + '" />';
 							interface_html += '</td>';
 							interface_html += '</tr>';
 							break;
@@ -5735,7 +6188,9 @@ var ct_ready_map_analysis = function() {
 				interface_html += '<hr />';
 				$('#nextflow-gwas-interface').html(interface_html);
 				$('#nextflow-gwas-interface select[data-input-name="workflow"]').click()
-				$('#nextflow-gwas-interface-submodel-options #gwas_choose_sub_workflow').delay(2000).click();
+				console.log('IT CAME HERE:Trigger click on sub workflow selector');
+				$('#gwas_choose_sub_workflow').delay(2000).click();
+				// $('#nextflow-gwas-interface-submodel-options #gwas_choose_sub_workflow').delay(2000).click();
 			}
 		});
 
@@ -5952,6 +6407,158 @@ var ct_ready_map_analysis = function() {
 		});
 
 	});
+
+	$('body').off('keyup', '#manage_workspace_files_search');
+	$('body').on('keyup', '#manage_workspace_files_search', function() {
+		var search_term = $(this).val().toLowerCase();
+		console.log('search_term', search_term);
+		$('#nextflow-manage-workspace-contents .file_item_container .filename_raw_container a').each(function() {
+			var file_a = $(this);
+			var file_a_text = file_a.text().toLowerCase();
+			console.log('file_a_text', file_a_text);
+			if (file_a_text.indexOf(search_term) !== -1) {
+				$(this).closest('.file_item_container').slideDown(500);
+			}
+			else {
+				$(this).closest('.file_item_container').slideUp(500);
+			}
+		});
+	});
+
+	$('body').off('change', '#manage_workspace_files_analysis_select_list');
+	$('body').on('change', '#manage_workspace_files_analysis_select_list', function() {
+		var search_term = $(this).val().toLowerCase();
+		console.log('search_term', search_term);
+		$('#manage_workspace_files_search').val(search_term);
+		$('#manage_workspace_files_search').keyup();
+	});
+
+
+	// $('body').off('click', '.nextflow-manage-download-selected-workspace-files-button');
+	// $('body').on('click', '.nextflow-manage-download-selected-workspace-files-button', function() {
+	// 	console.log('Download selected files button clicked');
+	// 	// Get selected files
+	// 	var selected_files = [];
+	// 	$('.nextflow-manage-workspace-file-checkbox:checked').each(function() {
+	// 		// Find the download element
+	// 		console.log('selected file', $(this).attr('data-filename'));
+	// 		console.log('download link', $(this).closest('.file_item_container').find('.nextflow-manage-workspace-file-download a').attr('href'));
+	// 		var download_link = $(this).closest('.file_item_container').find('.nextflow-manage-workspace-file-download a').attr('href');
+	// 		downloadFile(download_link, $(this).attr('data-filename'));
+	// 		//$(this).closest('.file_item_container').find('.nextflow-manage-workspace-file-download').find('a').click();
+	// 	});
+	// });
+
+	$('body').off('click', '.nextflow-manage-download-selected-workspace-files-button');
+	$('body').on('click', '.nextflow-manage-download-selected-workspace-files-button', async function() {
+		const $btn = $(this);
+		console.log('Download selected files button clicked');
+	
+		// collect selected files (filename + download url)
+		const selected = [];
+		$('.nextflow-manage-workspace-file-checkbox:checked').each(function() {
+			const filename = $(this).attr('data-filename');
+			const download_link = $(this).closest('.file_item_container').find('.nextflow-manage-workspace-file-download a').attr('href');
+			if (filename && download_link) selected.push({ url: download_link, filename: filename });
+		});
+	
+		if (selected.length === 0) {
+			alert('No files selected');
+			return;
+		}
+	
+		// concurrency/batch size
+		const BATCH_SIZE = 5;
+	
+		// helper to download a single URL (fetch -> blob -> anchor click). fallback to opening URL.
+		async function fetchAndSave(url, filename) {
+			try {
+				const resp = await fetch(url, { credentials: 'same-origin' });
+				if (!resp.ok) throw new Error('HTTP ' + resp.status);
+				const blob = await resp.blob();
+				const link = document.createElement('a');
+				link.href = URL.createObjectURL(blob);
+				link.download = filename || '';
+				// append to DOM for compatibility
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				// cleanup object URL after short delay to ensure download started
+				setTimeout(() => URL.revokeObjectURL(link.href), 1000 * 5);
+			} catch (err) {
+				console.warn('fetch failed for', url, err);
+				// fallback: open in new tab (or trigger anchor click). Might be blocked if many are opened.
+				try {
+					const f = document.createElement('a');
+					f.href = url;
+					// attempt to set download (may be ignored cross-origin)
+					f.download = filename || '';
+					f.target = '_blank';
+					document.body.appendChild(f);
+					f.click();
+					document.body.removeChild(f);
+				} catch (ex) {
+					console.error('Fallback open failed', ex);
+				}
+			}
+		}
+	
+		// Disable button and update text
+		const total = selected.length;
+		$btn.prop('disabled', true);
+		let completed = 0;
+		$btn.html(`Downloading 0 / ${total}...`);
+	
+		// process in batches
+		for (let i = 0; i < selected.length; i += BATCH_SIZE) {
+			const batch = selected.slice(i, i + BATCH_SIZE);
+			// Start batch fetches in parallel and wait for them to finish
+			await Promise.all(batch.map(async (file) => {
+				await fetchAndSave(file.url, file.filename);
+				completed += 1;
+				$btn.html(`Downloading ${completed} / ${total}...`);
+			}));
+	
+			// small delay between batches to help browser (optional)
+			await new Promise(res => setTimeout(res, 300));
+		}
+	
+		// re-enable and restore label
+		$btn.prop('disabled', false);
+		$btn.html(`Download ${$('.nextflow-manage-workspace-file-checkbox:checked').length} selected files`);
+		console.log('Batch download complete');
+	});
+
+	function downloadFile(url, filename) {
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = filename; // Set the default filename for the download
+		document.body.appendChild(link); // Append to DOM to work across browsers
+		link.click(); // Programmatically click the link
+		document.body.removeChild(link); // Remove the link after the download starts
+	}
+
+	$('body').off('change', '.nextflow-manage-workspace-file-checkbox');
+	$('body').on('change', '.nextflow-manage-workspace-file-checkbox', function() {
+		var selected_files_count = $('.nextflow-manage-workspace-file-checkbox:checked').length;
+		console.log('selected_files_count', selected_files_count);
+		$('.nextflow-manage-download-selected-workspace-files-button').html('Download ' + selected_files_count + ' selected files');
+	});
+
+	$('body').off('change', '.nextflow-manage-workspace-file-checkbox-all');
+	$('body').on('change', '.nextflow-manage-workspace-file-checkbox-all', function() {
+		var is_checked = $(this).is(':checked');
+		if (is_checked) {
+			$('.nextflow-manage-workspace-file-checkbox').prop('checked', true);
+		}
+		else {
+			$('.nextflow-manage-workspace-file-checkbox').prop('checked', false);
+		}
+		// Update the download button text
+		var selected_files_count = $('.nextflow-manage-workspace-file-checkbox:checked').length;
+		console.log('selected_files_count', selected_files_count);
+		$('.nextflow-manage-download-selected-workspace-files-button').html('Download ' + selected_files_count + ' selected files');
+	});
 	
 	function cartograplant_analysis_nextflow_populate_workspace_contents_list(force = false) {
 		var workspace_name = $('#nextflow-create-analysis-select-history').val();
@@ -5964,24 +6571,145 @@ var ct_ready_map_analysis = function() {
 				console.log(data);
 				$('#nextflow-manage-workspace-contents').html('');
 				$('.nextflow-workspace-nextflow-files-loader').html('');
+				var analysis_ids = {};
 				var div = '';
+				div += '<input type="checkbox" class="nextflow-manage-workspace-file-checkbox-all" data-filename="' + filename + '" style="display: inline-block; vertical-align: top; margin-right: 10px; margin-top: 10px;" />';
+				div += '<button class="btn btn-primary nextflow-manage-download-selected-workspace-files-button" style="margin-bottom: 10px;">Download 0 selected files</button>';
 				for (var i = 0; i < data.length; i++) {
-					div += '<div style="display: flex;"></div>';
-					div += '<div style="margin-bottom: 5px;">';
+					div += '<div class="file_item_container" style="margin-bottom: 10px;">';
 					// id, history_id, dataset_id
 					var file_location_parts = data[i].split('/');
 					var filename = file_location_parts[file_location_parts.length - 1];
-					div += '<button style="display: inline-block; vertical-align: top;" class="btn btn-danger" id="nextflow-manage-workspace-files-delete" data-filename="' + filename + '" data-toggle="tooltip" title="Delete"><i class="fa fa-trash" aria-hidden="true"></i></button>';
-					div += '<button style="display: inline-block; vertical-align: top;" class="btn btn-info" id="nextflow-manage-workspace-file-download" data-toggle="tooltip" title="Download"><a href="' + Drupal.settings.base_url + '/cartogratree_uianalysis/nextflow_download_workspace_file/' +  workspace_name + '/' + filename + '"><i class="fa fa-download" aria-hidden="true"></i></a></button>';
+					div += '    <input type="checkbox" class="nextflow-manage-workspace-file-checkbox" data-filename="' + filename + '" style="display: inline-block; vertical-align: top; margin-right: 10px; margin-top: 10px;" />';
+					div += '	<button style="display: inline-block; vertical-align: top;" class="btn btn-danger" id="nextflow-manage-workspace-files-delete" data-filename="' + filename + '"><i class="fa fa-trash" aria-hidden="true"></i></button>';
+					div += '	<button style="display: inline-block; vertical-align: top;" class="btn btn-info nextflow-manage-workspace-file-download" data-toggle="tooltip" title="Download"><a href="' + Drupal.settings.base_url + '/cartogratree_uianalysis/nextflow_download_workspace_file/' +  workspace_name + '/' + filename + '"><i class="fa fa-download" aria-hidden="true"></i></a></button>';
 					// <i class="fa fa-download" aria-hidden="true"></i>
 					// div += '<button class="btn btn-info" id="manage-history-contents-delete-' + history_item['dataset_id'] + '" style=""><i class="fa fa-download" aria-hidden="true"></i></button>';
 					
-					div += ' <div style="display: inline-block; vertical-align: top; width: 80%;"><a href="' + Drupal.settings.base_url + '/cartogratree_uianalysis/nextflow_download_workspace_file/' +  workspace_name + '/' + filename + '">' + filename + '</a></div>';
+					div += ' 	<div style="display: inline-block; vertical-align: top; width: 80%;">';
+					div += '		<div class="filename_raw_container" style="margin-left: 0px; font-size: 1.1em; color: #555555; background-color:rgb(245 255 250); padding: 5px;"><a href="' + Drupal.settings.base_url + '/cartogratree_uianalysis/nextflow_download_workspace_file/' +  workspace_name + '/' + filename + '">File: ' + filename + '</a></div>';
+					var human_readable_filename_info = cartograplant_analysis_nextflow_populate_workspace_contents_list_file_human_readable(filename);
+					console.log('human_readable_filename', human_readable_filename_info );
+					var human_readable_filename = '';
+					if (human_readable_filename_info.hasOwnProperty('human_readable_filename')) {
+						human_readable_filename = human_readable_filename_info['human_readable_filename'];
+					}
+					if (human_readable_filename_info.hasOwnProperty('analysis_id')) {
+						var tmp_analysis_id = human_readable_filename_info['analysis_id'];
+						if (!analysis_ids.hasOwnProperty(tmp_analysis_id)) {
+							analysis_ids[tmp_analysis_id] = true;
+						}
+					}
+					div += '		<div style="margin-left: 0px; font-size: 0.9em; color: #555555; background-color: #effcff;padding: 5px;">' + human_readable_filename + '</div>';
+					div += '	</div>';
 					div += '</div>';
+
 				}
 				$('#nextflow-manage-workspace-contents').append(div);
+				// Also update the select list for workspace files
+				$('#manage_workspace_files_analysis_select_list').html('');
+				var analysis_ids_keys = Object.keys(analysis_ids);
+				for (var a_i = 0; a_i < analysis_ids_keys.length; a_i++) {
+					var analysis_id = analysis_ids_keys[a_i];
+					$('#manage_workspace_files_analysis_select_list').append('<option value="' + analysis_id + '">Analysis ID: ' + analysis_id + '</option>');
+				}
 			}
 		});
+	}
+
+	function cartograplant_analysis_nextflow_populate_workspace_contents_list_file_human_readable(filename) {
+		var human_readable_filename = '';
+		try {
+			var matches = filename.match(/^(\d+)-(.+)[-_](.+)(.csv)$/);
+		}
+		catch (err) {
+			console.log('failed to match', err);
+			return {};
+		}
+		console.log('filename regex matches', matches);
+		if (matches != null) {
+			if (matches.length > 4) {
+				var timestamp = matches[1];
+				var date = new Date(parseInt(timestamp) * 1000);
+				var year = date.getFullYear();
+				var month = ('0' + (date.getMonth() + 1)).slice(-2);
+				var day = ('0' + date.getDate()).slice(-2);
+				var hours = ('0' + date.getHours()).slice(-2);
+				var minutes = ('0' + date.getMinutes()).slice(-2);
+				var seconds = ('0' + date.getSeconds()).slice(-2);
+				var formatted_date = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+				var analysis_raw = matches[2];
+				if (analysis_raw.startsWith('AN')) {
+					var analysis_parts = analysis_raw.split('_', 3);
+					console.log('analysis_parts', analysis_parts);
+					var file_analysis_id = 'NA';
+					var file_type = 'NA';
+					var file_info = '';
+					if (analysis_parts.length >= 3) {
+						file_analysis_id = analysis_parts[0].replace('AN', '');
+						var file_type_raw = analysis_parts[1];
+						if (file_type_raw == 'GWAS') {
+							file_type = 'GWAS Analysis';
+						}
+						else if (file_type_raw == 'PHENOVER') {
+							file_type = 'PHENOTYPE OVERLAPS';
+						}
+						else if (file_type_raw == 'ENVDATA') {
+							file_type = 'ENVIRONMENTAL DATA';
+						}
+						var file_info_parts = filename.split(file_type_raw);
+						if (file_info_parts.length >= 2) {
+							file_info = file_info_parts[1];
+							file_info = file_info.replace('_', ' ');
+							file_info = file_info.replace('-', ' ');
+							if (matches.length >= 5) {
+								file_info = file_info.replace(matches[4], '');
+							}
+						}
+
+					}
+					else {
+						file_analysis_id = 'NA';
+					}
+				}
+				var original_filename = matches[3];
+				human_readable_filename = '';
+				human_readable_filename += '<table style="border-spacing: 1px;">';
+				human_readable_filename += '<tr>';
+				human_readable_filename += '<td>Analysis ID:</td>';
+				human_readable_filename += '<td style="padding-left: 10px;">' + file_analysis_id + '</td>';
+				human_readable_filename += '</tr>';
+				human_readable_filename += '<tr>';
+				human_readable_filename += '<td>File category:</td>';
+				human_readable_filename += '<td style="padding-left: 10px;">' + file_type + '</td>';
+				human_readable_filename += '</tr>';
+				human_readable_filename += '<tr>';
+				human_readable_filename += '<td>File description:</td>';
+				if (file_info == undefined  || file_info == null) {
+					file_info = '';
+				}
+				human_readable_filename += '<td style="padding-left: 10px;">' + file_info.toLocaleUpperCase() + '</td>';
+				human_readable_filename += '</tr>';
+				human_readable_filename += '<tr>';
+				human_readable_filename += '<td>Uploaded date:</td>';
+				human_readable_filename += '<td style="padding-left: 10px;">' + formatted_date + '</td>';
+				human_readable_filename += '</tr>';
+				human_readable_filename += '</table>';
+				// human_readable_filename = '<div style="margin-bottom: 5px;"><div>Analysis ID: ' + file_analysis_id + '</div><div>File category: ' + file_type + ' </div><div>File description: ' + file_info.toLocaleUpperCase() + ' </div><div>Uploaded date: ' + formatted_date + '</div>';
+				return {
+					human_readable_filename: human_readable_filename,
+					original_filename: original_filename,
+					analysis_id: file_analysis_id,
+					file_type: file_type,
+					file_info: file_info,
+					timestamp: formatted_date
+				};
+			}
+			else {
+				return {};
+			}
+		}
+		return {};
 	}
 
 	function cartograplant_analysis_populate_history_contents_list(force = false) {
@@ -7037,7 +7765,8 @@ var ct_ready_map_analysis = function() {
                             var classification_elements = parent_container.find('.classification_container');
                             console.log('classification_elements', classification_elements);
                             var el = undefined;
-                            for (var i=0; i<classification_elements.size(); i++) {
+                            // for (var i=0; i<classification_elements.size(); i++) {
+							for (var i=0; i<classification_elements.length; i++) {
                               el = $(classification_elements[i]);
                               console.log('el', el);
                               var el_classification = el.attr('data-classification');
@@ -7839,7 +8568,8 @@ var ct_ready_map_analysis = function() {
 							if (property_names.length > 3) {
 								env_property_text_list = 'Numerous Properties';
 							}
-							formData.append('file_name', 'AN' + cartograplant.current_analysis_id + '_ENVDATA_' + env_property_text_list + '.csv');
+							var env_filename = 'AN' + cartograplant.current_analysis_id + '_ENVDATA_' + env_property_text_list + '.csv';
+							formData.append('file_name', env_filename);
 							formData.append('workspace_name', $('#nextflow-create-analysis-select-history').val());
 							// if(cartograplant.history_id == null) {
 							// 	alert('Cannot upload a file without selecting a workspace to store the file, please visit the Begin tab to select or create a workspace');
@@ -7850,6 +8580,7 @@ var ct_ready_map_analysis = function() {
 							// [RISH] 2025/1/2 - Changed the original endpoint for galaxy
 							// var url = Drupal.settings.base_url + "/cartogratree_uianalysis/upload_file_raw_data_to_history";
 							// [RISH] 2025/1/2 - New endpoint to work with nextflow workspace
+							$('#analysis-generateoutput-envdata-section-from-db-filename').html('');
 							var url = Drupal.settings.base_url + "/cartogratree_uianalysis/upload_file_raw_data_to_nextflow_workspace";
 							$.ajax({
 								xhr: function() {
@@ -7881,7 +8612,8 @@ var ct_ready_map_analysis = function() {
 									console.log(data);
 									if(data['status'] != undefined) {
 										if(data['status'] == true) {
-											alert('Environmental data uploaded to workspace!');
+											alert('Environmental data uploaded to workspace! File name: ' + env_filename);
+											$('#analysis-generateoutput-envdata-section-from-db-filename').html('<div style="margin-top: 10px; margin-bottom: 5px; padding: 10 px; background-color: #f3fff8; border: 1px solid #ddf3f0;">Uploaded file: ' + env_filename + '</div>');
 											// $('#' + status_container).html('<br /><div style="padding: 5px; border-radius: 3px; background-color: #fffd9c;">Successfully uploaded! Please refresh workflow until it appears in the select list</div>');
 											// Refresh the history files by reloading the entire submit form
 											/*

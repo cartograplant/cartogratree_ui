@@ -315,6 +315,17 @@ function cartogratree_uiapi_get_vcf_studies($tgdr_numbers_csv) {
     drupal_json_output($return_results);
 }
 
+function cartogratree_uiapi_lookup_coordinate_cleaner_flag($tree_id) {
+    $results = chado_query('SELECT * FROM public.coordinate_cleaner_flagged_coordinates WHERE uniquename = :tree_id LIMIT 1', [
+        ':tree_id' => $tree_id
+    ]);
+    $return_results = [];
+    foreach ($results as $row) {
+        $return_results = (array) $row;
+    }
+    drupal_json_output($return_results);
+}
+
 function cartogratree_uiapi_get_vcf_studies_indexed($tgdr_numbers_csv) {
     $tgdr_numbers = explode(',',$tgdr_numbers_csv);
     // print_r($tgdr_numbers);

@@ -7,7 +7,58 @@
 body {
   max-height: 100vh;
   font-family: 'Roboto', sans-serif !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
+
+.circle_select {
+  height: 2em;
+  width: 2em;
+  background-color: rgb(247 247 247);
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 15px;
+  margin-top: 3px;
+  border: 1.5px solid #04896a;
+}
+
+#analysis-form .nav-pills .nav-link .analysis-left-menu-icon {
+  height: 2.0em;
+  width: 2.0em;
+  background-color: #FFFFFF;
+  fill: #00b392;
+  border-radius: 25%;
+  display: inline-block;
+  margin-right: 15px;
+  margin-top: 3px;
+  padding: 3px;
+  /* border: 1.5px solid #cbede5; */
+}
+
+#analysis-form .nav-pills .nav-link.active .analysis-left-menu-icon {
+  /*
+  background-color: #00b392;
+  fill: #FFFFFF;
+  */
+  border: 1.5px solid #cbede5;
+}
+
+#analysis-form .nav-pills .nav-link.active .circle_select {
+  background-color: rgb(1, 194, 155);
+}
+
+.btn-info, .btn-primary {
+  background-color: rgb(16, 166, 137) !important;
+}
+
+.btn-primary.active {
+  background-color: rgb(1, 219, 179) !important;
+}
+
+.btn-info a {
+  color: #FFFFFF !important;
+}
+
 
 select {
   max-width: 100%;
@@ -31,22 +82,30 @@ select {
 }
 
 
-
+#analysis-form .nav-pills .nav-item {
+  margin-bottom: 20px !important;
+}
 
 #analysis-form .nav-pills .nav-link {
   background-color: #FFFFFF !important;
   border: 0px solid #FFFFFF !important;
 }
 
-#analysis-form .nav-pills .nav-link.active {
+#analysis-form .nav-pills .nav-link.active, #analysis-form .nav-pills .nav-link {
+  /*
   border: 1px solid #307d44 !important;
   background-color: rgb(16, 166, 137) !important;
   color: #FFFFFF;
+  */
+  padding: 0px !important;
 }
 
 #analysis-form .nav-pills .nav-link:hover {
+  /*
   border: 1px solid #e4e4e4 !important;
   border-bottom: 1px solid #e4e4e4 !important;
+  */
+  border: 0px solid #FFFFFF !important;
 }
 
 
@@ -680,7 +739,7 @@ select {
   top: 0;   
   height: 50vh;   
   margin-top: 1vh; 
-  width: 18vw;
+  width: 20vw;
   position: absolute;   
   bottom: 0;   
   right: 2vw;   
@@ -741,7 +800,8 @@ select {
 }
 
 .top-description {
-  background-color: #f3fff8;
+  /* background-color: #f3fff8;*/
+  background-color: rgb(239, 255, 252);
   padding: 5px;
   border-radius: 5px;
   font-size: 14px;
@@ -1414,6 +1474,7 @@ line {
 }
 
 .tag-header {
+  /*
   display: inline-block;
   padding: 2px;
   border-radius: 5px;
@@ -1421,6 +1482,17 @@ line {
   padding-right: 8px;
   padding-top: 4px;
   padding-bottom: 4px;
+  */
+  display: inline-block;
+  position: relative;
+  left: -8px;
+  padding: 2px;
+  border-radius: 5px;
+  padding-left: 8px;
+  padding-right: 8px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  margin-bottom: 5px;
 }
 
 #analysis_detections_study_summary table, #analysis_detections_study_summary th, #analysis_detections_study_summary tr, #analysis_detections_study_summary td {

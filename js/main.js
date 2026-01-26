@@ -1,12 +1,19 @@
-"use strict";
+// "use strict";
 var mapState;
 //var treeDataStore = {};
-var cartograplant = {};
+cartograplant = {};
 cartograplant['timers'] = {};
 cartograplant['scripts'] = {};
 cartograplant['ajax_calls'] = {}; // this contains ajax handles used for control/aborts if necessary
 cartograplant['ajax_requests'] = {};
+console.log('Initialized cartograplant object', cartograplant);
+
 var ct_ready_mainjs = function () {
+	try {
+		$("#welcome-form").modal("toggle");
+	} catch (e) {
+		console.log("No welcome form to show");
+	}
 	console.log(Drupal.settings);
 	//query builder set up
 
@@ -140,15 +147,14 @@ var ct_ready_mainjs = function () {
 			cartograplant.buildSelectOption("species", "Species", "string", ["equal", "not_equal"]), // 2
 			// cartograplant.buildSelectOption("marker_type", "Markers", "string", ["equal", "not_equal"]),
 			cartograplant.buildSelectOption("markers", "Markers", "string", ["equal", "not_equal"]), // 3
-			//cartograplant.buildSelectOption("category", "Treesnap Category", "string", ["equal", "not_equal"]), // 4
-			// cartograplant.buildSelectOption("structure_name", "Plant Structure", "string", ["equal", "not_equal"]), //5
-			cartograplant.buildAutocompleteOption("structure_name", "Plant Structure", "string", Drupal.settings.options_data["plant_ontology"]), // 5
-			// cartograplant.buildSelectOption("phenotype_name", "Phenotype Attribute", "string", ["equal", "not_equal"]), // 6
-			cartograplant.buildAutocompleteOption("phenotype_name", "Phenotype Attribute", "string", Drupal.settings.options_data["cvterm"]), // 6
-			cartograplant.buildSelectOption("title", "Study Title", "string", ["equal", "not_equal"]), // 7
-			cartograplant.buildAutocompleteOption("author", "Study First Author", "string", Drupal.settings.options_tgdr["pub_author"].sort()), // 8
-			
-			cartograplant.buildAutocompleteOption("accession", "Study Accession", "string", Drupal.settings.options_tgdr["pub_tgdr"]), // 9
+			//cartograplant.buildSelectOption("category", "Treesnap Category", "string", ["equal", "not_equal"]), 
+			// cartograplant.buildSelectOption("structure_name", "Plant Structure", "string", ["equal", "not_equal"]), 
+			cartograplant.buildAutocompleteOption("structure_name", "Plant Structure", "string", Drupal.settings.options_data["plant_ontology"]), // 4
+			// cartograplant.buildSelectOption("phenotype_name", "Phenotype Attribute", "string", ["equal", "not_equal"]), 
+			cartograplant.buildAutocompleteOption("phenotype_name", "Phenotype Attribute", "string", Drupal.settings.options_data["cvterm"]), // 5
+			cartograplant.buildSelectOption("title", "Study Title", "string", ["equal", "not_equal"]), // 6
+			cartograplant.buildAutocompleteOption("author", "Study First Author", "string", Drupal.settings.options_tgdr["pub_author"].sort()), // 7
+			cartograplant.buildAutocompleteOption("accession", "Study Accession", "string", Drupal.settings.options_tgdr["pub_tgdr"]), // 8
 			// buildSelectOption("study_accession", "Study Accession", "string", ["equal", "not_equal"]),
 		];
 

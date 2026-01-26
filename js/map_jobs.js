@@ -36,9 +36,187 @@ var ct_ready_map_jobs = function() {
 		$("#jobs-form").modal();
 
 
-        jobs_get_jobs_list(1);
+		jobs_get_nextflow_jobs_list(1);
+        // jobs_get_jobs_list(1);
 		
 	});	
+
+	function jobs_get_nextflow_jobs_list(page_no) {
+		var url_user_jobs = Drupal.settings.base_url + "/cartogratree_uijobs/get_nextflow_user_jobs/" + page_no;
+		$('#job-analyses-list').fadeOut(200);
+		console.log(url_user_jobs);
+		$.ajax({
+			method: "GET",
+			url: url_user_jobs,
+			dataType: "json",
+			success: function (data) {
+				console.log(data);
+				nextflow_jobs_generate_table_list(data);
+			}
+		});
+	}
+
+	function nextflow_jobs_generate_table_list(data) {
+		// To be implemented
+		$('#job-analyses-list').html(''); // clear
+		$('#job-analyses-list').fadeIn(200);
+
+		jobs_data_store.jobs = [];
+		jobs_data_store.jobs = data.analysis;
+		var total_jobs_count = data.total_count;
+		var page_no = data.page_no;
+		var items_limit = data.items_limit;
+
+		// Add pager
+		var pager_html = '<style>span[class*=job_list_pager_item_]:hover {background-color: #33b093;} </style>';
+		pager_html += '<div style="text-align: center; margin-top: 10px; margin-bottom: 10px; ">';
+		var curr_page_no = 0;
+		for(var i=0; i<total_jobs_count; i++) {
+			if (i % items_limit == 0 && ((items_limit * (curr_page_no + 1)) < total_jobs_count)) {
+				curr_page_no =  curr_page_no + 1;
+				if(curr_page_no != page_no) {
+					pager_html += '<span style="border-radius: 25%; cursor: pointer; padding: 5px; padding-left: 10px; padding-right: 10px; margin-right: 5px; background-color:rgb(225, 255, 248); color: #000000;" class="jobs_list_pager_item_' + curr_page_no +  '">' + curr_page_no + '</span>';
+				}
+				else {
+					pager_html += '<span style="border-radius: 25%; cursor: pointer; padding: 5px; padding-left: 10px; padding-right: 10px; margin-right: 5px; background-color:rgb(225, 255, 248); color: #000000; font-weight: bold;" class="jobs_list_pager_item_' + curr_page_no +  '">' + curr_page_no + '</span>';
+				}
+			}
+		}
+		pager_html += '</div>';
+		$('#job-analyses-list').append(pager_html);
+
+		var analyses = data.analysis;
+		var html = '';
+		html += '<table style="width: 100%;">';
+		html += '<tr style="border: 1px solid #cccccc; background-color: #f2f2f2; font-weight: bold; ">';
+		html += '<td style="padding: 10px; vertical-align: top; width: 200px;">Analysis ID</td>';
+		html += '<td style="padding: 10px; vertical-align: top; width: 200px;">Analysis Name</td>';
+		html += '<td style="padding: 10px; vertical-align: top;">Popstruct Status</td>';
+		html += '<td style="padding: 10px; vertical-align: top;">VCF Merge Status</td>';
+		html += '<td style="padding: 10px; vertical-align: top;">GWAS Status</td>';
+		html += '</tr>';
+		for (var i=0; i<analyses.length; i++) {
+			var analysis_row = analyses[i];
+			console.log('analysis_row', analysis_row);
+			html += '<tr style="border: 1px solid #cccccc; margin-bottom: 10px;">';
+			html += '<td style="padding: 10px; vertical-align: top; width: 200px;">';
+			html += '<b>' + analysis_row['analysis_id'] + '</b><br />';
+			html += '</td>';
+			html += '<td style="padding: 10px; vertical-align: top;">';
+			html += '<b>' + analysis_row['analysis_name'] + '</b><br />';
+			html += '</td>';
+			html += '<td style="padding: 10px; vertical-align: top;">';
+			if (analysis_row['popstruct_completion_message'] != null) {
+				// console.log('Analysis row PopStruct completion message is not null', analysis_row['popstruct_completion_message']);
+				// Get PopStruct completion message details
+				if (analysis_row['popstruct_completion_message']['success'] == 'true') {
+					html += 'POPSTRUCT Status: <span style="color:rgb(0, 172, 92)">Completed</span><br />';
+					html += 'Time duration: ' + analysis_row['popstruct_completion_message']['duration'] + '<br />';
+					html += 'Go to Analysis section and manage workspace to view output files<br />';
+				}
+				else if (analysis_row['popstruct_completion_message']['success'] == 'true' && analysis_row['popstruct_completion_message']['errorMessage'] != "null") {
+					html += 'POPSTRUCT Status: <span style="color:rgb(219, 2, 2)">Error</span><br />';
+					if (analysis_row['popstruct_completion_message']['duration']	!= null) {
+						html += 'Time duration: ' + analysis_row['popstruct_completion_message']['duration'] + '<br />';
+					}
+					html += analysis_row['popstruct_completion_message']['errorMessage'] + '<br />';
+				}
+				else if (analysis_row['popstruct_completion_message']['success'] == 'false' && analysis_row['popstruct_completion_message']['errorMessage'] != "null") {
+					html += 'POPSTRUCT Status: <span style="color:rgb(255, 34, 0)">Failed</span><br />' 
+					if (analysis_row['popstruct_completion_message']['duration']	!= null) {
+						html += 'Time duration: ' + analysis_row['popstruct_completion_message']['duration'] + '<br />';
+					}
+					html += analysis_row['popstruct_completion_message']['errorMessage'] + '<br />';
+				}
+				else {
+					// Other cases
+					html += 'POPSTRUCT Status: <span style="color:rgb(255, 115, 0)">In progress</span><br />';
+					if (analysis_row['popstruct_completion_message']['duration']	!= null) {
+						html += 'Time duration: ' + analysis_row['popstruct_completion_message']['duration'] + '<br />';	
+					}
+				}
+			}
+			else {
+				html += 'No POPSTRUCT workflow has been run<br />';
+			}
+			html += '</td>';
+			html += '<td style="padding: 10px; vertical-align: top;">';
+			if (analysis_row['vcfmerge_completion_message'] != null) {
+				// console.log('Analysis row VCF Merge (Variant filtering) completion message is not null', analysis_row['vcfmerge_completion_message']);
+				// Get PopStruct completion message details
+				if (analysis_row['vcfmerge_completion_message']['success'] == 'true') {
+					html += 'VCFMERGE Status: <span style="color:rgb(0, 172, 92)">Completed</span><br />';
+					html += 'Time duration: ' + analysis_row['vcfmerge_completion_message']['duration'] + '<br />';
+					html += 'Go to Analysis section and manage workspace to view output files<br />';
+				}
+				else if (analysis_row['vcfmerge_completion_message']['success'] == 'true' && analysis_row['vcfmerge_completion_message']['errorMessage'] != "null") {
+					html += 'VCFMERGE Status: <span style="color:rgb(219, 2, 2)">Error</span><br />';
+					if (analysis_row['vcfmerge_completion_message']['duration']	!= null) {
+						html += 'Time duration: ' + analysis_row['vcfmerge_completion_message']['duration'] + '<br />';
+					}
+					html += analysis_row['vcfmerge_completion_message']['errorMessage'] + '<br />';
+				}
+				else if (analysis_row['vcfmerge_completion_message']['success'] == 'false' && analysis_row['vcfmerge_completion_message']['errorMessage'] != "null") {
+					html += 'VCFMERGE Status: <span style="color:rgb(255, 34, 0)">Failed</span><br />' 
+					if (analysis_row['vcfmerge_completion_message']['duration']	!= null) {
+						html += 'Time duration: ' + analysis_row['vcfmerge_completion_message']['duration'] + '<br />';
+					}
+					html += analysis_row['vcfmerge_completion_message']['errorMessage'] + '<br />';
+				}
+				else {
+					// Other cases
+					html += 'VCFMERGE Status: <span style="color:rgb(255, 115, 0)">In progress</span><br />';
+					if (analysis_row['vcfmerge_completion_message']['duration']	!= null) {
+						html += 'Time duration: ' + analysis_row['vcfmerge_completion_message']['duration'] + '<br />';	
+					}
+				}
+			}
+			else {
+				html += 'No VCFMERGE workflow has been run<br />';
+			}
+			html += '</td>';
+			html += '<td style="padding: 10px; vertical-align: top;">';
+			if (analysis_row['gwas_completion_message'] != null) {
+				// console.log('Analysis row GWAS completion message is not null', analysis_row['gwas_completion_message']);
+				// Get GWAS completion message details
+				if (analysis_row['gwas_completion_message']['success'] == 'true') {
+					html += 'GWAS Status: <span style="color:rgb(0, 172, 92)">Completed</span><br />';
+					html += 'Time duration: ' + analysis_row['gwas_completion_message']['duration'] + '<br />';
+					html += 'Go to Analysis section and manage workspace to view output files<br />';
+				}
+				else if (analysis_row['gwas_completion_message']['success'] == 'true' && analysis_row['gwas_completion_message']['errorMessage'] != "null") {
+					html += 'GWAS Status: <span style="color:rgb(219, 2, 2)">Error</span><br />';
+					if (analysis_row['gwas_completion_message']['duration']	!= null) {
+						html += 'Time duration: ' + analysis_row['gwas_completion_message']['duration'] + '<br />';
+					}
+					html += analysis_row['gwas_completion_message']['errorMessage'] + '<br />';
+				}
+				else if (analysis_row['gwas_completion_message']['success'] == 'false' && analysis_row['gwas_completion_message']['errorMessage'] != "null") {
+					html += 'GWAS Status: <span style="color:rgb(255, 34, 0)">Failed</span><br />' 
+					if (analysis_row['gwas_completion_message']['duration']	!= null) {
+						html += 'Time duration: ' + analysis_row['gwas_completion_message']['duration'] + '<br />';
+					}
+					html += analysis_row['gwas_completion_message']['errorMessage'] + '<br />';
+				}
+				else {
+					// Other cases
+					html += 'GWAS Status: <span style="color:rgb(255, 115, 0)">In progress</span><br />';
+					if (analysis_row['gwas_completion_message']['duration']	!= null) {
+						html += 'Time duration: ' + analysis_row['gwas_completion_message']['duration'] + '<br />';	
+					}
+				}
+			}
+			else {
+				html += 'No GWAS workflow has been run<br />';
+			}
+			html += '</td>';
+			html += '</tr>';
+			// $('#job-analyses-list').append(div);
+		}
+		html += '</table>';
+		$('#job-analyses-list').append(html);
+		$('#job-analyses-list').append(pager_html);
+	}
 
     function jobs_get_jobs_list(page_no) {
 		var url_user_jobs = Drupal.settings.base_url + "/cartogratree_uijobs/get_user_jobs/" + page_no;
@@ -135,9 +313,7 @@ var ct_ready_map_jobs = function() {
 		$('#job-analyses-list').fadeIn(200);
 
 
-
 		// Perform ajax pulls for every job listed to update status live (???)
-        
 		for(var i=0; i<data.jobs.length; i++) {
             var results = JSON.parse(data.jobs[i].results);
             var submit_args = JSON.parse(data.jobs[i].submit_args);
@@ -207,11 +383,17 @@ var ct_ready_map_jobs = function() {
 	}
 
 	// On clicking a job pager item (page no)
+	// $(document).on('click', 'span[class*=jobs_list_pager_item_]', function() {
+	// 	console.log('Job pager item clicked');
+	// 	var className = $(this).attr('class');
+	// 	var page_no = className.split('_')[4];
+	// 	jobs_get_jobs_list(page_no);
+	// });
 	$(document).on('click', 'span[class*=jobs_list_pager_item_]', function() {
 		console.log('Job pager item clicked');
 		var className = $(this).attr('class');
 		var page_no = className.split('_')[4];
-		jobs_get_jobs_list(page_no);
+		jobs_get_nextflow_jobs_list(page_no);
 	});
 
 	// On clicking a job 'row' list item

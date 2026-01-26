@@ -17,9 +17,10 @@ function cartogratree_menu()
 {
     $items = array();
     // User interface
+    // See the cartogratree_theme function that handles the page path instead of this items path array
     $items['cartogratree'] = array(
-        'title' => 'CartograTree',
-        'description' => 'CartograTree Landing Page',
+        'title' => 'CartograPlant',
+        'description' => 'CartograPlant Landing Page',
         'access arguments' => array(
             'use cartogratree',
         ),
@@ -44,8 +45,8 @@ function cartogratree_menu()
     );
 
     $items['cartogratree%'] = array(
-        'title' => 'CartograTree',
-        'description' => 'CartograTree Landing Page',
+        'title' => 'CartograPlant',
+        'description' => 'CartograPlant Landing Page',
         'access arguments' => array('access content'),
     );
 
@@ -70,6 +71,19 @@ function cartogratree_menu()
 
 
     //UIJOBS / UI JOBS
+
+    $items['cartogratree_uijobs/get_nextflow_user_jobs/%'] = array(
+        'description' => 'Cartogratree JOBS API: Get User Jobs',
+        'title' => 'Cartogratree JOBS API: download historycontents file',
+        'page callback' => 'cartogratree_jobsapi_get_nextflow_user_jobs',
+        'page arguments' => array(
+            2,
+        ),
+        'file' => 'includes/cartogratree.jobs.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
 
     // % is the page number (default is 1)
     $items['cartogratree_uijobs/get_user_jobs/%'] = array(
@@ -590,6 +604,19 @@ function cartogratree_menu()
         ),
     );
 
+    $items['cartogratree_uiapi/plant_flagged/%'] = array(
+        'description' => 'Cartogratree UI API: Plant Flagged',
+        'title' => 'Cartogratree UI API: Plant Flagged',
+        'page callback' => 'cartogratree_uiapi_lookup_coordinate_cleaner_flag',
+        'page arguments' => array(
+            2,
+        ),
+        'file' => 'includes/cartogratree.uiapi.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
     $items['cartogratree_uiapi/vcf_files_indexed/%'] = array(
         'description' => 'Cartogratree UI API: VCF Files Indexed',
         'title' => 'Cartogratree UI API: VCF Files',
@@ -1067,7 +1094,15 @@ function cartogratree_theme($existing, $type, $theme, $path)
         'file' => 'includes/cartogratree.admin.inc',
     );
 
-    $items['page__cartogratree'] = array(
+    // $items['page__cartogratree'] = array(
+    //     'path' => $path . "/theme",
+    //     'template' => 'templates/page--cartogratree',
+    //     'render element' => 'page',
+    //     //'file' => 'cartogratree_theme.inc',   // this works only ONCE after clearing the cache
+    // );
+
+    // Here is where we define the /cartograplant path to use the same template as /cartogratree
+    $items['page__cartograplant'] = array(
         'path' => $path . "/theme",
         'template' => 'templates/page--cartogratree',
         'render element' => 'page',
@@ -1083,12 +1118,12 @@ function cartogratree_theme($existing, $type, $theme, $path)
 
 function cartogratree_preprocess_page(&$variables)
 {
-    if (current_path() == 'cartogratree') {
+    if (current_path() == 'cartogratree' || current_path() == 'cartograplant') {
         //don't cache cartogratree page to make testing easier, and to update the session variables after each refresh
         $GLOBALS['conf']['cache'] = FALSE;
         global $user;
 
-        drupal_set_title('CartograTree');
+        drupal_set_title('CartograPlant');
 
         // Grab the roles and user id of the current user.
         $uid = $user->uid;
@@ -1426,6 +1461,14 @@ function cartogratree_preprocess_page(&$variables)
 // This is Cartogratree specific for performance by removing unnecessary JS
 function cartogratree_js_alter(&$scripts) {
     // // This code manually removes unnecessary JS scripts from Cartraplant on LIVE
+    // print_r('Before JS Alter: ');
+    // print_r($scripts);
+    $current_path = current_path();
+    // print_r('Current Path: ' . $current_path);
+    if (stripos($current_path, 'cartograplant') === FALSE) {
+        return;
+    }
+    unset($scripts['sites/all/themes/sites/all/themes/dawn/js/dawn.min.js']);
     unset($scripts['sites/all/modules/chado_search/theme/js/chado_search.js']);
     unset($scripts['sites/all/modules/tripal/tripal/theme/js/tripal.js']);
     unset($scripts['sites/all/modules/tripal/legacy/tripal_core/theme/js/tripal_core.js']);
@@ -1443,7 +1486,7 @@ function cartogratree_js_alter(&$scripts) {
 // This is Cartogratree specific for performance by removing unnecessary CSS
 function cartogratree_css_alter(&$css) {
     $path = current_path();
-    if (stripos($path, 'cartogratree') !== FALSE) {
+    if (stripos($path, 'cartograplant') !== FALSE) {
         foreach ($css as $css_location => $css_array) {
             if (stripos($css_location, 'injector') !== FALSE) {
                 unset($css[$css_location]);
@@ -1516,12 +1559,14 @@ function cartogratree_add_external_files($bootstrap_latest = TRUE, $jquery_lates
     // drupal_add_css('https://use.fontawesome.com/releases/v5.5.0/css/all.css', 'external');
     drupal_add_css('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css', 'external');
     if ($jquery_latest) {
-        drupal_add_js('https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js', 'external');
+        // drupal_add_js('https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js', 'external');
+        drupal_add_js('https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js', 'external');
         drupal_add_js('https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js', 'external');
         drupal_add_css('https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css', 'external');
     }
     if ($bootstrap_latest) {
-        drupal_add_js('https://code.jquery.com/jquery-2.2.4.min.js', 'external');
+        // drupal_add_js('https://code.jquery.com/jquery-2.2.4.min.js', 'external');
+        drupal_add_js('https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js', 'external');
         drupal_add_js('https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js', 'external');
         drupal_add_css('https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css', 'external');
 

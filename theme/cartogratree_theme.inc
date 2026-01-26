@@ -4,7 +4,7 @@
  * Implements template_preprocess_page().
  */
 function cartogratree_preprocess_page(&$variables) {
-    if (current_path() == 'cartogratree') {
+    if (current_path() == 'cartogratree' || current_path() == 'cartograplant') {
 		drupal_add_css('https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700', 'external');
 		drupal_add_css('https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css', 'external');
 		drupal_add_js('https://code.jquery.com/jquery-3.1.1.min.js', 'external');

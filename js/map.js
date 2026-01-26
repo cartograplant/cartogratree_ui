@@ -5124,6 +5124,54 @@ var ct_ready_mapjs = function() {
 		if(treeId != undefined) { //make sure the treeId is valid and not undefined
 			var lon = null;
 			var lat = null;
+
+			// Check if plant id is flagged
+			// Show loader
+			$('#plant_flagged').html('Checking flags... <img style="height: 16px;" src="' + loading_icon_src + '" />');
+			$.ajax({
+				url: Drupal.settings.base_url + '/cartogratree_uiapi/plant_flagged/' + treeId,
+				method: 'GET',
+				success: function(data) {
+					console.log('plant_flagged data', data);
+					if (data['comment'] != "" && data['comment'] != null && data['comment'] != undefined) {
+						var comment = data['comment'];
+						var flags = comment.split(';');
+						var flags_html = '';
+						for (var i=0; i<flags.length; i++) {
+							console.log('Flagged: ' + flags[i]);
+							var flag = flags[i].trim();
+							if (i > 0) {
+								flags_html += ', ';
+							}
+							if (flag == 'otl') {
+								flags_html += 'Outlier';
+							}
+							else if (flag == 'cen') {
+								flags_html += 'Centroid';
+							}
+							else if (flag == 'cap') {
+								flags_html += 'Capital';
+							}
+							else if (flag == 'sea') {
+								flags_html += 'Sea';
+							}
+							else if (flag == 'inst') {
+								flags_html += 'Institution';
+							}
+							else {
+								flags_html += flag;
+							}
+						}
+						$('#plant_flagged').html('Flagged: ' + flags_html);
+						$('#plant_flagged').show();
+					}
+					else {
+						$('#plant_flagged').html('');
+						$('#plant_flagged').hide();
+					}
+				}
+			});
+
 			if(coordKey != null) {
 				var lonlat = coordKey.split('_');
 				lat = lonlat[0];
@@ -5997,7 +6045,7 @@ var ct_ready_mapjs = function() {
 				console.log('replace_keys', replace_keys);
 				if(replace_keys.includes(k)) {
 					for(var replace_keys_iterator=0; replace_keys_iterator < replace_keys.length; replace_keys_iterator++) {
-						console.log('Replace_keys found k:' + k + ' with ' + replace_keys_new[replace_keys_iterator]);
+						// console.log('Replace_keys found k:' + k + ' with ' + replace_keys_new[replace_keys_iterator]);
 						if(replace_keys[replace_keys_iterator] == k) {
 							console.log('IF STATEMENT - Replace_keys found k:' + k + ' with ' + replace_keys_new[replace_keys_iterator]);
 							k = replace_keys_new[replace_keys_iterator];
@@ -6005,28 +6053,72 @@ var ct_ready_mapjs = function() {
 						}
 					}
 				}
+
+
+				function eval_update_feature_value(evaluate, envLayer, feature, fc_index, k, data_embedded_data_eval_part_value, data_embedded_data_eval_i) {
+					console.log('-------------------------');
+					// console.log('k', k);
+					// console.log('data_embedded_data_eval_part_name:' + data_embedded_data_eval_part_name);
+					// console.log('data_embedded_data_eval_part_value:' + data_embedded_data_eval_part_value);
+					// console.log('data_embedded_data_eval_i:' + data_embedded_data_eval_i);
+					if (evaluate == true) {
+						eval(data_embedded_data_eval_part_value);
+						console.log('EVAL KEY EXECUTED for key:' + k + ' with new value:' + feature);
+					}
+					if (k == data_embedded_data_eval_part_name) {
+						console.log('EVAL KEY NAME MATCHES:' + k);
+						// Check if the element already exists or not
+						if ($('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).find('td[data-property-name="' + data_embedded_data_eval_part_name + '"]').length > 0) {
+							// Update existing element
+							console.log('EVAL KEY Updating element for ' + data_embedded_data_eval_part_name);
+							$('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).find('td[data-property-name="' + data_embedded_data_eval_part_name + '"]').next('td').html(feature);
+						}
+						else {
+							//console.log('Creating element for ' + data_embedded_data_eval_part_name);
+							var item_container = '<tr><td data-property-name="' + data_embedded_data_eval_part_name + '" data-index="' + data_embedded_data_eval_i + '" style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
+							$('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);	
+						}
+					}
+					else {
+						// console.log('EVAL KEY NAME DOES NOT MATCH:' + k);
+						// Check to see if this element already exists, if not then add it
+						if ($('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).find('td[data-property-name="' + k + '"]').length > 0) {
+						}
+						else {
+							var item_container = '<tr><td data-property-name="' + k + '" data-index="' + data_embedded_data_eval_i + '" style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
+							$('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);	
+						}
+					}
+
+
+				}
 														
 				
 				// Priority 2 - Then perform any evals based on the embedded data eval settings
 				if(data_embedded_data_eval['layer_embedded_data_eval'].length != 0) {
+					console.log('EVALS FOUND');
 					for(var data_embedded_data_eval_i = 0; data_embedded_data_eval_i < data_embedded_data_eval['layer_embedded_data_eval'].length; data_embedded_data_eval_i++) {
 						var data_embedded_data_eval_parts = data_embedded_data_eval['layer_embedded_data_eval'][data_embedded_data_eval_i].split(',',2);
 						var data_embedded_data_eval_part_name = data_embedded_data_eval_parts[0];
+						console.log('k', k);
 						console.log('data_embedded_data_eval_part_name:' + data_embedded_data_eval_part_name);
+
+
 						var data_embedded_data_eval_part_value = data_embedded_data_eval_parts[1];
 						console.log('data_embedded_data_eval_part_value:' + data_embedded_data_eval_part_value);
 						console.log('data_embedded_data_eval_i:' + data_embedded_data_eval_i);
-						console.log('k', k);
+						
 						if(data_embedded_data_eval_part_name == data_embedded_data_eval_i + 1) {
-							eval(data_embedded_data_eval_part_value);
-							var item_container = '<tr><td style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
-							$('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);																	
+							eval_update_feature_value(true, envLayer, feature, fc_index, k, data_embedded_data_eval_part_value, data_embedded_data_eval_i);
+							// eval(data_embedded_data_eval_part_value);
+							// var item_container = '<tr><td data-index="' + data_embedded_data_eval_i + '" style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
+							// $('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);																	
 						}
 						else if(data_embedded_data_eval_part_name == k) {
 							//Check to see if any of the keys need to be renamed
 							if(replace_keys.includes(k)) {
 								for(var replace_keys_iterator=0; replace_keys_iterator < replace_keys.length; replace_keys_iterator++) {
-									console.log('Replace_keys found k:' + k + ' with ' + replace_keys_new[replace_keys_iterator]);
+									// console.log('Replace_keys found k:' + k + ' with ' + replace_keys_new[replace_keys_iterator]);
 									if(replace_keys[replace_keys_iterator] == k) {
 										console.log('IF STATEMENT - Replace_keys found k:' + k + ' with ' + replace_keys_new[replace_keys_iterator]);
 										k = replace_keys_new[replace_keys_iterator];
@@ -6035,20 +6127,24 @@ var ct_ready_mapjs = function() {
 								}
 							}
 							//eval("feature = feature + '_ok';");
-							eval(data_embedded_data_eval_part_value);
-							var item_container = '<tr><td style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
-							$('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);																	
+							console.log("EVAL FOR KEY NAME MATCHES:" + k);
+							eval_update_feature_value(true, envLayer, feature, fc_index, k, data_embedded_data_eval_part_value, data_embedded_data_eval_i);
+							// eval(data_embedded_data_eval_part_value);
+							// var item_container = '<tr><td data-index="' + data_embedded_data_eval_i + '" style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
+							// $('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);																	
 						}
 						else {
-							var item_container = '<tr><td style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
-							$('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);	
+							eval_update_feature_value(false, envLayer, feature, fc_index, k, data_embedded_data_eval_part_value, data_embedded_data_eval_i);
+							// var item_container = '<tr><td data-index="' + data_embedded_data_eval_i + '" style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
+							// $('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);	
 						}
 					}
 				}
 				else {
 					//console.log('It came here 3:' + k + "=" + feature);
 					//eval("feature = feature + '_ok';");
-					var item_container = '<tr><td style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
+					console.log("NO EVALS SO JUST ADD IT");
+					var item_container = '<tr><td data-index="' + data_embedded_data_eval_i + '" style="text-align: left; padding-left: 5px; width: 50%;">' + k.replaceAll('_',' ') + '</td><td style="width: 50%;">' +  feature + '</td></tr>';
 					$('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).append(item_container);	
 				}
 				delete cartograplant.ajax_requests.environmental_data_lookups.data_lookup_objects[edl_key];
@@ -8079,13 +8175,27 @@ var ct_ready_mapjs = function() {
 		}
 		else {
 			console.log('[GOOD] Scatterplot basic script already loaded');
-		}		
+		}
+		
+		
 	}
 
 	$("#analysis-btn").on("click", function () {
 
+		var boot_notice_html = '';
+		boot_notice_html += '<div class="">';
+		boot_notice_html += '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>';
+		boot_notice_html += '<div style="display: inline-block; position: relative; top: -10px;">Setting up analysis... this can take a few seconds depending on your connection speed...</div>';
+		boot_notice_html += '</div>';
+		$('#analysis_summary_html').html(boot_notice_html);
 		load_scripts_analysis();
-		cartograplant['analysis_boot_function']();
+		console.log('cartograplant object', cartograplant);
+		setTimeout(function() {
+			console.log(cartograplant.analysis_boot_function);
+			// cartograplant['analysis_boot_function']();
+			cartograplant.analysis_boot_function();
+		}, 2500);
+		// cartograplant.analysis_boot_function();
 
 
 		if ($(this).hasClass("disabled")) {

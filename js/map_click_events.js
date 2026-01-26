@@ -286,7 +286,7 @@ var ct_ready_map_click_events = function() {
 		}
 		else {
 			console.log('Info container does not exist... creating and populating');
-			var layer_info_container = '<div style="margin-left: 20px; width: 100%; font-size: 10px;" id="layer_info_' + layer_id_number + '">Loading...</div>';
+			var layer_info_container = '<div style="margin-left: 20px; width: 100%; font-size: 10px; word-break: break-word;" id="layer_info_' + layer_id_number + '">Loading...</div>';
 			$("#ct-layer-title-" + layer_id_number).parent().parent().append(layer_info_container);	
 			var url_uiapi_get_layer_info = Drupal.settings.base_url + "/cartogratree_uiapi/get_layer_info/" + Drupal.settings.layers['cartogratree_layer_' + layer_id_number]['layer_id'];
 			$.ajax({
