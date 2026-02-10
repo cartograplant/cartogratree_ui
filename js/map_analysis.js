@@ -1006,6 +1006,8 @@ var ct_ready_map_analysis = function() {
 
 				console.log('Filter and imputation data response', data);
 				data = JSON.parse(data);
+				// var variant_filtering_cmd = data['cmd'];
+				// var variant_filtering_cmd2 = data['cmd2'];
 				if (data['completion_message'] != undefined) {
 					console.log('data completion_message', data['completion_message']);
 					// VCF File only without path
@@ -1014,6 +1016,10 @@ var ct_ready_map_analysis = function() {
 					vcf_filename = vcf_filename_parts[vcf_filename_parts.length - 1];
 					$('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .status-process')
 					.append('<div style="padding: 5px; background-color: #defff5;display: inline-block;font-size: 1.2em;margin-top: 10px; border-radius: 4px;">File generated in your workspace: ' + vcf_filename + '</div>');
+					// $('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .status-process')
+					// .append('<div style="margin-top: 10px; margin-bottom: 10px;"><strong>Completed Nextflow command 1:</strong><br /><div style="padding: 10px;font-size: 0.9em;background-color: #effffc;color: #001d0bad;border-radius: 10px;margin-top: 5px;">' + variant_filtering_cmd + '</div></div>');
+					// $('.variant-filtering-study-interface[data-study-accession="' + study_accession + '"] .status-process')
+					// .append('<div style="margin-top: 10px; margin-bottom: 10px;"><strong>Completed Nextflow command 2:</strong><br /><div style="padding: 10px;font-size: 0.9em;background-color: #effffc;color: #001d0bad;border-radius: 10px;margin-top: 5px;">' + variant_filtering_cmd2 + '</div></div>');
 					$('#analysis_summary_genotypes_count').html(data['completion_message']['studies']['combined_filltags']['markerCount'] + ' filtered');
 					$('#analysis_summary_plants_count').html(data['completion_message']['studies']['combined_filltags']['sampleCount'] + ' filtered');
 				}
@@ -1657,6 +1663,7 @@ var ct_ready_map_analysis = function() {
 			console.log('gt_check_payload', gt_check_payload);
 			$('#analysis_gt_check_status').html('<i class="fa-solid fa-sync fa-spin"></i> Genotypes check... please wait...');
 			var url = Drupal.settings.base_url + '/cartogratree/api/v2/genotypes/gt_check/run';
+			var gt_check_cmd = '';
 			$.ajax({
 				method: 'POST',
 				url: url,
@@ -1672,6 +1679,7 @@ var ct_ready_map_analysis = function() {
 					console.log('Data:', data);
 					try {
 						data = JSON.parse(data);
+						// gt_check_cmd = data['cmd'];
 					} catch (err) {console.log(err)}
 				}
 			});
@@ -1714,7 +1722,7 @@ var ct_ready_map_analysis = function() {
 							
 							$('#analysis_gt_check_status').html('✅ Genotypes check completed! <br />');
 							$('#analysis_gt_check_status').append(generate_completion_message_html(data));
-							
+							// $('#analysis_gt_check_status').append('<div style="margin-top: 10px;margin-bottom: 10px;"><strong>Completed Nextflow Command:</strong><br /><div style="padding: 10px;font-size: 0.9em;background-color: #effffc;color: #001d0bad;border-radius: 10px;margin-top: 5px;">' + gt_check_cmd + '</div></div>');
 							var gt_check_study_refinement_html = '';
 							var study_combinations = Object.keys(data['response']['sampleDiscordance']);
 							if (study_combinations.length == 0) {
@@ -1841,6 +1849,7 @@ var ct_ready_map_analysis = function() {
 			// console.log('merge_payload', merge_payload);
 			$('#analysis_merge_vcfs_status').html('<i class="fa-solid fa-sync fa-spin"></i> Merging VCFs... please wait...');
 			var url = Drupal.settings.base_url + '/cartogratree/api/v2/genotypes/merge_vcfs/run';
+			var merge_vcfs_cmd = '';
 			$.ajax({
 				method: 'POST',
 				url: url,
@@ -1856,6 +1865,7 @@ var ct_ready_map_analysis = function() {
 					console.log('Data:', data);
 					try {
 						data = JSON.parse(data);
+						// merge_vcfs_cmd = data['cmd'];
 					} catch (err) {console.log(err)}
 				}
 			});
@@ -1899,6 +1909,7 @@ var ct_ready_map_analysis = function() {
 									console.log('Error displaying combined VCF location', err);
 								}
 								$('#analysis_merge_vcfs_status').append(generate_completion_message_html(data));
+								// $('#analysis_merge_vcfs_status').append('<div style="margin-top: 10px; margin-bottom: 10px;"><strong>Completed Nextflow command:</strong><br /><div style="padding: 10px;font-size: 0.9em;background-color: #effffc;color: #001d0bad;border-radius: 10px;margin-top: 5px;">' + merge_vcfs_cmd + '</div></div>');
 								try {
 									clearInterval(analysis_timers['study_context_completion_json']);
 								} catch  (err) {
@@ -4533,6 +4544,7 @@ var ct_ready_map_analysis = function() {
 
 		// Now we need to send this payload to the server
 		var url = Drupal.settings.base_url + '/cartogratree/api/v2/manage/study_context/run';
+		var study_context_run_cmd = '';
 		$.ajax({
 			method: 'POST',
 			url: url,
@@ -4548,6 +4560,7 @@ var ct_ready_map_analysis = function() {
 				console.log('Data:', data);
 				try {
 					data = JSON.parse(data);
+					// study_context_run_cmd = data['cmd'];
 				} catch (err) {console.log(err)}
 			}
 		});
@@ -4583,6 +4596,7 @@ var ct_ready_map_analysis = function() {
 						}
 						$('#analysis_detections_confirm_selection_status').html('✅ Study context completed! <br />');
 						$('#analysis_detections_confirm_selection_status').append(generate_completion_message_html(data));
+						// $('#analysis_detections_confirm_selection_status').append('<div style="margin-top: 10px; margin-bottom: 10px;"><strong>Completed Nextflow command:</strong><br /><div style="padding: 10px;font-size: 0.9em;background-color: #effffc;color: #001d0bad;border-radius: 10px;margin-top: 5px;">' + study_context_run_cmd + '</div></div>');
 						try {
 							clearInterval(analysis_timers['study_context_completion_json']);
 						} catch  (err) {
@@ -5440,6 +5454,9 @@ var ct_ready_map_analysis = function() {
 					for (var i = 0; i < properties_list.length; i++) {
 						var property_data = properties_data[properties_list[i]];
 						var property_name = properties_list[i];
+						if (property_data['display'] == false) {
+							continue;
+						}
 						console.log('property_data', property_data);
 						console.log('property_name', property_name);
 						
@@ -6620,7 +6637,8 @@ var ct_ready_map_analysis = function() {
 	function cartograplant_analysis_nextflow_populate_workspace_contents_list_file_human_readable(filename) {
 		var human_readable_filename = '';
 		try {
-			var matches = filename.match(/^(\d+)-(.+)[-_](.+)(.csv)$/);
+			// var matches = filename.match(/^(\d+)-(.+)[-_](.+)(.csv)$/);
+			var matches = filename.match(/^(\d+)-(.+)[-_](.+)(.+)$/);
 		}
 		catch (err) {
 			console.log('failed to match', err);

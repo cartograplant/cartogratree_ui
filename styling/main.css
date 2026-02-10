@@ -927,6 +927,7 @@ select {
 	font:400 15px/22px 'Source Sans Pro', 'Helvetica Neue', Sans-serif;
 	padding:10px;
   width: 95% !important;
+  background-color: #00000000;
 }
 .mapboxgl-popup-content-wrapper{
 	padding:1%;

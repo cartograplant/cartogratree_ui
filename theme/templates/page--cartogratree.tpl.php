@@ -2430,7 +2430,7 @@ Today, CartograPlant continues to support the forest tree community, and increas
 													</h6>
 												</div>
 												<div class="" style="display: inline-block; width: 20%;">
-													<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="treesnap-data" aria-pressed="true" autocomplete="off">
+													<button type="button" data-toggle="button" class="btn btn-toggle tree-dataset-btn" id="treesnap-data" aria-pressed="false" autocomplete="off">
 														<div class="handle"></div>
 													</button>
 												</div>

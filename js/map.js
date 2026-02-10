@@ -1857,7 +1857,7 @@ var ct_ready_mapjs = function() {
 
 			else {
 				toggleDataset(0, true);
-				toggleDataset(1, true);
+				// toggleDataset(1, true);
 				toggleDataset(2, true);
 			}
 			if (Object.keys(filterQuery).length > 0) {
@@ -1866,7 +1866,7 @@ var ct_ready_mapjs = function() {
 		}
 		else {
 			toggleDataset(0, true);
-			toggleDataset(1, true);
+			// toggleDataset(1, true);
 			toggleDataset(2, true);
 		}
 		
@@ -2557,7 +2557,7 @@ var ct_ready_mapjs = function() {
 		if(debug) {
 			console.log('initMapTrees() function');
 		}
-		if (Object.keys(filterQuery).length == 0 && getActiveDatasets().length == 3) {
+		if (Object.keys(filterQuery).length == 0 && getActiveDatasets().length == 2) {
 			console.log('MAP', map);
 			getAllTrees(function(data) {
 
@@ -5134,35 +5134,36 @@ var ct_ready_mapjs = function() {
 				success: function(data) {
 					console.log('plant_flagged data', data);
 					if (data['comment'] != "" && data['comment'] != null && data['comment'] != undefined) {
-						var comment = data['comment'];
-						var flags = comment.split(';');
-						var flags_html = '';
-						for (var i=0; i<flags.length; i++) {
-							console.log('Flagged: ' + flags[i]);
-							var flag = flags[i].trim();
-							if (i > 0) {
-								flags_html += ', ';
-							}
-							if (flag == 'otl') {
-								flags_html += 'Outlier';
-							}
-							else if (flag == 'cen') {
-								flags_html += 'Centroid';
-							}
-							else if (flag == 'cap') {
-								flags_html += 'Capital';
-							}
-							else if (flag == 'sea') {
-								flags_html += 'Sea';
-							}
-							else if (flag == 'inst') {
-								flags_html += 'Institution';
-							}
-							else {
-								flags_html += flag;
-							}
-						}
-						$('#plant_flagged').html('Flagged: ' + flags_html);
+						// var comment = data['comment'];
+						// var flags = comment.split(';');
+						// var flags_html = '';
+						// for (var i=0; i<flags.length; i++) {
+						// 	console.log('Flagged: ' + flags[i]);
+						// 	var flag = flags[i].trim();
+						// 	if (i > 0) {
+						// 		flags_html += ', ';
+						// 	}
+						// 	if (flag == 'otl') {
+						// 		flags_html += 'Outlier';
+						// 	}
+						// 	else if (flag == 'cen') {
+						// 		flags_html += 'Centroid';
+						// 	}
+						// 	else if (flag == 'cap') {
+						// 		flags_html += 'Capital';
+						// 	}
+						// 	else if (flag == 'sea') {
+						// 		flags_html += 'Sea';
+						// 	}
+						// 	else if (flag == 'inst') {
+						// 		flags_html += 'Institution';
+						// 	}
+						// 	else {
+						// 		flags_html += flag;
+						// 	}
+						// }
+						// $('#plant_flagged').html('Flagged: ' + flags_html);
+						$('#plant_flagged').html('Warning the coordinates of this accession may be incorrect');
 						$('#plant_flagged').show();
 					}
 					else {
@@ -5435,6 +5436,10 @@ var ct_ready_mapjs = function() {
 
 		for(var i=0; i<= 2; i++) {
 			var dataset_name = Object.keys(datasetKey)[i];
+			// do not load treesnap trees - requested by Brandon 2/5/2026
+			if (i == 1) {
+				continue;
+			}
 			if ($('#' + dataset_name + '-data').hasClass('active')) {
 				$('#' + dataset_name + '-data').trigger('click'); // unclick
 			}
@@ -5443,6 +5448,10 @@ var ct_ready_mapjs = function() {
 
 		for(var i=0; i<= 2; i++) {
 			var dataset_name = Object.keys(datasetKey)[i];
+			// do not load treesnap trees - requested by Brandon 2/5/2026
+			if (i == 1) {
+				continue;
+			}
 			$('#' + dataset_name + '-data').trigger('click'); // click
 		}		
 
@@ -5829,7 +5838,16 @@ var ct_ready_mapjs = function() {
 											console.log('envLayer', envLayer);
 											
 											if (fc_index <= 0) { // Do not repeat the heading
-												var layer_text_element = '<div style="font-size: 9px; text-transform: uppercase;width: 100%; background-color: #18bb70; color: #FFFFFF; padding: 4px;">Environmental layer: ' + envLayer.title + '</div>';
+												var layer_title = envLayer.title;
+												if (envLayer.isMultiLayeredYear == "1") {
+													var layer_title_parts = envLayer.title.split(' ');
+													if (parseInt(layer_title_parts[layer_title_parts.length - 1]) > 0) {
+														// Replace the year with <b>year</b>
+														layer_title_parts[layer_title_parts.length - 1] = '<br /><span style="font-weight: 800; font-size: 1.5em" >' + layer_title_parts[layer_title_parts.length - 1] + '</span>';
+														layer_title = layer_title_parts.join(' ');
+													}
+												}
+												var layer_text_element = '<div style="font-size: 9px; text-transform: uppercase;width: 100%; background-color: #18bb70; color: #FFFFFF; padding: 4px;">Environmental layer: ' + layer_title + '</div>';
 												$('.environmental-values').append(layer_text_element);
 												var features_count_element = '';
 												features_count_element += '<div style="font-size: 9px; text-transform: uppercase;width: 100%; background-color:rgb(86, 222, 159); color: #333333; padding: 4px;">';
@@ -6057,6 +6075,9 @@ var ct_ready_mapjs = function() {
 
 				function eval_update_feature_value(evaluate, envLayer, feature, fc_index, k, data_embedded_data_eval_part_value, data_embedded_data_eval_i) {
 					console.log('-------------------------');
+					if (feature == " " || feature == "" || feature == null) {
+						return;
+					}
 					// console.log('k', k);
 					// console.log('data_embedded_data_eval_part_name:' + data_embedded_data_eval_part_name);
 					// console.log('data_embedded_data_eval_part_value:' + data_embedded_data_eval_part_value);
@@ -6065,7 +6086,20 @@ var ct_ready_mapjs = function() {
 						eval(data_embedded_data_eval_part_value);
 						console.log('EVAL KEY EXECUTED for key:' + k + ' with new value:' + feature);
 					}
+					var k_multiyear = '';
+					if (envLayer.isMultiLayeredYear == "1") {
+						var env_title = envLayer.title;
+						// Regex match group using .+(\d\d\d\d)
+						var year_match = env_title.match(/.+(\d{4})/);
+						if (year_match != null && year_match.length > 1) {
+							var year_str = year_match[1];
+							k_multiyear = k + ' (' + year_str + ')';
+						}
+					}
 					if (k == data_embedded_data_eval_part_name) {
+						if (envLayer.isMultiLayeredYear == "1") {
+							k = k_multiyear;
+						}
 						console.log('EVAL KEY NAME MATCHES:' + k);
 						// Check if the element already exists or not
 						if ($('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).find('td[data-property-name="' + data_embedded_data_eval_part_name + '"]').length > 0) {
@@ -6080,6 +6114,9 @@ var ct_ready_mapjs = function() {
 						}
 					}
 					else {
+						if (envLayer.isMultiLayeredYear == "1") {
+							k = k_multiyear;
+						}
 						// console.log('EVAL KEY NAME DOES NOT MATCH:' + k);
 						// Check to see if this element already exists, if not then add it
 						if ($('#env_layer_' + envLayer.layer_id +  '_values_feature_' + fc_index).find('td[data-property-name="' + k + '"]').length > 0) {
@@ -6098,13 +6135,22 @@ var ct_ready_mapjs = function() {
 				if(data_embedded_data_eval['layer_embedded_data_eval'].length != 0) {
 					console.log('EVALS FOUND');
 					for(var data_embedded_data_eval_i = 0; data_embedded_data_eval_i < data_embedded_data_eval['layer_embedded_data_eval'].length; data_embedded_data_eval_i++) {
-						var data_embedded_data_eval_parts = data_embedded_data_eval['layer_embedded_data_eval'][data_embedded_data_eval_i].split(',',2);
+						// var data_embedded_data_eval_parts = data_embedded_data_eval['layer_embedded_data_eval'][data_embedded_data_eval_i].split(',',2);
+						var data_embedded_data_eval_parts = data_embedded_data_eval['layer_embedded_data_eval'][data_embedded_data_eval_i].split(',');
 						var data_embedded_data_eval_part_name = data_embedded_data_eval_parts[0];
 						console.log('k', k);
 						console.log('data_embedded_data_eval_part_name:' + data_embedded_data_eval_part_name);
 
 
-						var data_embedded_data_eval_part_value = data_embedded_data_eval_parts[1];
+						// var data_embedded_data_eval_part_value = data_embedded_data_eval_parts[1];
+						var data_embedded_data_eval_part_value = '';
+						// Anything after the first part is the eval. We have to reconstruct incase the eval section had multiple commas
+						for (var part_index = 1; part_index < data_embedded_data_eval_parts.length; part_index++) {
+							if (part_index > 1) {
+								data_embedded_data_eval_part_value += ',';
+							}
+							data_embedded_data_eval_part_value += data_embedded_data_eval_parts[part_index];
+						}
 						console.log('data_embedded_data_eval_part_value:' + data_embedded_data_eval_part_value);
 						console.log('data_embedded_data_eval_i:' + data_embedded_data_eval_i);
 						
@@ -6367,7 +6413,7 @@ var ct_ready_mapjs = function() {
 		// Datasets are active, so process the filter query
 		else {
 			// The default dataset filter (no filters applied)
-			if (Object.keys(filterQuery) == 0 && active.length == 3 && getActiveDatasetsOfTypeGeoserverTileset().length <= 0) {
+			if (Object.keys(filterQuery) == 0 && active.length == 2 && getActiveDatasetsOfTypeGeoserverTileset().length <= 0) {
 				// Try to abort all calls to ajax
 				try {
 					// try to cancel any old ajax_requests
@@ -6384,7 +6430,7 @@ var ct_ready_mapjs = function() {
 					initMapSummary(cartograplant.trees_count_cache['default']);
 				}
 				getAllTrees(function(data) {
-
+					console.log('getAllTrees sub-function');
 					//addDatasetLayer(data);
 					setData(data);
 					var dataLength = data.length;
@@ -10331,7 +10377,7 @@ var ct_ready_mapjs = function() {
 
 	function resetDatasets() {
 		$("#treegenes-data").removeClass("active");
-		$("#treesnap-data").removeClass("active");
+		// $("#treesnap-data").removeClass("active");
 		$("#datadryad-data").removeClass("active");
 	}
 
