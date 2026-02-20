@@ -922,6 +922,9 @@
 										<div class="col">
 											<div class="top-description" style="margin-bottom:10px;">This page enables the selection of stored environmental layer data. Selected data can be downloaded or used for further analysis.</div>
 											<!-- class: align-items-center -->
+											<div class="analysis-option-environmental-auto-load-selected-layers">
+												
+											</div>
 											<div class="form-row" style="height: 100%;">
 												<div class="col-md-8 my-1">
 													<label class="mr-sm-2">Choose environmental layers</label>

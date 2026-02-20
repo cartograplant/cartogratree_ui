@@ -9,6 +9,14 @@ var generate_snps_to_missing_freq_objects_total = 0;
 var generate_snps_to_missing_freq_objects_current = 0;
 
 var analysis_filter_and_imputation_structure_json = null;
+
+// Global settings object for cartograplant
+cartograplant['settings'] = {};
+
+// Variables used for transferring map selected layers to analysis environmental layers 
+cartograplant['selected_env_layers'] = {};
+cartograplant['settings']['transfer_map_env_layers_to_analysis_env_layers'] = false;
+
 var ct_ready_mapjs = function() {
 //$(function () {
 	console.log(Drupal.settings);
@@ -104,6 +112,9 @@ var ct_ready_mapjs = function() {
 			'current_bbox': null,
 			'data_lookup_objects': {},
 		},
+		'analysis_environmental_data_lookups': {
+			'data_lookup_objects': {},
+		}
 	}; 
 
 	// hold the current mode the mouse pointer is in
@@ -126,40 +137,40 @@ var ct_ready_mapjs = function() {
 
 
 	var treesnapMetaCodes =	{
-            "ashSpecies": "Species",
-            "seedsBinary": "Seeds",
-            "flowersBinary": "Flowers",
-            "emeraldAshBorer": "Ash Borer",
-            "woollyAdesCoverage": "Woolly Adelgids",
-            "chestnutBlightSigns": "Chestnut Blight",
-            "acorns": "Acorns",
-            "cones": "Cones",
-            "heightFirstBranch": "Height of First Branch",
-            "oakHealthProblems": "Health Problems",
-            "diameterNumeric": "Tree Diameter",
-            "crownHealth": "Crown Health",
-            "crownClassification": "Crown Classification",
-            "otherLabel": "Tree Type",
-            "locationCharacteristics": "Habitat",
-            "nearbyTrees": "Trees Nearby",
-            "nearByHemlock": "Nearby Hemlocks",
-            "treated": "Treated",
-            "partOfStudy": "Study",
-            "heightNumeric": "Tree Height",
-            "burrs": "Nuts/burrs",
-            "catkins": "Catkins",
-            "comment": "Comment",
-            "diameterNumeric_confidence": "Diameter Confidence",
-            "heightFirstBranch_confidence": "Height of First Branch Confidence",
-            "numberRootSprouts": "Number of Root Sprouts",
-            "numberRootSprouts_confidence": "Number of Root Sprouts Confidence",
-            "heightNumeric_confidence": "Tree Height Confidence",
-            "torreyaFungalBlight": "Fungal Blight",
-            "conesMaleFemale": "Cones",
-            "deerRub": "Deer Rub",
-            "madroneDisease": "Disease",
-            "crownAssessment": "Tree Crown Assessment",
-            "standDiversity": "Stand Diversity"
+		"ashSpecies": "Species",
+		"seedsBinary": "Seeds",
+		"flowersBinary": "Flowers",
+		"emeraldAshBorer": "Ash Borer",
+		"woollyAdesCoverage": "Woolly Adelgids",
+		"chestnutBlightSigns": "Chestnut Blight",
+		"acorns": "Acorns",
+		"cones": "Cones",
+		"heightFirstBranch": "Height of First Branch",
+		"oakHealthProblems": "Health Problems",
+		"diameterNumeric": "Tree Diameter",
+		"crownHealth": "Crown Health",
+		"crownClassification": "Crown Classification",
+		"otherLabel": "Tree Type",
+		"locationCharacteristics": "Habitat",
+		"nearbyTrees": "Trees Nearby",
+		"nearByHemlock": "Nearby Hemlocks",
+		"treated": "Treated",
+		"partOfStudy": "Study",
+		"heightNumeric": "Tree Height",
+		"burrs": "Nuts/burrs",
+		"catkins": "Catkins",
+		"comment": "Comment",
+		"diameterNumeric_confidence": "Diameter Confidence",
+		"heightFirstBranch_confidence": "Height of First Branch Confidence",
+		"numberRootSprouts": "Number of Root Sprouts",
+		"numberRootSprouts_confidence": "Number of Root Sprouts Confidence",
+		"heightNumeric_confidence": "Tree Height Confidence",
+		"torreyaFungalBlight": "Fungal Blight",
+		"conesMaleFemale": "Cones",
+		"deerRub": "Deer Rub",
+		"madroneDisease": "Disease",
+		"crownAssessment": "Tree Crown Assessment",
+		"standDiversity": "Stand Diversity"
 	};
 	var activeDatasets = {0: false, 1: false, 2: false, 4: false, 5: false};
 	var dataDatasets = {0: null, 4: null}; // 0 is basically going to store all from the api/trees or filter, 4 is wfid
@@ -9404,7 +9415,7 @@ var ct_ready_mapjs = function() {
 		console.log($(this).hasClass("active"));
 		//if layer has already been added and is active, then deactivate it
 		if (!$(this).hasClass("active")) {
-
+			delete cartograplant['selected_env_layers'][layerId];
 			removeLayerFromLayersState(layerNum);
 			console.log('[LAYERS-STATE]', getLayersState());
 
@@ -9480,6 +9491,7 @@ var ct_ready_mapjs = function() {
 
 		}	
 		else {
+			cartograplant['selected_env_layers'][layerId] = true;
 			// Activate the layer
 			addLayerToLayersState(layerObjectSettings);
 			console.log('[LAYERS-STATE]', getLayersState());
