@@ -5421,19 +5421,40 @@ var ct_ready_map_analysis = function() {
 				analysis_id: cartograplant.current_analysis_id
 			},
 			success: function(data) {
-				console.log(data);
+				
 				var data = JSON.parse(data);
+				console.log(data);
 				$('#nextflow-population-structure-workflow .status_output').html(data['status']);
 
 				$('#nextflow-population-structure-workflow .status_output').append('<div id="nextflow-population-structure-visualization" style="100%;"></div>');
+				
 				// Load the visualization
 				// nextflow-population-structure-visualization
 				$('#nextflow-population-structure-visualization').html('');
-				$('#nextflow-population-structure-visualization').html('<div class="vis-img-container"><img style="width: 100%;" src="' + Drupal.settings.base_url + '/cartogratree/api/v2/popstruct/nextflow_visualization?analysis_id=' + cartograplant.current_analysis_id + '" /></div><div class="vis-img-zoom" style="height: 300px; width: 100%;"></div>');
-				$('#nextflow-population-structure-visualization .vis-img-container').zoom({
-					magnify:1.5,
-					target: '.vis-img-zoom'
-				});
+
+				// Show best_k visualization if available
+				var best_k = data['completion_message']['best_k'];
+				$('#nextflow-population-structure-visualization').append('<div class="best_k"><div class="vis-img-container"><img style="width: 100%;" src="' + Drupal.settings.base_url + '/cartogratree/api/v2/popstruct/nextflow_visualization?image_index=' + best_k + '&analysis_id=' + cartograplant.current_analysis_id + '" /></div><div class="vis-img-zoom" style="height: 0px; width: 100%;"></div></div>');
+				// $('#nextflow-population-structure-visualization .best_k .vis-img-container').zoom({
+				// 	magnify:1.5,
+				// 	target: '.best_k .vis-img-zoom'
+				// });
+
+				var image_keys = Object.keys(data['completion_message']['image']);
+				for (var i = 0; i < image_keys.length; i++) {
+					var image_key = image_keys[i];
+					if (image_key == best_k) {
+						// skip the best_k image since it is already shown
+						continue;
+					}
+					else {
+						$('#nextflow-population-structure-visualization').append('<div class="vis_' + image_key + '"><div class="vis-img-container"><img style="width: 100%;" src="' + Drupal.settings.base_url + '/cartogratree/api/v2/popstruct/nextflow_visualization?image_index=' + image_key + '&analysis_id=' + cartograplant.current_analysis_id + '" /></div><div class="vis-img-zoom" style="height: 0px; width: 100%;"></div></div>');
+						// $('#nextflow-population-structure-visualization .vis_' + image_key + ' .vis-img-container').zoom({
+						// 	magnify:1.5,
+						// 	target: '.vis_' + image_key + ' .vis-img-zoom'
+						// });
+					}
+				}
 			}
 		});
 	})

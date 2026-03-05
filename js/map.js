@@ -328,7 +328,165 @@ var ct_ready_mapjs = function() {
 		}
 	}
 	
+	/**
+	 * A class for ESRI layers extends from the Layer class
+	 * @class
+	 */
+	class ESRILayer extends Layer {
+		// this.source_render_type is either geojson or raster, depending on how the source is rendered on the map
 
+		constructor(layerId, legend, opacity, queryable = true) {
+			super(layerId, legend, 0, opacity, queryable);
+			this.tileSize = 256;
+			// this.sourceType = sourceType;
+			this.filter_sourceid = -1;
+			this.layer_styles = 'point_mod';
+			this.isFiltered = false;
+			this.previouslyActivated = false;
+			//Setup a default source
+			if(Drupal.settings.layers[this.id] == undefined) {
+				if(debug) {
+					console.log('-- no layer with id was found in Drupal.settings.layer for this layer. This might be a manually added layer. So you need to use the setSourceMode function to make this right!');
+				}				
+
+			}
+			else {
+				var source = Drupal.settings.cartogratree.gis + "?service=WMS&version=1.1.0&request=GetMap&layers=";
+				//source += Drupal.settings.layers[this.id].name + ',' + Drupal.settings.layers[this.id].name + "&styles=g_stacker,point&transparent=true&bbox={bbox-epsg-3857}&width=256&height=256&srs=EPSG:3857&format=image/png";
+				var layer_styles = Drupal.settings.layers[this.id].layer_styles;
+				if(layer_styles == null) {
+					layer_styles = '';
+				}
+				source += Drupal.settings.layers[this.id].name + "&styles=" + layer_styles + "&transparent=true&bbox={bbox-epsg-3857}&width=256&height=256&srs=EPSG:3857&format=image/png";
+				//source += Drupal.settings.layers[this.id].name + "&styles=" + layer_styles + "&transparent=true&bbox={bbox-epsg-3857}&width=256&height=256&srs=EPSG:1000000&format=image/png";
+				this.source_url = source;
+				console.log('source_url:' + source);
+
+				var source_wfs_count = Drupal.settings.cartogratree.gis +"/wfs?request=GetFeature&typeName=" + Drupal.settings.layers[this.id].name + "&version=1.1.0&resultType=hits";
+				this.source_url_wfs_count = source_wfs_count;
+
+
+			}
+			this.cql_filter = '';
+			this.feature_count = 0;
+		}
+
+		setSourceMode(source_mode = 'esri', source_url = '', source_render_type = 'geojson') {
+			this.source_type = source_mode;
+			this.source_url = source_url + '/query?where=1%3D1&objectIds=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&outDistance=&relationParam=&returnGeodetic=false&outFields=&returnGeometry=true&returnCentroid=false&returnEnvelope=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&defaultSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&collation=&orderByFields=&groupByFieldsForStatistics=&returnAggIds=false&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnTrueCurves=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pgeojson&token=';
+			this.source_render_type = source_render_type;
+			this.sourceType = source_render_type; // legacy variable
+		}
+
+
+		// you must do this if you set Source Mode to manual
+		setLayerName(layer_name = '') { 
+			this.layer_name = layer_name;
+		}
+	
+		setDatasetId(dataset_id = '') {
+			this.dataset_id = dataset_id;
+		}
+
+				/**
+		 * Adds the source of the geoserver layer to the map
+		*/	
+		addSource() {
+			var type = this.source_render_type;
+			if (type == "geojson") {
+				// Example URL: https://services7.arcgis.com/oF9CDB4lUYF7Um9q/ArcGIS/rest/services/NA_Watersheds/FeatureServer/6
+				map.addSource(this.id, {
+					type: 'geojson',
+					data: this.source_url + '?f=geojson'
+				});
+				this.sourceLoaded = true;
+			}
+			else {
+				map.addSource(this.id, {
+					"type": this.sourceType,
+					"tiles": [this.getSource()],
+					"tileSize": this.tileSize
+				});
+				this.sourceLoaded = true;
+			}
+		}
+
+		addLayer() {
+			// TODO: add ESRI layer to the map
+
+			// NOTES:
+			// ArcGIS MapServer/Raster Tiles: Use the REST endpoint for the map service, adding /export?bbox={bbox-epsg-3857}&format=png... 
+			// to the URL to create a raster tile source.
+
+			if (this.source_render_type == 'raster') {
+			// CODE:
+			// Example: Adding an ESRI MapServer to Mapbox GL JS
+			// map.on('load', function() {
+			// 	map.addSource('esri-map', {
+			// 		type: 'raster',
+			// 		tiles: [
+			// 			'https://your-esri-server.com/arcgis/rest/services/ServiceName/MapServer/export?bbox={bbox-epsg-3857}&bboxSR=EPSG%3A3857&size=256%2C256&format=png&f=image&layers=show%3A0'
+			// 		],
+			// 		tileSize: 256
+			// 	});
+			// 	map.addLayer({
+			// 		id: 'esri-layer',
+			// 		type: 'raster',
+			// 		source: 'esri-map'
+			// 	});
+			// });
+			}
+			// Else source render type is geojson
+			else {
+				map.addLayer({
+					// id: 'esri-layer',
+					id: this.id,
+					type: 'circle', // or 'line' or 'fill' based on data
+					// source: 'esri-data',
+					source: this.id,
+					paint: {
+						'circle-color': '#4264fb',
+						'circle-radius': 6
+					}
+				});
+			}
+		}
+
+		
+
+
+		/**
+		 * Activates a geoserver layer, so it can be viewed and interacted by the user, it does this by updating the opacity and making it visible
+		*/	
+		activateLayer(update = false) {
+			map.setPaintProperty(this.id, "raster-opacity", this.opacity);
+			this.active = true;
+			this.updateOpacity();
+
+			console.log('Activating layer:');
+			console.log('Update mode:' + update);
+			console.log(Drupal.settings.layers[this.id]);
+		}
+
+		/**
+		* Deactivates a geoserver layer and makes it invisible to the user
+		*/	
+		deactivateLayer(update = false) {
+			console.log('deactivateLayer function called:' + this.id);
+			map.setPaintProperty(this.id, "raster-opacity", 0);
+			this.active = false;
+		}
+
+		/**
+		* Changes the opacity of the geoserver layer	
+		* @param {float} newOpacity - a value from 0 to 1
+		*/	
+		changeOpacity(newOpacity) {
+			if (this.host == 0) {
+				map.setPaintProperty(this.id, "raster-opacity", newOpacity);
+			}
+		}
+	}
 	
 
 	/**
@@ -645,7 +803,8 @@ var ct_ready_mapjs = function() {
 			}
 		}
 
-		setLayerName(layer_name = '') { //you must do this if you set Source Mode to manual
+		// you must do this if you set Source Mode to manual
+		setLayerName(layer_name = '') { 
 			this.layer_name = layer_name;
 		}
 	
@@ -2560,7 +2719,8 @@ var ct_ready_mapjs = function() {
 		cartograplant.current_dataset_data = {
 			'type': 'FeatureCollection',
 			'features': data
-		};			
+		};
+		console.log('cartograplant.current_dataset_data set to:', cartograplant.current_dataset_data);		
 	}
 
 	cartograplant.initMapTrees = initMapTrees;
@@ -9561,11 +9721,22 @@ var ct_ready_mapjs = function() {
 				}
 				if (layersList.getLayer(layerId) == null) {
 					var layerObj;
+					// Geoserver layer
 					if (layerHost == 0) {
+						console.log('Creating Geoserver layer with layerId:' + layerId);
 						layerObj = new GeoserverLayer(layerId, new Legend(Drupal.settings.layers[layerId].title), currentOpacity);
 						layerObj.addSource();
 					}
+					// ESRI layer
+					else if (layerHost == 2) {
+						console.log('Creating ESRI layer with layerId:' + layerId);
+						layerObj = new ESRILayer(layerId, new Legend(Drupal.settings.layers[layerId].title), currentOpacity);
+						layerObj.setSourceMode('esri', Drupal.settings.layers[layerId].url, 'geojson');
+						layerObj.addSource();
+					}
+					// Mapbox layer
 					else {
+						console.log('Creating Mapbox layer with layerId:' + layerId);
 						layerObj = new MapboxLayer(layerId, new Legend(Drupal.settings.layers[layerId].title), currentOpacity, layersList.mapboxLayers[layerId]);
 					}
 					layersList.addToMap(layerObj);

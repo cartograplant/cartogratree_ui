@@ -815,7 +815,7 @@ function cartogratree_admin_settings_subgroup_form_submit($form, &$form_state) {
  * URL suffix: ?q=admin/cartogratree/settings/layer/[add|edit|delete][/<layer id>]
  */
 function cartogratree_admin_settings_layer_form($form, &$form_state) {
-
+    dpm($form_state);
     $obj = NULL;
     if (isset($form_state['build_info']['args'][1])) {
         $obj = db_query("
@@ -860,7 +860,8 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
                 //layer_embedded_fields_rename
                 array(array('data' => 'Allow user to select/change colors via the map interface?', 'header' => TRUE), $obj->layer_allow_user_select_colors),
             	array(array('data' => 'Trees layer', 'header' => TRUE), $obj->trees_layer ? 'true' : 'false'),
-				array(array('data' => 'Layer host', 'header' => TRUE), $obj->layer_host ? 'true' : 'false'),
+				// array(array('data' => 'Layer host', 'header' => TRUE), $obj->layer_host ? 'true' : 'false'),
+                array(array('data' => 'Layer host', 'header' => TRUE), $obj->layer_host),
           ),
         );
         $form['info'] = array(
@@ -917,13 +918,16 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
 
         $form['fieldset_layer_required_configuration']['layer_host'] = array(
         	'#type' => 'radios',
+            // '#type' => 'select',
         	'#title' => 'Layer host',
         	'#description' => 'This layer is hosted on mapbox or geoserver?',
         	'#options' => array(
-            	1 => t('Mapbox'),
-            	0 => t('Geoserver'),
+                0 => t('Geoserver'),
+                1 => t('Mapbox'),
+                2 => t('ESRI ArcGIS Server'),
           	),
         	'#default_value' => (isset($obj->layer_host)) ? $obj->layer_host : 0,
+            // '#default_value' => (isset($obj->layer_host)) ? $obj->layer_host : '',
         	'#required' => TRUE,
         );
 
@@ -1241,7 +1245,7 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
         	'#type' => 'submit',
         	'#value' => ($op == 'Edit') ? 'Save Changes' : $op,
         );
-        //dpm($form_state);
+        dpm($form_state);
         return $form;
     }
 }
@@ -1323,7 +1327,7 @@ function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
     
     $form_state['rebuild'] = FALSE;
     $form_state['redirect'] = 'admin/cartogratree/settings';
-
+    dpm($form_state);
     if ($form_state['values']['op'] == 'Delete') {
         db_query('DELETE FROM {cartogratree_layers} WHERE layer_id=:id', array(':id' => $form_state['values']['layer_id']));
         db_query('DELETE FROM {cartogratree_layer_permissions} WHERE layer_id=:id', array(':id' => $form_state['values']['layer_id']));
@@ -1369,6 +1373,7 @@ function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
             $record['layer_id'] = $form_state['values']['layer_id'];
             $result = drupal_write_record('cartogratree_layers', $record, 'layer_id');
         }
+        drupal_set_message('Successfully saved <em>' . $form_state['values']['name'] . '</em> layer data.');
         //dpm($record);
         //dpm($result);
     }
