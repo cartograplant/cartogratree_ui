@@ -809,6 +809,20 @@ select {
   border: 1px solid #ddf3f0;
 }
 
+.info-description {
+  /* background-color: #f3fff8;*/
+  background-color: rgb(252, 254, 237);
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 14px;
+  color: #000000;
+  border: 1px solid #ddf3f0;
+}
+
+.button_jobs_show_run_command {
+  margin-top: 5px;
+}
+
 .navbar-brand img{
   width: 35vh;
 }

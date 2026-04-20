@@ -70,6 +70,20 @@ function cartogratree_menu()
     );
 
 
+    $items['cartogratree_uianalysis/get_environmental_columns'] = array(
+        'description' => 'Cartogratree JOBS API: Get Evironmental Columns',
+        'title' => 'Cartogratree JOBS API: Get Evironmental Columns',
+        'page callback' => 'cartogratree_analysisapi_get_environmental_columns',
+        // 'page arguments' => array(
+        //     2,
+        // ),
+        'page arguments' => array(),
+        'file' => 'includes/cartogratree.analysis.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
     //UIJOBS / UI JOBS
 
     $items['cartogratree_uijobs/get_nextflow_user_jobs/%'] = array(
@@ -101,6 +115,32 @@ function cartogratree_menu()
 
     //UIANALYSIS / UI ANALYSIS
     //args: galaxy_id, history_id, history_file_id
+
+    $items['cartogratree_uianalysis/cartogratree_analysisapi_lookup_vcf_locations_for_analysis_and_studies'] = array(
+        'description' => 'Cartogratree ANALYSIS API: cartogratree analysisapi lookup vcf locations from studies overlapping analysis',
+        'title' => 'Cartogratree ANALYSIS API: cartogratree analysisapi lookup vcf locations from studies overlapping analysis',
+        'page callback' => 'cartogratree_analysisapi_lookup_vcf_locations_for_analysis_and_studies',
+        'page arguments' => array(
+        ),
+        'file' => 'includes/cartogratree.analysis.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
+    $items['cartogratree_uianalysis/cartogratree_analysisapi_lookup_studies_overlapping_analyses/%'] = array(
+        'description' => 'Cartogratree ANALYSIS API: cartogratree analysisapi lookup studies overlapping analyses',
+        'title' => 'Cartogratree ANALYSIS API: cartogratree analysisapi lookup studies overlapping analyses',
+        'page callback' => 'cartogratree_analysisapi_lookup_studies_overlapping_analyses',
+        'page arguments' => array(
+            2
+        ),
+        'file' => 'includes/cartogratree.analysis.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
     $items['cartogratree_uianalysis/download_historycontents_file/%/%/%'] = array(
         'description' => 'Cartogratree ANALYSIS API: Download HistoryContents File',
         'title' => 'Cartogratree ANALYSIS API: download historycontents file',

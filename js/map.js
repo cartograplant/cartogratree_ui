@@ -44,6 +44,9 @@ var ct_ready_mapjs = function() {
 	const defaultTreeImgs = ["https://via.placeholder.com/150/e7e7e7/000000/?text=Image%201", "https://via.placeholder.com/150/e7e7e7/000000/?text=Image%202", "https://via.placeholder.com/150/e7e7e7/000000/?text=Image%203"];	
 	const geoserver_tileset_styles = ['point','stack'];
 
+
+	cartograplant['global_cql_filter'] = '';
+
 	var loading_icon_src = Drupal.settings.base_url + '/' + Drupal.settings.cartogratree.url_path + '/theme/templates/resources_imgs/loader-ring.gif';
 	cartograplant['loading_icon_src'] = loading_icon_src;
 
@@ -5804,7 +5807,15 @@ var ct_ready_mapjs = function() {
 				else {
 					//This is a geoserver tileset layer
 					console.log(e);
-					getInfoUrl = "https://treegenesdb.org/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&typeName="+ envLayer.name + "&maxFeatures=50&outputFormat=csv&BBOX=" + bbox_temp;
+					getInfoUrl = "https://treegenesdb.org/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&typeName="+ envLayer.name + "&maxFeatures=50&outputFormat=csv";
+					// If global_cql_filter is set, add it to the request url (and do not use BBOX get variable since they are mutually exclusive)
+					if (cartograplant['global_cql_filter'] != undefined && cartograplant['global_cql_filter'] != "") {
+						getInfoUrl += "&CQL_FILTER=" + cartograplant['global_cql_filter'] + " AND BBOX(the_geom, " + bbox_temp + ")";
+					}
+					// If there is no global_cql_filter, then add the BBOX get variable to the request url to filter results to the current click location
+					else {
+						getInfoUrl += "&BBOX=" + bbox;
+					}
 					console.log('WFS Feature data url (csv):' + getInfoUrl);
 					$.ajax({
 						url: getInfoUrl,
@@ -5991,7 +6002,16 @@ var ct_ready_mapjs = function() {
 						console.log(envLayer);
 						//var getInfoUrl = "https://treegenesdb.org/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&typeName="+ envLayer.name + "&maxFeatures=50&outputFormat=csv&BBOX=" + bbox;
 						var baseUrl = "https://treegenesdb.org/geoserver/wms?SERVICE=WMS&VERSION=1.3.0&FEATURE_COUNT=1000&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&QUERY_LAYERS=";
-						var getInfoUrl = baseUrl + envLayer.name + "&LAYERS=" + envLayer.name + "&INFO_FORMAT=application%2Fjson&I=128&J=128&WIDTH=256&HEIGHT=256&CRS=EPSG:4326&STYLES=&BBOX=" + bbox;
+						var getInfoUrl = baseUrl + envLayer.name + "&LAYERS=" + envLayer.name + "&INFO_FORMAT=application%2Fjson&I=128&J=128&WIDTH=256&HEIGHT=256&CRS=EPSG:4326&STYLES=";
+						
+						// If global_cql_filter is set, add it to the request url (and do not use BBOX get variable since they are mutually exclusive)
+						if (cartograplant['global_cql_filter'] != undefined && cartograplant['global_cql_filter'] != "") {
+							getInfoUrl += "&CQL_FILTER=" + cartograplant['global_cql_filter'] + " AND BBOX(the_geom, " + bbox + ")";
+						}
+						// If there is no global_cql_filter, then add the BBOX get variable to the request url to filter results to the current click location
+						else {
+							getInfoUrl += "&BBOX=" + bbox;
+						}
 						console.log(getInfoUrl);
 						var xhr2 = $.ajax({
 							url: getInfoUrl,
@@ -6670,7 +6690,7 @@ var ct_ready_mapjs = function() {
 
 								//Now we need to get the query processed from filterQuery object and convert it into a query string
 								var cql_filter = parse_json_query(jsonData.query, '');
-								
+								cartograplant['global_cql_filter'] = cql_filter; // set the global cql filter variable so it can be accessed in other functions if needed
 								var layer = dataset_id;
 
 

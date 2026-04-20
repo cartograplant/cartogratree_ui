@@ -22,6 +22,41 @@ function cartogratree_analysisapi_lookup_study_info_overlap_count($study_accessi
 
 }
 
+function cartogratree_analysisapi_get_environmental_columns() {
+    // Get POST data for file_location
+    $file_location = isset($_POST['file_location']) ? $_POST['file_location'] : NULL;
+    // Remove any leading or trailing whitespace from the file location
+    if ($file_location != NULL) {
+        $file_location = trim($file_location);
+    }
+    // Remove any potentially harmful characters from the file location to prevent directory traversal attacks 
+    if ($file_location != NULL) {
+        $file_location = str_replace(['..', '~', '%', '&', ';', '$', '>', '<', '|'], '', $file_location);
+    }
+    // check if file_location extension is csv
+    if ($file_location != NULL) {
+        $file_extension = pathinfo($file_location, PATHINFO_EXTENSION);
+        if ($file_extension != 'csv') {
+            drupal_json_output(['error' => 'Invalid file type. Only CSV files are allowed.']);
+            return;
+        }
+    }
+    $results = [];
+    if ($file_location != NULL) {
+        if (file_exists($file_location)) {
+            $handle = fopen($file_location, 'r');
+            if ($handle) {
+                $header = fgetcsv($handle);
+                foreach ($header as $column_name) {
+                    $results[] = $column_name;
+                }
+                fclose($handle);
+            }
+        }
+    }
+    drupal_json_output($results);
+}
+
 function cartogratree_analysisapi_lookup_study_info($study_accession) {
     $results = chado_query("SELECT * FROM chado.tpps_study_summary WHERE accession = :study_accession LIMIT 1", [
         ':study_accession' => $study_accession
@@ -1107,10 +1142,121 @@ function cartogratree_analysisapi_nextflow_symlink_workspace_vcf_file($workspace
     drupal_json_output($results);
 }
 
+function cartogratree_analysisapi_lookup_vcf_locations_for_analysis_and_studies() {
+    $analysis_name = check_plain($_GET['analysis_name']);
+    $studies_csv = check_plain($_GET['studies_csv']);
+    $results = chado_query('SELECT * FROM chado.vcf_locations_view WHERE analysis_name = :analysis_name AND tgdr_accession IN (:studies)',
+        array(
+            ':analysis_name' => $analysis_name,
+            ':studies' => explode(',', $studies_csv)
+        )
+    );
+    $results_rows = [];
+    foreach($results as $results_row) {
+        // $results_rows[] = $results_row;
+        $results_rows[$results_row->tgdr_accession] = array(
+            'analysis_name' => $results_row->analysis_name,
+            'tgdr_accession' => $results_row->tgdr_accession,
+            'vcf' => $results_row->vcf
+        );
+    }
+    $output_results = [
+        'status' => 'success',
+        'vcf_locations' => $results_rows
+    ];
+    drupal_json_output($output_results);
+}
+
+function cartogratree_analysisapi_lookup_studies_overlapping_analyses($studies_csv) {
+    $studies = explode(',', $studies_csv);
+    $studies_count = count($studies);
+    // chado.vcf_locations_view
+    $results = chado_query('SELECT * FROM (
+        SELECT count(tgdr_accession) as c1, analysis_name FROM chado.vcf_locations_view 
+        WHERE tgdr_accession IN (:studies) group by analysis_name
+    ) as table1 WHERE c1 >= 2 ORDER BY analysis_name DESC',
+        array(
+            ':studies' => $studies,
+            // ':studies_count' => $studies_count
+        )
+    );
+    $results_rows = [];
+    $results_rows_accessions = [];
+    $results_rows_vcf_locations = [];
+    foreach($results as $results_row) {
+        $results_rows[] = $results_row;
+
+        // Take each analysis_name and query to get all tgdr_accessions;
+        $results_accessions = chado_query('SELECT DISTINCT(tgdr_accession) FROM chado.vcf_locations_view WHERE analysis_name = :analysis_name AND tgdr_accession IN (:studies)',
+            array(
+                ':analysis_name' => $results_row->analysis_name,
+                ':studies' => $studies,
+            )
+        );
+        
+        $analysis_name = $results_row->analysis_name;
+        $i = 0;
+        foreach ($results_accessions as $results_accession) {
+            // if (!isset($results_rows_vcf_locations[$results_accession->tgdr_accession])) {
+            //     $results_rows_vcf_locations[$results_accession->tgdr_accession] = [];
+            // }
+            // $results_rows_vcf_locations[$results_accession->tgdr_accession][$analysis_name] = $results_accession->vcf;
+
+            if ($i == 0) {
+                $results_rows_accessions[$analysis_name] = $results_accession->tgdr_accession;
+            }
+            else {
+                $results_rows_accessions[$analysis_name] .= ',' . $results_accession->tgdr_accession;
+            }
+            $i++;
+        }
+
+        // Take each analysis_name and query to get all tgdr_accessions;
+        $results_accessions = chado_query('SELECT DISTINCT(tgdr_accession), vcf FROM chado.vcf_locations_view WHERE analysis_name = :analysis_name AND tgdr_accession IN (:studies)',
+            array(
+                ':analysis_name' => $results_row->analysis_name,
+                ':studies' => $studies,
+            )
+        );
+            
+        $analysis_name = $results_row->analysis_name;
+        $i = 0;
+        foreach ($results_accessions as $results_accession) {
+            if (!isset($results_rows_vcf_locations[$results_accession->tgdr_accession])) {
+                $results_rows_vcf_locations[$results_accession->tgdr_accession] = [];
+            }
+            if (!isset($results_rows_vcf_locations[$results_accession->tgdr_accession][$analysis_name])) {
+                $results_rows_vcf_locations[$results_accession->tgdr_accession][$analysis_name] = $results_accession->vcf;
+            }
+            $i++;
+        }
+    }
+
+    $output_results = [
+        'status' => 'success',
+        'overlapping_analyses' => $results_rows,
+        'overlapping_analyses_study_accessions' => $results_rows_accessions,
+        'overlapping_analyses_vcf_locations' => $results_rows_vcf_locations
+    ];
+    drupal_json_output($output_results);
+}
+
 function cartogratree_analysisapi_get_nextflow_workspace_files($workspace_name) {
+    $results = [];
+    
+    // Also get annotation files from the vcf_locations table
+    $results_data = chado_query('SELECT * FROM chado.vcf_locations_view',
+        [
+            
+        ]
+    );
+    foreach($results_data as $results_row) {
+        $results[] = $results_row->vcf;
+    }
+
     $workspace_name = cartogratree_analysisui_convert_workspace_name($workspace_name);
     global $user;
-    $results = [];
+    
     $user_id = $user->uid;
     $dir_workspaces = '/isg/treegenes/cartograplant_analysis_workspaces/' . $user_id . '/' . $workspace_name;
     $items = scandir($dir_workspaces);
@@ -1119,6 +1265,8 @@ function cartogratree_analysisapi_get_nextflow_workspace_files($workspace_name) 
             $results[] = $dir_workspaces . '/' . $item;
         }
     }
+
+
     drupal_json_output($results);
 }
 

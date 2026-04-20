@@ -45,6 +45,10 @@ function cartogratree_jobsapi_get_nextflow_user_jobs($page_no) {
             $completion_message_content = file_get_contents($vcfmerge_completion_message_file);
             $completion_message_array = json_decode($completion_message_content, true);
             $row_array['vcfmerge_completion_message'] = $completion_message_array;
+            // Remove /isg/treegenes from the commandLine if it exists
+            if (isset($row_array['vcfmerge_completion_message']['commandLine'])) {
+                $row_array['vcfmerge_completion_message']['commandLine'] = str_replace('/isg/treegenes', '', $row_array['vcfmerge_completion_message']['commandLine']);
+            }
         } else {
             $row_array['vcfmerge_completion_message'] = null;
         }
@@ -55,6 +59,10 @@ function cartogratree_jobsapi_get_nextflow_user_jobs($page_no) {
             $completion_message_content = file_get_contents($popstruct_completion_message_file);
             $completion_message_array = json_decode($completion_message_content, true);
             $row_array['popstruct_completion_message'] = $completion_message_array;
+            // Remove /isg/treegenes from the commandLine if it exists
+            if (isset($row_array['popstruct_completion_message']['commandLine'])) {
+                $row_array['popstruct_completion_message']['commandLine'] = str_replace('/isg/treegenes', '', $row_array['popstruct_completion_message']['commandLine']);
+            }
         } else {
             $row_array['popstruct_completion_message'] = null;
         }
@@ -65,6 +73,10 @@ function cartogratree_jobsapi_get_nextflow_user_jobs($page_no) {
             $completion_message_content = file_get_contents($gwas_completion_message_file);
             $completion_message_array = json_decode($completion_message_content, true);
             $row_array['gwas_completion_message'] = $completion_message_array;
+            // Remove /isg/treegenes from the commandLine if it exists
+            if (isset($row_array['gwas_completion_message']['commandLine'])) {
+                $row_array['gwas_completion_message']['commandLine'] = str_replace('/isg/treegenes', '', $row_array['gwas_completion_message']['commandLine']);
+            }
         } else {
             $row_array['gwas_completion_message'] = null;
         }

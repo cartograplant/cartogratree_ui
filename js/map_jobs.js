@@ -56,6 +56,73 @@ var ct_ready_map_jobs = function() {
 		});
 	}
 
+	$(document).off('click', '.button_jobs_show_popstruct_results'); // remove previous click handlers to avoid duplicates
+	$(document).on('click', '.button_jobs_show_popstruct_results', function() {
+		var td = $(this).closest('td');
+		console.log('TD element with popstruct_completion_message data attribute', td);
+		var popstruct_completion_message_json = $(this).closest('td').attr('data-completion_message');
+		console.log('Encoded popstruct_completion_message_json', popstruct_completion_message_json);
+		var popstruct_completion_message = atob(popstruct_completion_message_json);
+		console.log('popstruct_completion_message', popstruct_completion_message);
+
+		toastr.clear();
+		toastr.info('Loading population structure jobs results into analysis panel...', {timeOut: 2000});
+
+		// Close the jobs modal
+		$('#jobs-form').find('button.close').click();
+
+
+		// Waiting a few seconds and then open the Analysis panel and switch to the population structure tab
+		setTimeout(function() {
+			$('#analysis-btn').click();
+			// Check every 3 seconds if the analysis panel is loaded by checking if the analysis ID element is present, then open the population structure tab
+			toastr.clear();
+			toastr.info('Automation: Waiting for analysis panel to boot...', {timeOut: 2000});
+			var analysis_panel_check_count = 0;
+			var interval_check_analysis_panel = setInterval(function() {
+				var analysis_summary_analysis_id = $('#analysis_summary_analysis_id').text();
+				if (isNaN(analysis_summary_analysis_id)) {
+					console.log('Analysis panel is not yet loaded');
+				}
+				else if (analysis_panel_check_count >= 5) {
+					console.log('Analysis panel failed to load in time');
+					clearInterval(interval_check_analysis_panel);
+					alert('Failed to load analysis panel in time. Please go back to the Jobs section and click "Show results in Analysis Panel" again to retry.');
+				}
+				else {
+					console.log('Analysis panel is loaded');
+					clearInterval(interval_check_analysis_panel);
+					// Open the population structure tab in the analysis panel
+					toastr.clear();
+					toastr.info('Automation: Waiting for analysis population structure section to render...', {timeOut: 2000});
+					$('#analysis-popstruct-section-tab').click();
+
+					var popstruct_tab_check_count = 0;
+					var interval_check_popstruct_tab = setInterval(function() {
+						if ($('#nextflow-population-structure-workflow .status_output').length > 0) {
+							
+							console.log('Population structure tab is loaded');
+							clearInterval(interval_check_popstruct_tab);
+							// Render the popstruct results into the population structure tab in the analysis panel
+							toastr.clear();
+							toastr.info('Automation: Rendering population structure results...', {timeOut: 2000});
+							cartograplant['analysis_process_popstruct_results'](popstruct_completion_message);
+						}
+						else if (popstruct_tab_check_count >= 5) {
+							console.log('Population structure tab failed to load in time');
+							clearInterval(interval_check_popstruct_tab);
+							alert('Failed to load population structure tab in time. Please go back to the Jobs section and click "Show results in Analysis Panel" again to retry.');
+						}
+						popstruct_tab_check_count++;
+					}, 3000);
+				}
+				analysis_panel_check_count++;
+			}, 3000);
+		}, 2000);
+
+	
+	});
+
 	function nextflow_jobs_generate_table_list(data) {
 		// To be implemented
 		$('#job-analyses-list').html(''); // clear
@@ -69,7 +136,7 @@ var ct_ready_map_jobs = function() {
 
 		// Add pager
 		var pager_html = '<style>span[class*=job_list_pager_item_]:hover {background-color: #33b093;} </style>';
-		pager_html += '<div style="text-align: center; margin-top: 10px; margin-bottom: 10px; ">';
+		pager_html += '<div style="text-align: center; margin-top: 10px; margin-bottom: 10px; overflow-x: auto;overflow-y: hidden;">';
 		var curr_page_no = 0;
 		for(var i=0; i<total_jobs_count; i++) {
 			if (i % items_limit == 0 && ((items_limit * (curr_page_no + 1)) < total_jobs_count)) {
@@ -105,14 +172,16 @@ var ct_ready_map_jobs = function() {
 			html += '<td style="padding: 10px; vertical-align: top;">';
 			html += '<b>' + analysis_row['analysis_name'] + '</b><br />';
 			html += '</td>';
-			html += '<td style="padding: 10px; vertical-align: top;">';
+			html += '<td style="padding: 10px; vertical-align: top;" data-completion_message="' + btoa(JSON.stringify(analysis_row['popstruct_completion_message'])) + '">';
 			if (analysis_row['popstruct_completion_message'] != null) {
 				// console.log('Analysis row PopStruct completion message is not null', analysis_row['popstruct_completion_message']);
 				// Get PopStruct completion message details
+				
 				if (analysis_row['popstruct_completion_message']['success'] == 'true') {
 					html += 'POPSTRUCT Status: <span style="color:rgb(0, 172, 92)">Completed</span><br />';
 					html += 'Time duration: ' + analysis_row['popstruct_completion_message']['duration'] + '<br />';
-					html += 'Go to Analysis section and manage workspace to view output files<br />';
+					// html += 'Go to Analysis section and manage workspace to view output files<br />';
+					html += '<button class="btn btn-primary button_jobs_show_popstruct_results">Show results in Analysis Panel</button><br />';
 				}
 				else if (analysis_row['popstruct_completion_message']['success'] == 'true' && analysis_row['popstruct_completion_message']['errorMessage'] != "null") {
 					html += 'POPSTRUCT Status: <span style="color:rgb(219, 2, 2)">Error</span><br />';
@@ -135,12 +204,13 @@ var ct_ready_map_jobs = function() {
 						html += 'Time duration: ' + analysis_row['popstruct_completion_message']['duration'] + '<br />';	
 					}
 				}
+				html += '<button class="btn btn-primary button_jobs_show_run_command">Show run command</button><br />';
 			}
 			else {
 				html += 'No POPSTRUCT workflow has been run<br />';
 			}
 			html += '</td>';
-			html += '<td style="padding: 10px; vertical-align: top;">';
+			html += '<td style="padding: 10px; vertical-align: top;" data-completion_message="' + btoa(JSON.stringify(analysis_row['vcfmerge_completion_message'])) + '">';
 			if (analysis_row['vcfmerge_completion_message'] != null) {
 				// console.log('Analysis row VCF Merge (Variant filtering) completion message is not null', analysis_row['vcfmerge_completion_message']);
 				// Get PopStruct completion message details
@@ -170,12 +240,13 @@ var ct_ready_map_jobs = function() {
 						html += 'Time duration: ' + analysis_row['vcfmerge_completion_message']['duration'] + '<br />';	
 					}
 				}
+				html += '<button class="btn btn-primary button_jobs_show_run_command">Show run command</button><br />';
 			}
 			else {
 				html += 'No VCFMERGE workflow has been run<br />';
 			}
 			html += '</td>';
-			html += '<td style="padding: 10px; vertical-align: top;">';
+			html += '<td style="padding: 10px; vertical-align: top;" data-completion_message="' + btoa(JSON.stringify(analysis_row['gwas_completion_message'])) + '">';
 			if (analysis_row['gwas_completion_message'] != null) {
 				// console.log('Analysis row GWAS completion message is not null', analysis_row['gwas_completion_message']);
 				// Get GWAS completion message details
@@ -205,6 +276,7 @@ var ct_ready_map_jobs = function() {
 						html += 'Time duration: ' + analysis_row['gwas_completion_message']['duration'] + '<br />';	
 					}
 				}
+				html += '<button class="btn btn-primary button_jobs_show_run_command">Show run command</button><br />';
 			}
 			else {
 				html += 'No GWAS workflow has been run<br />';
@@ -217,6 +289,60 @@ var ct_ready_map_jobs = function() {
 		$('#job-analyses-list').append(html);
 		$('#job-analyses-list').append(pager_html);
 	}
+
+	$(document).off('click', '.button_jobs_show_run_command');
+	$(document).on('click', '.button_jobs_show_run_command', function() {
+		console.log('Show run command button clicked');
+		var completion_message_json_encoded = $(this).closest('td').attr('data-completion_message');
+		var completion_message_json = atob(completion_message_json_encoded);
+		var completion_message = JSON.parse(completion_message_json);
+		var commandLine = completion_message['commandLine'];
+		// Open a custom popup to show the command line with better formatting
+		var popup_html = '<div style="padding: 20px;">';
+		popup_html += '<h4>Workflow run command</h4>';
+		// Wrap the command line in a pre tag to preserve formatting and make it more readable, also add some styling to make it look better
+		// and also wrap the command line if it is too long to fit in the popup so that it displays multiline and is scrollable if it exceeds the max height of the popup
+		popup_html += '<pre style="background-color: #f2f2f2; padding: 10px; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; max-height: 400px; overflow-y: auto;">' + commandLine + '</pre>';
+		popup_html += '</div>';
+		// Show the popup as a div that hovers over the job modal, must have a close button and should be styled to be easily readable
+		var $popup = $(popup_html).appendTo('body');
+		// Do not use the dialog function
+		$popup.css({
+			'position': 'fixed',
+			'top': '50%',
+			'left': '50%',
+			'transform': 'translate(-50%, -50%)',
+			'z-index': 9999,
+			'box-shadow': '0 0 10px rgba(0,0,0,0.5)',
+			'background-color': '#ffffff',
+			'border': '1px solid #cccccc',
+			'border-radius': '5px',
+			'padding': '20px',
+			'max-width': '80%',
+			'max-height': '80%',
+			'overflow': 'auto'
+		});
+		// Add a copy to clipboard button
+		var $copyButton = $('<button style="position: absolute; top: 10px; right: 80px;" class="btn btn-secondary">Copy</button>').appendTo($popup);
+		$copyButton.on('click', function() {
+			navigator.clipboard.writeText(commandLine).then(function() {
+				toastr.clear();
+				toastr.success('Command copied to clipboard', {timeOut: 2000});
+			}, function(err) {
+				toastr.clear();
+				toastr.error('Failed to copy command to clipboard', {timeOut: 2000});
+			});
+		});
+		// Add a close button to the popup next to the clipboard button
+		var $closeButton = $('<button style="position: absolute; top: 10px; right: 10px;" class="btn btn-secondary">Close</button>').appendTo($popup);
+		// var $closeButton = $('<button style="position: absolute; top: 10px; right: 10px;" class="btn btn-secondary">Close</button>').appendTo($popup);
+		$closeButton.on('click', function() {
+			$popup.remove();
+		});
+
+
+
+	});
 
     function jobs_get_jobs_list(page_no) {
 		var url_user_jobs = Drupal.settings.base_url + "/cartogratree_uijobs/get_user_jobs/" + page_no;

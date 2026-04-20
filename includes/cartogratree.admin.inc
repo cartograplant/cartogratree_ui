@@ -916,6 +916,14 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
         	'#required' => TRUE,
         );
 
+        $form['fieldset_layer_required_configuration']['layer_file_location'] = array(
+        	'#type' => 'textfield',
+        	'#title' => 'Layer File Location',
+       		'#description' => 'Full path to layer file location (used to extract environmental data from analysis)',
+        	'#default_value' => (isset($obj->layer_file_location)) ? $obj->layer_file_location : '',
+        	'#required' => TRUE,
+        );
+
         $form['fieldset_layer_required_configuration']['layer_host'] = array(
         	'#type' => 'radios',
             // '#type' => 'select',
@@ -1339,6 +1347,7 @@ function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
         	'title' => $form_state['values']['name'],
         	'name' => $form_state['values']['machine_name'],
         	'url' => $form_state['values']['url'],
+            'layer_file_location' => $form_state['values']['layer_file_location'],
         	'trees_layer' => $form_state['values']['trees_layer'],
         	'group_id' => $form_state['values']['group_name'],
         	'subgroup_id' => $form_state['values']['subgroup_name'],

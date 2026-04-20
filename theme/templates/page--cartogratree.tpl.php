@@ -864,6 +864,7 @@
 							<div id="analysis-popstruct-section" class="tab-pane fade">
 								<div class="analysis-tab-content">
 									<div class="top-description">This page enables the inference of population structure within a dataset. You may choose to infer population structure at a range of complexity values K: to do so, enter a comma-separated list of integer values (e.g., 3,4,5). Additional parameters exist to enable the pruning of linkage disequilibrium and for the tuning of the inference algorithm.</div>
+									<div class="info-description" style="margin-top: 5px;">Population structures are generated in the background on our infrastructure so you can revisit Cartograplant and head over to the Jobs section to view results at your convenience.</div>
 									<h4>Nextflow Population Structure Workflow</h4>
 									<table id="nextflow-population-structure-workflow-container" style="width: 100%;">
 										<tr>
@@ -2502,6 +2503,9 @@ Today, CartograPlant continues to support the forest tree community, and increas
 											$results = unserialize(variable_get('ct_geoserver_datasets', serialize(array())));
 											foreach ($results as $r) {
 												$element_name = $r['geoserver_dataset_name'];
+												if (trim($element_name) == 'BIEN') {
+													continue;
+												}
 												$element_name = strtolower($element_name);
 												$element_name = str_ireplace(' ', '_', $element_name);
 												$element_name = $element_name . '_geoserver_tileset-data';
