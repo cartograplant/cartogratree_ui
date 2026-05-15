@@ -172,7 +172,7 @@ var ct_ready_map_jobs = function() {
 			html += '<td style="padding: 10px; vertical-align: top;">';
 			html += '<b>' + analysis_row['analysis_name'] + '</b><br />';
 			html += '</td>';
-			html += '<td style="padding: 10px; vertical-align: top;" data-completion_message="' + btoa(JSON.stringify(analysis_row['popstruct_completion_message'])) + '">';
+			html += '<td style="padding: 10px; vertical-align: top;" data-payload="' + btoa(JSON.stringify(analysis_row['payload'])) + '" data-completion_message="' + btoa(JSON.stringify(analysis_row['popstruct_completion_message'])) + '">';
 			if (analysis_row['popstruct_completion_message'] != null) {
 				// console.log('Analysis row PopStruct completion message is not null', analysis_row['popstruct_completion_message']);
 				// Get PopStruct completion message details
@@ -210,7 +210,7 @@ var ct_ready_map_jobs = function() {
 				html += 'No POPSTRUCT workflow has been run<br />';
 			}
 			html += '</td>';
-			html += '<td style="padding: 10px; vertical-align: top;" data-completion_message="' + btoa(JSON.stringify(analysis_row['vcfmerge_completion_message'])) + '">';
+			html += '<td style="padding: 10px; vertical-align: top;" data-payload="' + btoa(JSON.stringify(analysis_row['payload'])) + '" data-completion_message="' + btoa(JSON.stringify(analysis_row['vcfmerge_completion_message'])) + '">';
 			if (analysis_row['vcfmerge_completion_message'] != null) {
 				// console.log('Analysis row VCF Merge (Variant filtering) completion message is not null', analysis_row['vcfmerge_completion_message']);
 				// Get PopStruct completion message details
@@ -246,7 +246,7 @@ var ct_ready_map_jobs = function() {
 				html += 'No VCFMERGE workflow has been run<br />';
 			}
 			html += '</td>';
-			html += '<td style="padding: 10px; vertical-align: top;" data-completion_message="' + btoa(JSON.stringify(analysis_row['gwas_completion_message'])) + '">';
+			html += '<td style="padding: 10px; vertical-align: top;" data-payload="' + btoa(JSON.stringify(analysis_row['payload'])) + '" data-completion_message="' + btoa(JSON.stringify(analysis_row['gwas_completion_message'])) + '">';
 			if (analysis_row['gwas_completion_message'] != null) {
 				// console.log('Analysis row GWAS completion message is not null', analysis_row['gwas_completion_message']);
 				// Get GWAS completion message details
@@ -296,6 +296,11 @@ var ct_ready_map_jobs = function() {
 		var completion_message_json_encoded = $(this).closest('td').attr('data-completion_message');
 		var completion_message_json = atob(completion_message_json_encoded);
 		var completion_message = JSON.parse(completion_message_json);
+
+		var payload_json_encoded = $(this).closest('td').attr('data-payload');
+		var payload_json = atob(payload_json_encoded);
+		var payload = JSON.parse(payload_json);
+
 		var commandLine = completion_message['commandLine'];
 		// Open a custom popup to show the command line with better formatting
 		var popup_html = '<div style="padding: 20px;">';
@@ -303,6 +308,9 @@ var ct_ready_map_jobs = function() {
 		// Wrap the command line in a pre tag to preserve formatting and make it more readable, also add some styling to make it look better
 		// and also wrap the command line if it is too long to fit in the popup so that it displays multiline and is scrollable if it exceeds the max height of the popup
 		popup_html += '<pre style="background-color: #f2f2f2; padding: 10px; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; max-height: 400px; overflow-y: auto;">' + commandLine + '</pre>';
+		if (payload != null && payload != undefined && payload != false) {
+			popup_html += '<pre style="background-color: #f2f2f2; padding: 10px; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; max-height: 400px; overflow-y: auto;">PAYLOAD.JSON:<br />' + payload + '</pre>';
+		}
 		popup_html += '</div>';
 		// Show the popup as a div that hovers over the job modal, must have a close button and should be styled to be easily readable
 		var $popup = $(popup_html).appendTo('body');

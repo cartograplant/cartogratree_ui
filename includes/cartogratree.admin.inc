@@ -1126,7 +1126,21 @@ function cartogratree_admin_settings_layer_form($form, &$form_state) {
         	'#title' => 'Hide default layer legend?',
         	'#description' => 'When enabled, this option will hide the default layer legend usually retrieved from GeoServer',
         	'#default_value' => (isset($obj->layer_legend_hide_default)) ? $obj->layer_legend_hide_default : 0,
-        );     
+        );
+        
+        $legend_image_file_upload_location = 'public://layer_legend_images/';
+        $form['fieldset_legend_config']['layer_legend_image'] = array(
+            '#type' => 'managed_file',
+            '#title' => t("Layer legend image"),
+            '#description' => t("Upload an image to use as the layer's legend. This will override any default legend retrieved from GeoServer. Recommended image width is 200px."),
+            '#upload_location' => "$legend_image_file_upload_location",
+            '#upload_validators' => array(
+              'file_validate_extensions' => array('png gif jpg jpeg'),
+            ),
+            '#default_value' => (isset($obj->layer_legend_image)) ? $obj->layer_legend_image : NULL,
+            '#field_prefix' => '<span style="width: 100%;display: block;text-align: right;padding-right: 2%;">Allowed file extensions: png gif jpg jpeg</span>',
+            '#suffix' => '<style></style>',
+        );
         
         // layer_legend_orientation
         $form['fieldset_legend_config']['layer_legend_orientation'] = array(
@@ -1373,7 +1387,20 @@ function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
             'layer_embedded_fields_rename' => $form_state['values']['layer_embedded_fields_rename'],
             'layer_embedded_data_eval' => $form_state['values']['layer_embedded_data_eval'],
             'analysis_category_id' => $form_state['values']['analysis_category_id'],
+            'layer_legend_image' => $form_state['values']['layer_legend_image'],
         );
+
+        // Save the layer_legend_image file and set the file usage so that Drupal doesn't delete the file during cleanup cron tasks.
+        if (isset($form_state['values']['layer_legend_image']) && !empty($form_state['values']['layer_legend_image'])) {
+            $file = file_load($form_state['values']['layer_legend_image']);
+            if ($file) {
+                $file->status = 1; // Permanent file
+                file_save($file);
+                // Set file usage so that Drupal doesn't delete the file during cleanup cron tasks.
+                file_usage_add($file, 'cartogratree', 'layer_legend_image', $form_state['values']['layer_legend_image']);
+            }
+        }
+
 
         if ($form_state['values']['op'] == 'Add') {
             $result = drupal_write_record('cartogratree_layers', $record);

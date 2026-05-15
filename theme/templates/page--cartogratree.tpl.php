@@ -792,6 +792,7 @@
 													<div id="analysis-overlapping-genotypes-across-studies"></div>
 													<div id="analysis-overlapping-genotypes-upset-1" class="d-inline-block"></div>
 													<div id="analysis-overlapping-genotypes-upset-2-status" class="d-inline-block"></div>
+													<div id="analysis-overlapping-genotypes-upset-2-instructions" class="">Please select studies overlap by clicking the upset plot bar columns</div>
 													<div id="analysis-overlapping-genotypes-upset-2" class="d-inline-block"></div>
 													<div id="analysis-overlapping-genotypes-metadata"></div>
 													<div id="analysis-overlapping-genotypes-refgenome"></div>
@@ -1192,6 +1193,7 @@
                 	<h2>Introduction</h2>
                 	<!-- <p>The original concept of CartograPlant was envisioned by a group of forest tree biology researchers that represented traditionally separate research areas including physiology, ecology, genomics, and systematics. Guided by the NSF-funded iPlant Cyberinfrastructure, the focus was to enable interdisciplinary forest tree biology research through geo-referenced data with an application that could be easily deployed, expanded, and used by members of all disciplines. CartograPlant is a web-based application that allows researchers to identify, filter, compare, and visualize geo-referenced biotic and abiotic data. Its goal is to support numerous multi-disciplinary research endeavors including: phylogenetics, population structure, and association studies.</p>-->
 					 <p>
+					 TreeGenes originated from the Dendrome Project in the mid-1990s as one of the first USDA ARS genome databases, built to centralize genetic resources for forest trees. As the platform expanded to include genomes, transcriptomes, population data, and environmental metadata, a key gap emerged: the ability to integrate genotype, phenotype, and environmental (GxPxE) data in a spatial, population-level framework. CartograPlant was developed to address this need, providing a modern, map-based interface for integrated analysis of georeferenced populations, traits, and genomic data. It now serves as the primary platform, maintaining a focus on forest tree populations while housing critical GxPxE datasets not well represented elsewhere. Today, visiting treegenesdb will redirect you to CartograPlant, now the exclusive destination for plant population data.<br /><br />
 					 The idea for CartograPlant began in June of 2011, when a group of forest tree biology researchers from different fields like physiology, ecology, genomics, and systematics realized the need for a unified platform to integrate and visualize spatial biological data. These researchers came together through workshops and collaborations funded by the NSF iPlant Collaborative (now CyVerse), a project designed to support data-driven biological research.<br />
 Their goal was to create a tool that could help bridge the gaps between disciplines and enable easier access to georeferenced population data, with traits and genotypes. The focus was on building a web-based application that could be deployed and used by researchers from various backgrounds, making complex data more accessible and useful for a wide range of studies.<br /><br />
 The first version of CartograPlant (then, CartograTree) was released in 2012, built on the resources and infrastructure provided by iPlant. By 2015, a more refined version of the platform was launched, allowing users to identify, filter, compare, and visualize spatial data. The tool was designed to handle different types of datasets, including species distributions, genetic information, and environmental factors.<br /><br />
@@ -1199,9 +1201,9 @@ Today, CartograPlant continues to support the forest tree community, and increas
 					 </p>
 				</div>
 				
+					<!--
 					<div class='ct_left_card'>
 						<h2>TreeGenes Database</h2>
-						<!-- <div class='about_treegenesdatabase'>The TreeGenes database provides custom informatics tools to manage the flood of information resulting from high-throughput genomics projects in forest trees from sample collection to downstream analysis. This resource is enhanced with systems that are well connected with federated databases, automated data flows, machine learning analysis, standardized annotations and quality control processes. The database itself contains several curated modules that support the storage of data and provide the foundation for web-based searches and visualization tools. -->
 						<p>
 						The TreeGenes Database traces its origins to the Dendrome Project, launched in the mid-1990s as one of the first USDA Agricultural Research Service (ARS) genome databases. Conceived as a centralized resource for forest tree genetics, Dendrome was developed to manage and share emerging molecular data for conifers and other tree species. It served as the first of three ARS genome databases, alongside those for maize and grasses, and provided early tools for the storage, retrieval, and visualization of genetic maps, expressed sequence tags (ESTs), and marker data.<br /><br />
 	Over time, Dendrome evolved into TreeGenes, expanding both its taxonomic scope and infrastructure to meet the demands of large-scale sequencing and comparative genomics. As high-throughput sequencing changed life science research, TreeGenes grew to accommodate large genetic datasets and diverse data types, from genome assemblies and transcriptomes to population genetics and environmental metadata.<br /><br />
@@ -1209,6 +1211,7 @@ Today, CartograPlant continues to support the forest tree community, and increas
 	Today, TreeGenes stands as one of the largest and longest running plant genomics databases in the world. It provides curated modules to access reference genome assemblies, transcriptomic data, variant calls, phenotypic observations, and environmental context, linked through standardized metadata and georeferenced accessions.
 						</p>
 					</div>
+					-->
 
 					<div class="featurette-divider"></div>
 					<div class="ct_left_card">
@@ -1343,7 +1346,8 @@ Today, CartograPlant continues to support the forest tree community, and increas
 								<table style="">
 									<tr>
 										<td style="vertical-align: top;">
-											<p style="padding: 5px;">Lind, Cobo Simon, Myles et al (2025). CartograPlant: Bridging genomic, phenotypic, and environmental data to advance plant resilience and eco-evolutionary insight. EcoEvo Rxiv. <a href="https://doi.org/10.32942/X2Q06D">doi:10.32942/X2Q06D</a></p>
+											<p style="padding: 5px;">Lind, Cobo Simon, Myles et al (2026). CartograPlant: Bridging genomic, phenotypic, and environmental data to advance plant resilience and eco-evolutionary insight. Genetics. <a href="https://doi.org/10.1093/genetics/iyag060">doi:10.1093/genetics/iyag060</a></p>
+											<!-- <p style="padding: 5px;">Lind, Cobo Simon, Myles et al (2025). CartograPlant: Bridging genomic, phenotypic, and environmental data to advance plant resilience and eco-evolutionary insight. EcoEvo Rxiv. <a href="https://doi.org/10.32942/X2Q06D">doi:10.32942/X2Q06D</a></p> -->
 
 											<p style="padding: 5px;">Staton et al (2021). Tripal, a community update after 10 years of supporting open source standards-based genetic, genomic and breeding databases. Briefings in Bioinformatics, 22(6), bbab238. <a href="https://doi.org/10.1093/bib/bbab238">doi:10.1093/bib/bbab238</a></p>
 
@@ -1517,16 +1521,16 @@ Today, CartograPlant continues to support the forest tree community, and increas
 						</tr>
 						<tr>
 							<td width="33%" style="text-align: center;">
-								<h4 style="margin-bottom: 0px;">U.S National Science Foundation</h4>
-								<h3 style="padding-top: 0px;"><a href="https://nsf.gov/awardsearch/showAward?AWD_ID=1443040">1443040</a> and <a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=1444573">1444573</a></h3>
+								<p style="margin-bottom: 0px; padding-bottom: 0px;">U.S National Science Foundation</p>
+								<p style="padding-top: 0px;"><a href="https://nsf.gov/awardsearch/showAward?AWD_ID=1443040">1443040</a> and <a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=1444573">1444573</a></p>
 							</td>
 							<td width="33%" style="text-align: center;">
-								<h4 style="margin-bottom: 0px;">National Institute of Food and Agriculture</h4>
-								<h3 style="padding-top: 0px;"><a href="https://portal.nifa.usda.gov/web/crisprojectpages/1019897-fact-enabling-association-mapping-and-landscape-genomics-through-the-advanced-integration-of-genotype-phenotype-and-geospatial-data.html">2019-67021-29920</a></h3>
+								<p style="margin-bottom: 0px; padding-bottom: 0px;">National Institute of Food and Agriculture</p>
+								<p style="padding-top: 0px;"><a href="https://portal.nifa.usda.gov/web/crisprojectpages/1019897-fact-enabling-association-mapping-and-landscape-genomics-through-the-advanced-integration-of-genotype-phenotype-and-geospatial-data.html">2019-67021-29920</a></p>
 							</td>
 							<td width="34%" style="text-align: center;">
-								<h4 style="margin-bottom: 0px;">The Nature Conservancy</h4>
-								<h3 style="padding-top: 0px;"></h3>								
+								<p style="margin-bottom: 0px; padding-bottom: 0px;">The Nature Conservancy</p>
+								<p style="padding-top: 0px;"></p>								
 							</td>
 						</tr>
 					</table>
@@ -3007,12 +3011,15 @@ Today, CartograPlant continues to support the forest tree community, and increas
 				<div class="row w-100">
 					<div class="p-2 w-100" id="species-details-info-body-genomes-container"></div>
 				</div>
+				
+				<!--
 				<div class="row w-100 mt-2">
 					<div class="p-2 w-100 ml-2" id="species-details-info-body-studies-header" style="background-color: #589a60; color: #FFFFFF; border: 1px solid #41824c"><h2 style="padding-top: 0px; padding-bottom: 0px;">TPPS Studies</h2></div>
 				</div>
 				<div class="row w-100">
 					<div class="p-2 w-100" id="species-details-info-body-studies-container"></div>
 				</div>
+										-->
 				<div class="row w-100">
 					<div class="p-2 w-100" id="species-details-info-species-link-container"></div>
 					<div class="p-2 w-100" id="species-details-info-iframe-species-container"></div>

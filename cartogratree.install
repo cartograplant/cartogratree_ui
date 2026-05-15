@@ -100,6 +100,12 @@ function cartogratree_schema() {
           'type' => 'text',
           'not null' => FALSE,
         ),
+        'layer_legend_image' => array(
+          'description' => 'File legend location for map layer file',
+          'type' => 'varchar',
+          'length' => 2048,
+          'not null' => FALSE,
+        ),
         'group_id' => array(
           'description' => 'Accordion group ID for side navigation menu.',
           'type' => 'int',
@@ -1108,6 +1114,20 @@ function cartogratree_update_7009() {
     array(
       'description' => 'File location for map layer file',
       'type' => 'text',
+      'not null' => FALSE,
+    )
+  );
+}
+
+function cartogratree_update_7010() {
+  // Add new field to cartogratree_layers table to keep track of map layer file location
+  db_add_field(
+    'cartogratree_layers',
+    'layer_legend_image',
+    array(
+      'description' => 'File legend image',
+      'type' => 'varchar',
+      'length' => 2048,
       'not null' => FALSE,
     )
   );

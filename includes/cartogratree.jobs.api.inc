@@ -47,6 +47,19 @@ function cartogratree_jobsapi_get_nextflow_user_jobs($page_no) {
             $row_array['vcfmerge_completion_message'] = $completion_message_array;
             // Remove /isg/treegenes from the commandLine if it exists
             if (isset($row_array['vcfmerge_completion_message']['commandLine'])) {
+                // Check if there is a payload.json file in the $row_array['vcfmerge_completion_message']['commandLine'] using regex and get the exact location
+                $payload_location = null;
+                if (preg_match('/--input (.*payload.json)/', $row_array['vcfmerge_completion_message']['commandLine'], $matches)) {
+                    $payload_location = $matches[1];
+                }
+                // $row_array['payload_location'] = $payload_location;
+                if ($payload_location) {
+                    $row_array['payload'] = file_get_contents($payload_location);
+                }
+                else {
+                    $row_array['payload'] = null;
+                }
+
                 $row_array['vcfmerge_completion_message']['commandLine'] = str_replace('/isg/treegenes', '', $row_array['vcfmerge_completion_message']['commandLine']);
             }
         } else {
@@ -61,6 +74,19 @@ function cartogratree_jobsapi_get_nextflow_user_jobs($page_no) {
             $row_array['popstruct_completion_message'] = $completion_message_array;
             // Remove /isg/treegenes from the commandLine if it exists
             if (isset($row_array['popstruct_completion_message']['commandLine'])) {
+                // Check if there is a payload.json file in the $row_array['popstruct_completion_message']['commandLine'] using regex and get the exact location
+                $payload_location = null;
+                if (preg_match('/--input (.*payload.json)/', $row_array['popstruct_completion_message']['commandLine'], $matches)) {
+                    $payload_location = $matches[1];
+                }
+                // $row_array['payload_location'] = $payload_location;
+                if ($payload_location) {
+                    $row_array['payload'] = file_get_contents($payload_location);
+                }
+                else {
+                    $row_array['payload'] = null;
+                }
+
                 $row_array['popstruct_completion_message']['commandLine'] = str_replace('/isg/treegenes', '', $row_array['popstruct_completion_message']['commandLine']);
             }
         } else {
@@ -75,13 +101,24 @@ function cartogratree_jobsapi_get_nextflow_user_jobs($page_no) {
             $row_array['gwas_completion_message'] = $completion_message_array;
             // Remove /isg/treegenes from the commandLine if it exists
             if (isset($row_array['gwas_completion_message']['commandLine'])) {
+                // Check if there is a payload.json file in the $row_array['gwas_completion_message']['commandLine'] using regex and get the exact location
+                $payload_location = null;
+                if (preg_match('/--input (.*payload.json)/', $row_array['gwas_completion_message']['commandLine'], $matches)) {
+                    $payload_location = $matches[1];
+                }
+                // $row_array['payload_location'] = $payload_location;
+                if ($payload_location) {
+                    $row_array['payload'] = file_get_contents($payload_location);
+                }
+                else {
+                    $row_array['payload'] = null;
+                }
+
                 $row_array['gwas_completion_message']['commandLine'] = str_replace('/isg/treegenes', '', $row_array['gwas_completion_message']['commandLine']);
             }
         } else {
             $row_array['gwas_completion_message'] = null;
         }
-
-
 
         array_push($user_analysis_rows, $row_array);
     }

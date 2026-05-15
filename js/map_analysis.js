@@ -1839,13 +1839,37 @@ var ct_ready_map_analysis = function() {
 		console.log('gt_check_payload', gt_check_payload);
 	});
 
+	try {
+		$('body').off('click', '.merge_vcfs_study_refinement_checkbox');
+	} catch (err) {}
+	$('body').on('click', '.merge_vcfs_study_refinement_checkbox', function() {
+		console.log('merge_vcfs_study_refinement_checkbox clicked');
+		if ($(this).is(':checked') == true) {
+			var selected_study = $(this).data('study');
+			var checkboxes_elements = $('.merge_vcfs_study_refinement_checkbox');
+			for (var i = 0; i<checkboxes_elements.length; i++) {
+				var checkbox = checkboxes_elements.eq(i);
+				if ($(checkbox).is(':checked')) {
+					$(checkbox).prop('checked', false);	
+				}
+			}
+			$(this).prop('checked', true);
 
-	function generate_merge_vcfs_payload() {
+			// gt_check_payload['study_to_retain_clones'] = selected_study;
+		}
+		// console.log('gt_check_payload', gt_check_payload);
+	});
+
+
+	function generate_merge_vcfs_payload(version = 1) {
 		var payload = {
-			'studies': {}
+			'studies': {},
+			'trees': [],
+			// trees/samples
 		}
 
 		// cartograplant['analysis_selected_overlapping_analysis_study_accessions']
+		// Populate the payload studies key
 		for (var i = 0; i < cartograplant['analysis_selected_overlapping_analysis_study_accessions'].length; i++) {
 			var study = cartograplant['analysis_selected_overlapping_analysis_study_accessions'][i];
 			// cartograplant['analysis_overlapping_analyses_vcf_locations']
@@ -1853,6 +1877,32 @@ var ct_ready_map_analysis = function() {
 			var vcf_location = cartograplant['analysis_overlapping_analyses_vcf_locations'][study][analysis_name];
 			payload['studies'][study] = [vcf_location];
 		}
+
+		// Populate the payload trees key
+		var trees = analysis_includedTrees; // DEFAULT
+		// If the user has selected individual trees, then we use those instead
+		var samples_checkboxes = $('#analysis_detections_study_summary').find('.samples_checkbox');
+		if (samples_checkboxes.length > 0) {
+			var trees_object = {};
+			trees = [];
+			for (var i = 0; i < samples_checkboxes.length; i++) {
+				var element = $(samples_checkboxes[i]);
+				if ($(element).is(':checked')) {
+					console.log('Samples checkbox checked', element);
+					var samples_div = $(element).closest('tr').find('.samples');
+					var samples_csv = $(samples_div).attr('data-samples');
+					var samples_array = samples_csv.split(',');
+					for (var j = 0; j < samples_array.length; j++) {
+						var sample_name = samples_array[j];
+						trees_object[sample_name] = true;
+					}
+				}
+			}
+			trees = Object.keys(trees_object);
+			delete trees_object;
+		}
+		payload['trees'] = trees;
+
 		console.log('generate_merge_vcfs_payload', payload);
 		return payload;
 	}
@@ -1885,6 +1935,20 @@ var ct_ready_map_analysis = function() {
 		// }
 
 		var payload = generate_merge_vcfs_payload();
+
+		// Check if any $('.merge_vcfs_study_refinement_checkbox') are checked, if so add this to the payload as study_to_retain_clones
+		var study_to_retain_clones = null;
+		var checkboxes_elements = $('.merge_vcfs_study_refinement_checkbox');
+		for (var i = 0; i<checkboxes_elements.length; i++) {
+			var checkbox = checkboxes_elements.eq(i);
+			if ($(checkbox).is(':checked')) {
+				study_to_retain_clones = $(checkbox).data('study');
+			}
+		}
+		if (study_to_retain_clones != null) {
+			payload['study_to_retain_clones'] = study_to_retain_clones;
+			payload['study_slection'] = study_to_retain_clones;
+		}
 
 		// console.log('merge_payload', merge_payload);
 		$('#analysis_merge_vcfs_status').html('<i class="fa-solid fa-sync fa-spin"></i> Merging VCFs... please wait...');
@@ -1955,6 +2019,68 @@ var ct_ready_map_analysis = function() {
 								clearInterval(analysis_timers['study_context_completion_json']);
 							} catch  (err) {
 								console.log('Error clearing timer', err);
+							}
+
+							// sampleDiscordance refinement if sampleDiscordance exists in the response
+							var merge_vcfs_study_refinement_html = '';
+							var study_combinations = Object.keys(data['response']['sampleDiscordance']);
+							if (study_combinations.length == 0) {
+								merge_vcfs_study_refinement_html += '<div>No marker discordance was detected between samples in the selected studies.</div>';
+								// merge_vcfs_study_refinement_html += '<div style="margin-top: 5px;">You may now continue to MERGE VCFS</div>';
+								$('#analysis_merge_vcfs_study_refinement').html(merge_vcfs_study_refinement_html);
+							}
+							else {
+								merge_vcfs_study_refinement_html += '<div style="color:rgb(218, 0, 0)"><b>Marker discordance found, please refine by selecting a study and re-clicking the merge vcf button</b></div>';
+								for (var i = 0; i<study_combinations.length; i++) {
+									var study_combination = study_combinations[i];
+									var study_comb_arr = study_combination.split('-');
+									merge_vcfs_study_refinement_html += '<div>Marker discordance between pairwise comparisons of genotypes in study ' + study_comb_arr[0] + ' and study ' + study_comb_arr[1] +'</div>';
+								}
+								merge_vcfs_study_refinement_html += '<div style="max-height: 200px; overflow-y: auto;">';
+								merge_vcfs_study_refinement_html += '<table border=1 style="width: 100%;">';
+								merge_vcfs_study_refinement_html += '<tr><th>Sample names</th>';
+								var study_combinations = Object.keys(data['response']['sampleDiscordance']);
+								for (var i = 0; i<study_combinations.length; i++) {
+									var study_combination = study_combinations[i];
+									merge_vcfs_study_refinement_html += '<th>' + study_combination + '</th>';
+								}
+								merge_vcfs_study_refinement_html += '</tr>';
+
+								for (var i = 0; i<study_combinations.length; i++) {
+									var study_combination = study_combinations[i];
+									var samples = Object.keys(data['response']['sampleDiscordance'][study_combination]);
+									for (var samples_i = 0; samples_i< samples.length; samples_i++) {
+										var sample = samples[samples_i];
+										merge_vcfs_study_refinement_html += '<tr>';
+										merge_vcfs_study_refinement_html += '<td>' + sample + '</td>';
+										merge_vcfs_study_refinement_html += '<td>' + data['response']['sampleDiscordance'][study_combination][sample]['normDiscordance'] + '</td>';
+										merge_vcfs_study_refinement_html += '</tr>';
+									}
+								}
+								merge_vcfs_study_refinement_html += '</table>';
+								merge_vcfs_study_refinement_html += '</div>';
+								merge_vcfs_study_refinement_html += '<div style="margin-top: 10px;">* Please select one study to retain clones and then continue to MERGE VCFS</div>';
+								try {
+									// var studies = Object.keys(data['response']['studies']);
+									var studies_by_key = {};
+									for (var i = 0; i < study_combinations.length; i++) {
+										var study_combination = study_combinations[i];
+										var study_comb_arr = study_combination.split('-');
+										for (var j = 0; j < study_comb_arr.length; j++) {
+											var study = study_comb_arr[j];
+											studies_by_key[study] = true;
+										}
+									}
+									var studies = Object.keys(studies_by_key);
+									for (var i = 0; i < studies.length; i++) {
+										var study = studies[i];
+										merge_vcfs_study_refinement_html += '<div><input type="checkbox" class="merge_vcfs_study_refinement_checkbox" data-study="' + study + '" /> ' + study + '</div>';
+									}
+								} catch (err) {
+									console.log('Error generating study refinement checkboxes', err);
+								}
+								
+								$('#analysis_merge_vcfs_study_refinement').html(merge_vcfs_study_refinement_html);
 							}
 						}
 						else {
@@ -2113,6 +2239,7 @@ var ct_ready_map_analysis = function() {
 		shared_marker_information = {};
 	} catch (err) {}
 	// This happens when someone clicks on the genotype overlap analysis tab
+	$('#analysis-overlapping-genotypes-upset-2-instructions').hide();
 	$('a[href="#analysis-overlapping-genotypes"]').on('click', function() {
 		if (Object.keys(cartograplant['detected_studies']).length > 25) {
 			alert('⚠️ Warning: More than 20 studies with genotypic data were detected based on your analysis study context. Loading the genotype overlap analysis may take a long time or fail due to system limitations. Please consider refining your study context to include fewer studies with genotypic data before proceeding.');
@@ -2218,6 +2345,7 @@ var ct_ready_map_analysis = function() {
 		$('#analysis-overlapping-genotypes-gt-check').html(gt_check_html);
 
 		var merge_vcfs_html = '';
+		merge_vcfs_html += '<div id="analysis_merge_vcfs_study_refinement" style="margin-top: 5px; margin-bottom: 5px;"></div>';
 		merge_vcfs_html += '<div style="margin-top: 5px; margin-bottom: 5px;"><button class="btn btn-primary" id="btn_snps_merge_vcfs">Merge VCFs</button></div>';
 		merge_vcfs_html += '<div id="analysis_merge_vcfs_status" style="margin-top: 5px; margin-bottom: 5px;"></div>';
 		$('#analysis-overlapping-genotypes-merge-vcfs').html(merge_vcfs_html);
@@ -2259,59 +2387,59 @@ var ct_ready_map_analysis = function() {
 			$('#btn_snps_gt_check').hide();
 			$('#analysis_gt_check_status').html('[Genotypes check disabled] In order to perform a genotypes check, at least one study with genotypic data must be detected based on your analysis study context. Please refine your study context to include studies with genotypic data and return to this tab.');
 			$('#btn_snps_merge_vcfs').hide();
-			$('#analysis_merge_vcfs_status').html('[VCF merge disabled] In order to perform VCF merges, at least two studies with genotypic data must be detected based on your analysis study context. Please refine your study context to include studies with genotypic data and return to this tab.');
+			$('#analysis_merge_vcfs_status').html('<span style="color: red;">[VCF merge disabled]</span> In order to perform VCF merges, at least two studies with genotypic data must be detected based on your analysis study context. Please refine your study context to include studies with genotypic data and return to this tab.');
 		}
 		else if (studies.length == 1) {
 			$('#btn_snps_gt_check').show();
 			$('#btn_snps_merge_vcfs').hide();
-			$('#analysis_merge_vcfs_status').html('[VCF merge disabled] In order to perform VCF merges, at least two studies with genotypic data must be detected based on your analysis study context. Please refine your study context to include studies with genotypic data and return to this tab.');
+			$('#analysis_merge_vcfs_status').html('<span style="color: red;">[VCF merge disabled]</span> In order to perform VCF merges, at least two studies with genotypic data must be detected based on your analysis study context. Please refine your study context to include studies with genotypic data and return to this tab.');
 		}
 		else {
 			$('#btn_snps_gt_check').show();
 			$('#btn_snps_merge_vcfs').show();
 		}
 
-		for(var i=0; i<studies.length; i++) {
-			var study_name = studies[i];
-			console.log('study_name', study_name);
-			var ref_genome_url = Drupal.settings.base_url + '/cartogratree_uianalysis/cartogratree_analysisapi_lookup_study_ref_genome/' + study_name;
-			$.ajax({
-				method: 'GET',
-				url: ref_genome_url,
-				success: function(data) {
-					// var data = JSON.parse(data);
-					console.log('ref_genome data', data);
+		// for(var i=0; i<studies.length; i++) {
+		// 	var study_name = studies[i];
+		// 	console.log('study_name', study_name);
+		// 	var ref_genome_url = Drupal.settings.base_url + '/cartogratree_uianalysis/cartogratree_analysisapi_lookup_study_ref_genome/' + study_name;
+		// 	$.ajax({
+		// 		method: 'GET',
+		// 		url: ref_genome_url,
+		// 		success: function(data) {
+		// 			// var data = JSON.parse(data);
+		// 			console.log('ref_genome data', data);
 
-					var ref_genomes_string = '';
-					for(var i = 0; i < data['ref_genomes'].length; i++) {
-						if (data['ref_genomes'][i] != null && data['ref_genomes'][i] != undefined) {
-							// if (i == 0) {
-							// 	ref_genomes_string += data['organism_names'][i] + ' has reference genome: ' + data['ref_genomes'][i];
-							// }
-							// else {
-							// 	ref_genomes_string += ', ' + data['organism_names'][i] + ' has reference genome: ' + data['ref_genomes'][i];	
-							// }
-							ref_genomes_string += '<li style="margin-left: 30px;">' + data['organism_names'][i] + ' has reference genome: ' + data['ref_genomes'][i] + '</li>';
-						}
-						else {
-							if (i == 0) {
-								// ref_genomes_string += data['organism_names'][i] + ' has no reference genome';
-							}
-							else {
-								// ref_genomes_string += ', ' + data['organism_names'][i] + ' has no reference genome';
-							}
-						}
-					}
+		// 			var ref_genomes_string = '';
+		// 			for(var i = 0; i < data['ref_genomes'].length; i++) {
+		// 				if (data['ref_genomes'][i] != null && data['ref_genomes'][i] != undefined) {
+		// 					// if (i == 0) {
+		// 					// 	ref_genomes_string += data['organism_names'][i] + ' has reference genome: ' + data['ref_genomes'][i];
+		// 					// }
+		// 					// else {
+		// 					// 	ref_genomes_string += ', ' + data['organism_names'][i] + ' has reference genome: ' + data['ref_genomes'][i];	
+		// 					// }
+		// 					ref_genomes_string += '<li style="margin-left: 30px;">' + data['organism_names'][i] + ' has reference genome: ' + data['ref_genomes'][i] + '</li>';
+		// 				}
+		// 				else {
+		// 					if (i == 0) {
+		// 						// ref_genomes_string += data['organism_names'][i] + ' has no reference genome';
+		// 					}
+		// 					else {
+		// 						// ref_genomes_string += ', ' + data['organism_names'][i] + ' has no reference genome';
+		// 					}
+		// 				}
+		// 			}
 
-					var set_html = "<div>";
-					set_html += data['study_accession'] + ': ' + ref_genomes_string;
-					set_html += "</div>";
-					if (data['ref_genomes'].length > 0 && data['ref_genomes'][0] != null) {
-						$('#analysis-overlapping-genotypes-refgenome').append(set_html);
-					}
-				}
-			});
-		}
+		// 			var set_html = "<div>";
+		// 			set_html += data['study_accession'] + ': ' + ref_genomes_string;
+		// 			set_html += "</div>";
+		// 			if (data['ref_genomes'].length > 0 && data['ref_genomes'][0] != null) {
+		// 				$('#analysis-overlapping-genotypes-refgenome').append(set_html);
+		// 			}
+		// 		}
+		// 	});
+		// }
 
 		
 
@@ -2751,7 +2879,7 @@ var ct_ready_map_analysis = function() {
 								];							
 
 								var upset_plot_2_studies_finished = 0;
-								$('#analysis-overlapping-genotypes-upset-2-status').html('UpSet plot queued for generation... please wait while system establishes requirements');
+								$('#analysis-overlapping-genotypes-upset-2-status').html('<div style="padding: 10px; background-color: rgb(239, 255, 252);">UpSet plot queued for generation... please wait while system establishes requirements</div>');
 								$('.upset_plot_bar_author_text').remove();
 								for (var i = 0; i < studies.length; i++) {
 									var study = studies[i];
@@ -3394,6 +3522,7 @@ var ct_ready_map_analysis = function() {
 					"study_ids": JSON.stringify(studies)
 				},
 				success: function (data) {
+					$('#analysis-overlapping-genotypes-upset-2-instructions').show();
 					console.log(data);
 					try {
 						var data = JSON.parse(data);
@@ -3544,7 +3673,7 @@ var ct_ready_map_analysis = function() {
 								];							
 
 								var upset_plot_2_studies_finished = 0;
-								$('#analysis-overlapping-genotypes-upset-2-status').html('UpSet plot queued for generation... please wait while system establishes requirements');
+								$('#analysis-overlapping-genotypes-upset-2-status').html('<div style="padding: 10px; background-color: rgb(239, 255, 252);">UpSet plot queued for generation... please wait while system establishes requirements</div>');
 								$('.upset_plot_bar_author_text').remove();
 								for (var i = 0; i < studies.length; i++) {
 									var study = studies[i];
@@ -5871,7 +6000,7 @@ var ct_ready_map_analysis = function() {
 			analysis_detections_html += '<table><tr><th>Select study data</th><th>Accession</th><th>Title</th><th>Genotypes</th><th>Phenotypes</th><th>Plants</th><tr></table>';
 			analysis_detections_html += '</div>';
 			analysis_detections_html += '<div class="mt-2" id="analysis_detections_confirm_selection">';
-			analysis_detections_html += '<button id="analysis_detections_confirm_selection_button" class="btn btn-primary">Apply selections to this analysis session</button>';
+			analysis_detections_html += '<button id="analysis_detections_confirm_selection_button" class="btn btn-primary" style="display: none;">Apply selections to this analysis session</button>';
 			analysis_detections_html += '<div class="mt-2" id="analysis_detections_confirm_selection_status"></div>';
 			analysis_detections_html += '</div>';
 
@@ -8954,6 +9083,7 @@ var ct_ready_map_analysis = function() {
 							if (cartograplant['settings']['transfer_map_env_layers_to_analysis_env_layers'] == false) {
 								item_html += "<div class='env_layer_meta' style='display: inline-block;'><img style='width: 16px;' src='" + loading_icon_src + "' /></div>";
 							}
+							// item_html += "<div class='env_layer_unit_label' style='display: inline-block;'>" + data[i]['unit_labels'] + "</div>";
 							item_html += "<div style='padding-left: 10px;' id='analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id_k + "'></div>";
 							item_html += "</div>";							
 							$('#analysis_category_' + category_id + '_groups_' + group_id + '_layers').append(item_html);
@@ -9093,10 +9223,16 @@ var ct_ready_map_analysis = function() {
 											if (layer_title.includes(' - ') == true) {
 												// This is a unit type (based on CP meetings)
 												var layer_title_dash_parts = layer_title.split('-');
-												var unit_type = layer_title_dash_parts[1];
+												// var unit_type = layer_title_dash_parts[1];
+												// item_html += '<div style="display: inline-block; font-size: 10px; font-weight: 600; margin-left: 10px;">' + unit_type + '</div>';
+											}
+											var unit_type = Drupal.settings.layers['cartogratree_layer_' + layer_id]['unit_labels'];
+											if (unit_type != undefined && unit_type != "") {
 												item_html += '<br /><div style="display: inline-block; font-size: 9px; padding: 3px; margin-left: 92px;">Unit type</div>';
+												console.log('DEBUG ENV LAYER', Drupal.settings.layers['cartogratree_layer_' + layer_id]);
 												item_html += '<div style="display: inline-block; font-size: 10px; font-weight: 600; margin-left: 10px;">' + unit_type + '</div>';
 											}
+
 											$("#analysis_category_" + category_id + "_groups_" + group_id + "_layer_" + layer_id).append(item_html);
 
 											// Reorder the element to the top, the reason for this is because there may be layers which will show the subgroup
@@ -9881,10 +10017,14 @@ var ct_ready_map_analysis = function() {
 								property_names.push(dataset['property_name']);
 								if(i > 0) {
 									csv_data_header += ',' + dataset['property_name'];
+									csv_data_header += ',' + dataset['property_name'] + '_unit_ids';
+									csv_data_header += ',' + dataset['property_name'] + '_unit_labels';
 									// csv_data_full_header += ',' + dataset['property_name'];
 								}
 								else {
 									csv_data_header += dataset['property_name'];
+									csv_data_header += ',' + dataset['property_name'] + '_unit_ids';
+									csv_data_header += ',' + dataset['property_name'] + '_unit_labels';
 									// csv_data_full_header += dataset['property_name'];
 									dataset_rows_length = dataset['rows'].length;
 								}
@@ -9905,15 +10045,23 @@ var ct_ready_map_analysis = function() {
 											locations_indexes_with_env_data[latitude + ',' + longitude] = {};
 										}
 										if (locations_indexes_with_env_data[latitude + ',' + longitude][j] == undefined) {
-											locations_indexes_with_env_data[latitude + ',' + longitude][j] = analysis_environmental_data_results[j]['rows'][i]['property_value'];
+											// locations_indexes_with_env_data[latitude + ',' + longitude][j] = analysis_environmental_data_results[j]['rows'][i]['property_value'];
+											locations_indexes_with_env_data[latitude + ',' + longitude][j] = {};
+											locations_indexes_with_env_data[latitude + ',' + longitude][j]['property_value'] = analysis_environmental_data_results[j]['rows'][i]['property_value'];
+											locations_indexes_with_env_data[latitude + ',' + longitude][j]['unit_ids'] = analysis_environmental_data_results[j]['rows'][i]['unit_ids'];
+											locations_indexes_with_env_data[latitude + ',' + longitude][j]['unit_labels'] = analysis_environmental_data_results[j]['rows'][i]['unit_labels'];
 										}
 										console.log('row val:', analysis_environmental_data_results[j]['rows'][i]);
 										if(j > 0) {
 											csv_data += ',' + analysis_environmental_data_results[j]['rows'][i]['property_value'];
+											csv_data += ',' + analysis_environmental_data_results[j]['rows'][i]['unit_ids'];
+											csv_data += ',' + analysis_environmental_data_results[j]['rows'][i]['unit_labels'];
 											// csv_data_full += ',' + analysis_environmental_data_results[j]['rows'][i]['property_value'];
 										}
 										else {
 											csv_data += analysis_environmental_data_results[j]['rows'][i]['property_value'];
+											csv_data += ',' + analysis_environmental_data_results[j]['rows'][i]['unit_ids'];
+											csv_data += ',' + analysis_environmental_data_results[j]['rows'][i]['unit_labels'];
 											// csv_data_full += analysis_environmental_data_results[j]['rows'][i]['property_value'];
 										}
 									}
@@ -9934,6 +10082,8 @@ var ct_ready_map_analysis = function() {
 							// Generate header
 							for(var i=0; i<property_names.length; i++) {
 								csv_data_full += ',' + property_names[i];
+								csv_data_full += ',' + property_names[i] + '_unit_ids';
+								csv_data_full += ',' + property_names[i] + '_unit_labels';
 							}
 							csv_data_full += "\n";
 							// Generate the values
@@ -9958,15 +10108,27 @@ var ct_ready_map_analysis = function() {
 											// use the index i
 											if(locations_indexes_with_env_data[cross_reference] == undefined) {
 												csv_data_full += ',NA';
+												csv_data_full += ',NA'; // unit ids
+												csv_data_full += ',NA'; // unit labels
 											}
 											else {
 												if (locations_indexes_with_env_data[cross_reference][j] == undefined) {
 													csv_data_full += ',NA';
+													csv_data_full += ',NA'; // unit ids
+													csv_data_full += ',NA'; // unit labels
 												}
 												else {
-													csv_data_full += ',' + locations_indexes_with_env_data[cross_reference][j];
+													// csv_data_full += ',' + locations_indexes_with_env_data[cross_reference][j];
+													csv_data_full += ',' + locations_indexes_with_env_data[cross_reference][j]['property_value'];
+													csv_data_full += ',' + locations_indexes_with_env_data[cross_reference][j]['unit_ids'];
+													csv_data_full += ',' + locations_indexes_with_env_data[cross_reference][j]['unit_labels'];	
 												}
 											}
+										}
+
+										// For each property, we also want to add the unit ids and unit labels if they exist
+										for(var j=0; j<analysis_environmental_data_results.length;j++) {
+											var dataset = analysis_environmental_data_results[j];
 										}
 										csv_data_full += "\n";
 									}

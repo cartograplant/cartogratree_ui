@@ -1492,8 +1492,15 @@ var ct_ready_mapjs = function() {
 
 					$("#legend_container_" + layer_id_number).append(legend_container_title);
 
-					// Geoserver Legend
-					var legend_container_geoserver_legend = '<div style="text-align: center;" id="legend_container_geoserver_legend_' + layer_id_number + '"><img class="geoserver_legend_img" style="margin-left: 10px;min-width: 75%;"src="' + Drupal.settings.cartogratree.gis +  '?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=10&HEIGHT=10&LEGEND_OPTIONS=layout:' + legend_orientation + ';fontSize:10;&LAYER=' + Drupal.settings.layers[this.parentLayer.id]['name'] + '" /></div>';
+					// Check if there is a layer_legend_image that is not null
+					var legend_container_geoserver_legend = '';
+					if (Drupal.settings.layers['cartogratree_layer_' + layer_id_number]['layer_legend_image'] != null && Drupal.settings.layers['cartogratree_layer_' + layer_id_number]['layer_legend_image'] != undefined) {
+						legend_container_geoserver_legend = '<div style="text-align: center;" id="legend_container_geoserver_legend_' + layer_id_number + '"><img class="geoserver_legend_img" style="margin-left: 0px;max-width: 150px;"src="' + Drupal.settings.layers['cartogratree_layer_' + layer_id_number]['layer_legend_image'] + '" /></div>';
+					}
+					else {
+						// Geoserver Legend
+						legend_container_geoserver_legend = '<div style="text-align: center;" id="legend_container_geoserver_legend_' + layer_id_number + '"><img class="geoserver_legend_img" style="margin-left: 10px;min-width: 75%;"src="' + Drupal.settings.cartogratree.gis +  '?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=10&HEIGHT=10&LEGEND_OPTIONS=layout:' + legend_orientation + ';fontSize:10;&LAYER=' + Drupal.settings.layers[this.parentLayer.id]['name'] + '" /></div>';
+					}
 					// Add the geoserver legend to legend_container_html
 					$("#legend_container_" + layer_id_number).append(legend_container_geoserver_legend);
 					
@@ -5159,81 +5166,481 @@ var ct_ready_mapjs = function() {
 			}
 		});
 
-		// Lookup if there is a species page on TreeGenes for this data.species
-		setTimeout(async function() {
-			$('#species-details-info-iframe-species-container').html('');
-			$('#species-details-info-species-link-container').html('');
-			var species_with_dash = '';
-			try {
-				species_with_dash = data.species.replace(' ', '-');
-				var url = 'https://treegenesdb.org/org/' + species_with_dash + '?hide_header=1';
-				var url_exists = false;
-				try {
-					const response = await fetch(url, { method: 'HEAD' }); // Using HEAD method for efficiency
-					url_exists = response.ok;
-				} catch (error) {
-					console.error(`Error checking URL ${url}:`, error);
-				}
-				if (url_exists) {
-					$('#species-details-info-species-link-container').html('<div class="p-2"><a target="_blank" href="' + url + '">Open details in new window: ' + data.species + '</a></div>')
+		$('#species-details-info-iframe-species-container').html('');
+		var species_html = '';
+    species_html += '<style>';
+    species_html += '.species-info-table td, .species-info-table th {';
+    species_html += '  border: 1px solid #ddd;';
+    species_html += '  padding: 8px;';
+    species_html += '}';
+    species_html += '.species-info-table tr:nth-child(even){background-color: #f2f2f2;}';
+    species_html += '.species-info-table tr:hover {background-color: #ddd;}';
+    species_html += '.species-info-table th {';
+    species_html += '  padding-top: 12px;';
+    species_html += '  padding-bottom: 12px;';
+    species_html += '  text-align: left;';
+    species_html += '  background-color: #4CAF50;';
+    species_html += '  color: white;';
+    species_html += '}';
+    species_html += '</style>';
+		species_html += '<div class="row">';
+		// Add a bootstrap horizonal navbar
+		species_html += '<div class="col-12">';
+		species_html += ' <ul class="nav nav-tabs" id="speciesDetailsTab" role="tablist">';
+		species_html += '   <li class="nav-item" role="presentation">';
+		species_html += '     <a class="nav-link active" id="species-summary-tab" data-toggle="tab" href="#species-summary-content" role="tab" aria-controls="species-summary-content" aria-selected="true">Summary</a>';
+		species_html += '   </li>';
+    species_html += '   <li class="nav-item" role="presentation">';
+		species_html += '     <a class="nav-link" id="species-subspecieshybrids-tab" data-toggle="tab" href="#species-subspecieshybrids-content" role="tab" aria-controls="species-subspecieshybrids-content" aria-selected="false">Subspecies & Hybrids</a>';
+		species_html += '   </li>';
+    species_html += '   <li class="nav-item" role="presentation">';
+		species_html += '     <a class="nav-link" id="species-genome-tab" data-toggle="tab" href="#species-genome-content" role="tab" aria-controls="species-genome-content" aria-selected="false">Genome</a>';
+		species_html += '   </li>';
+		species_html += '   <li class="nav-item" role="presentation">';
+		species_html += '     <a class="nav-link" id="species-transcriptome-tab" data-toggle="tab" href="#species-transcriptome-content" role="tab" aria-controls="species-transcriptome-content" aria-selected="false">Transcriptome</a>';
+		species_html += '   </li>';
+    // species_html += '   <li class="nav-item" role="presentation">';
+		// species_html += '     <a class="nav-link" id="species-literature-tab" data-toggle="tab" href="#species-literature-content" role="tab" aria-controls="species-literature-content" aria-selected="false">Literature</a>';
+		// species_html += '   </li>';
+    species_html += '   <li class="nav-item" role="presentation">';
+		species_html += '     <a class="nav-link" id="species-popgen-tab" data-toggle="tab" href="#species-popgen-content" role="tab" aria-controls="species-popgen-content" aria-selected="false">PopGen</a>';
+		species_html += '   </li>';
+		species_html += ' </ul>';
+		species_html += ' <div class="tab-content" id="speciesDetailsInfoTabContent">';
+		species_html += '   <div class="tab-pane fade show active" id="species-summary-content" role="tabpanel" aria-labelledby="species-summary-content">';
+		species_html += '     <p style="padding: 10px;">Summary - Looking up information</p>';
+		species_html += '   </div>';
+    species_html += '   <div class="tab-pane fade" id="species-subspecieshybrids-content" role="tabpanel" aria-labelledby="species-subspecieshybrids-content">';
+		species_html += '     <p style="padding: 10px;">Subspecies & Hybrids - Looking up information</p>';
+		species_html += '   </div>';
+    species_html += '   <div class="tab-pane fade" id="species-genome-content" role="tabpanel" aria-labelledby="species-genome-content">';
+		species_html += '     <p style="padding: 10px;">Genome - Looking up information</p>';
+		species_html += '   </div>';
+		species_html += '   <div class="tab-pane fade" id="species-transcriptome-content" role="tabpanel" aria-labelledby="species-transcriptome-content">';
+		species_html += '     <p style="padding: 10px;">Transcriptome - Looking up information</p>';
+		species_html += '   </div>';
+    // species_html += '   <div class="tab-pane fade" id="species-literature-content" role="tabpanel" aria-labelledby="species-literature-content">';
+		// species_html += '     <p style="padding: 10px;">Literature - Looking up information</p>';
+		// species_html += '   </div>';
+    species_html += '   <div class="tab-pane fade" id="species-popgen-content" role="tabpanel" aria-labelledby="species-popgen-content">';
+		species_html += '     <p style="padding: 10px;">PopGen - Looking up information</p>';
+		species_html += '   </div>';
+		species_html += ' </div>'; // tab-content
+		species_html += '</div>'; // end of col-12
+		species_html += '</div>'; // end of row
+		$('#species-details-info-iframe-species-container').html(species_html);
+
+
+    var species_with_dash = data.species.replace(' ', '-');
+
+    // Lookup the Species Summary information using endpoint cartogratree_uiapi/speciesinfo/summary/<species_with_dash>
+    $.ajax({
+      url: Drupal.settings.base_url + '/cartogratree_uiapi/speciesinfo/summary/' + species_with_dash,
+      method: 'GET',
+      success: function(data) {
+        console.log('Species summary data', data);
+        var species_summary_content = '';
+        species_summary_content += '<table class="species-info-table" style="width: 100%;">';
+        // Species name
+        species_summary_content += '<tr>';
+        species_summary_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">';
+        species_summary_content += 'Species';
+        species_summary_content += '</td>';
+        species_summary_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+        species_summary_content += data.genus + ' ' + data.species;
+        species_summary_content += '</td>';
+        species_summary_content += '</tr>';
+        // Common name
+        if (data.common_name) {
+          species_summary_content += '<tr>';
+          species_summary_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">';
+          species_summary_content += 'Common name';
+          species_summary_content += '</td>';
+          species_summary_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+          species_summary_content += data.common_name;
+          species_summary_content += '</td>';
+          species_summary_content += '</tr>';
+        }
+        // Family
+        if (data['organismprops']['family']) {
+          species_summary_content += '<tr>';
+          species_summary_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">';
+          species_summary_content += 'Family';
+          species_summary_content += '</td>';
+          species_summary_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+          species_summary_content += data['organismprops']['family'];
+          species_summary_content += '</td>';
+          species_summary_content += '</tr>';
+        }
+        // Order
+        if (data['organismprops']['order']) {
+          species_summary_content += '<tr>';
+          species_summary_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">';
+          species_summary_content += 'Order';
+          species_summary_content += '</td>';
+          species_summary_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+          species_summary_content += data['organismprops']['order'];
+          species_summary_content += '</td>';
+          species_summary_content += '</tr>';
+        }
+        // Subkingdom
+        if (data['organismprops']['subkingdom']) {
+          species_summary_content += '<tr>';
+          species_summary_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">';
+          species_summary_content += 'Subkingdom';
+          species_summary_content += '</td>';
+          species_summary_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+          species_summary_content += data['organismprops']['subkingdom'];
+          species_summary_content += '</td>';
+          species_summary_content += '</tr>';
+        }
+        // TreeGenes code
+        if (data['organismprops']['organism 4 letter code']) {
+          species_summary_content += '<tr>';
+          species_summary_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">';
+          species_summary_content += 'TreeGenes code';
+          species_summary_content += '</td>';
+          species_summary_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+          species_summary_content += data['organismprops']['organism 4 letter code'];
+          species_summary_content += '</td>';
+          species_summary_content += '</tr>';
+        }
+        // Haploid Chromosome Number
+        if (data['organismprops']['haploid chromosome number']) {
+          species_summary_content += '<tr>';
+          species_summary_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">';
+          species_summary_content += 'Haploid chromosome number';
+          species_summary_content += '</td>';
+          species_summary_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+          species_summary_content += data['organismprops']['haploid chromosome number'];
+          species_summary_content += '</td>';
+          species_summary_content += '</tr>';
+        }
+        species_summary_content += '</table>';
+        $('#species-summary-content').html(species_summary_content);
+      }
+    });
+
+    // Lookup the Species Subspecies and Hybrid information using endpoint cartogratree_uiapi/speciesinfo/subspecieshybrids/<species_with_dash>
+    $.ajax({
+      url: Drupal.settings.base_url + '/cartogratree_uiapi/speciesinfo/subspecieshybrids/' + species_with_dash,
+      method: 'GET',
+      success: function(data) {
+        if (data.length <= 0) {
+          $('#species-subspecieshybrids-tab').closest('.nav-item').hide();
+        }
+        else {
+          $('#species-subspecieshybrids-tab').closest('.nav-item').show();
+        }
+        console.log('Species subspecies and hybrids data', data);
+        var subspecies_hybrids_content = '';
+        subspecies_hybrids_content += '<table class="species-info-table" style="width: 100%;">';
+        for (var i=0; i<data.length; i++) {
+          var type_text = '';
+          if (data[i].type == 'subspecies') {
+            type_text = 'Subspecies';
+          }
+          else if (data[i].type == 'hybrid') {
+            type_text = 'Hybrid';
+          }
+          else if (data[i].type == 'variety') {
+            type_text = 'Variety';
+          }
+          else if (data[i].type == 'cultivar') {
+            type_text = 'Cultivar';
+          }
+          else if (data[i].type == 'forma') {
+            type_text = 'Forma';
+          }
+          else if (data[i].type == 'group') {
+            type_text = 'Group';
+          }
+          else if (data[i].type == 'other') {
+            type_text = 'Other';
+          }
+          else if (data[i].type == 'speciesaggregate') {
+            type_text = 'Species Aggregate';
+          }
+          subspecies_hybrids_content += '<tr>';
+          subspecies_hybrids_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">';
+          subspecies_hybrids_content += type_text;
+          subspecies_hybrids_content += '</td>';
+          subspecies_hybrids_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+          subspecies_hybrids_content += data[i].species;
+          subspecies_hybrids_content += '</td>';
+          subspecies_hybrids_content += '</tr>';
+        }
+        subspecies_hybrids_content += '</table>';
+        $('#species-subspecieshybrids-content').html(subspecies_hybrids_content);
+      }
+    });
+
+    // Lookup the Species Subspecies and Hybrid information using endpoint cartogratree_uiapi/speciesinfo/genome/<species_with_dash>
+    $.ajax({
+      url: Drupal.settings.base_url + '/cartogratree_uiapi/speciesinfo/genome/' + species_with_dash,
+      method: 'GET',
+      success: function(data) {
+        if (data.length <= 0) {
+          $('#species-genome-tab').closest('.nav-item').hide();
+        }
+        else {
+          $('#species-genome-tab').closest('.nav-item').show();
+        }
+        console.log('Species genome data', data);
+        var genome_content = '';
+        genome_content += '<table class="species-info-table" style="width: 100%;">';
+        // Summary
+        genome_content += '<tr>';
+        genome_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">Summary</td>';
+        genome_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+        genome_content +=  'Genome ' + data.version + ' | Total scaffolds: ' + data.scaffolds_count + ' | Total genes: ' + data.genes_count;
+        genome_content += '</td>';
+        genome_content += '</tr>';
+        // Genome Details
+        if (data.quast_busco_data_table) {
+          genome_content += '<tr>';
+          genome_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">Genome details</td>';
+          genome_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+          genome_content +=  data.quast_busco_data_table;
+          genome_content += '</td>';
+          genome_content += '</tr>';
+        }
+        // Genome Downloads
+        if (data.links_genome) {
+          genome_content += '<tr>';
+          genome_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">Genome downloads</td>';
+          genome_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+          for (var i=0; i<data.links_genome.length; i++) {
+            var filename_parts = data.links_genome[i].split('/');
+            var filename = filename_parts[filename_parts.length - 1];
+            if (filename.startsWith('.')) {
+              continue;
+            }
+            genome_content += '<a target="_blank" href="' + data.links_genome[i] + '">' + filename + '</a><br />';
+          }
+          genome_content += '</td>';
+          genome_content += '</tr>';
+        }
+        // Annotation Downloads
+        if (data.links_annotation) {
+          genome_content += '<tr>';
+          genome_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">Annotation downloads</td>';
+          genome_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+          for (var i=0; i<data.links_annotation.length; i++) {
+            var filename_parts = data.links_annotation[i].split('/');
+            var filename = filename_parts[filename_parts.length - 1];
+            if (filename.startsWith('.')) {
+              continue;
+            }
+            genome_content += '<a target="_blank" href="' + data.links_annotation[i] + '">' + filename + '</a><br />';
+          }
+          genome_content += '</td>';
+          genome_content += '</tr>';
+        }
+        // Alignments Downloads
+        if (data.links_annotation) {
+          genome_content += '<tr>';
+          genome_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">Alignments downloads</td>';
+          genome_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+          for (var i=0; i<data.links_alignments.length; i++) {
+            var filename_parts = data.links_alignments[i].split('/');
+            var filename = filename_parts[filename_parts.length - 1];
+            if (filename.startsWith('.')) {
+              continue;
+            }
+            genome_content += '<a target="_blank" href="' + data.links_alignments[i] + '">' + filename + '</a><br />';
+          }
+          genome_content += '</td>';
+          genome_content += '</tr>';
+        }
+        // Gene Index Downloads
+        if (data.links_gene_index) {
+          genome_content += '<tr>';
+          genome_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">Gene index downloads</td>';
+          genome_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+          for (var i=0; i<data.links_gene_index.length; i++) {
+            var filename_parts = data.links_gene_index[i].split('/');
+            var filename = filename_parts[filename_parts.length - 1];
+            if (filename.startsWith('.')) {
+              continue;
+            }
+            genome_content += '<a target="_blank" href="' + data.links_gene_index[i] + '">' + filename + '</a><br />';
+          }
+          genome_content += '</td>';
+          genome_content += '</tr>';
+        }
+        // Genome Index Downloads
+        if (data.links_genome_index) {
+          genome_content += '<tr>';
+          genome_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">Genome index downloads</td>';
+          genome_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+          for (var i=0; i<data.links_genome_index.length; i++) {
+            var filename_parts = data.links_genome_index[i].split('/');
+            var filename = filename_parts[filename_parts.length - 1];
+            if (filename.startsWith('.')) {
+              continue;
+            }
+            genome_content += '<a target="_blank" href="' + data.links_genome_index[i] + '">' + filename + '</a><br />';
+          }
+          genome_content += '</td>';
+          genome_content += '</tr>';
+        }
+        // Protein Index Downloads
+        if (data.links_protein_index) {
+          genome_content += '<tr>';
+          genome_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">Protein index downloads</td>';
+          genome_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+          for (var i=0; i<data.links_protein_index.length; i++) {
+            var filename_parts = data.links_protein_index[i].split('/');
+            var filename = filename_parts[filename_parts.length - 1];
+            if (filename.startsWith('.')) {
+              continue;
+            }
+            genome_content += '<a target="_blank" href="' + data.links_protein_index[i] + '">' + filename + '</a><br />';
+          }
+          genome_content += '</td>';
+          genome_content += '</tr>';
+        }
+        genome_content += '</table>';
+        $('#species-genome-content').html(genome_content);
+      }
+    });
+
+
+    // species-transcriptome-content
+    // Lookup the Species Transcriptome information using endpoint cartogratree_uiapi/speciesinfo/transcriptome/<species_with_dash>
+    $.ajax({
+      url: Drupal.settings.base_url + '/cartogratree_uiapi/speciesinfo/transcriptome/' + species_with_dash,
+      method: 'GET',
+      success: function(data) {
+        console.log('Species transcriptome data', data);
+        $('#species-transcriptome-content').html('');
+        var transcriptome_content = '';
+        transcriptome_content += '<table class="species-info-table" style="width: 100%;">';
+        // ESTs
+        transcriptome_content += '<tr>';
+        transcriptome_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">NCBI EST</td>';
+        transcriptome_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+        transcriptome_content +=  data.est_count + ' ESTs | <a target="_blank" href="' + data.est_http_link + '">Download EST Fasta</a>';
+        transcriptome_content += '</td>';
+        transcriptome_content += '</tr>';
+        // cDNA
+        transcriptome_content += '<tr>';
+        transcriptome_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">NCBI cDNA</td>';
+        transcriptome_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+        transcriptome_content += '<a target="_blank" href="' + data.cdna_http_link + '">Download cDNA Fasta</a>';
+        transcriptome_content += '</td>';
+        transcriptome_content += '</tr>';
+        // TSA
+        transcriptome_content += '<tr>';
+        transcriptome_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">NCBI TSA</td>';
+        transcriptome_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+        transcriptome_content += data.tsa_count + ' TSAs | <a target="_blank" href="' + data.tsa_http_link + '">Download TSA Fasta</a>';
+        transcriptome_content += '</td>';
+        transcriptome_content += '</tr>';
+        // Treegenes UniGene
+        transcriptome_content += '<tr>';
+        transcriptome_content += '<td style="width: 25%; vertical-align: top; padding-right: 10px;">Treegenes Unigene</td>';
+        transcriptome_content += '<td style="width: 75%; vertical-align: top; padding-right: 10px;">';
+        transcriptome_content += '<a target="_blank" href="' + data.genes_file + '">Download Unigene FASTA</a>';
+        transcriptome_content += '</td>';
+        transcriptome_content += '</tr>';
+        transcriptome_content += '</table>';
+        $('#species-transcriptome-content').html(transcriptome_content);
+      }
+    });
+
+	// species-popgen-content
+    // Lookup the Species PopGen information using endpoint cartogratree_uiapi/speciesinfo/popgen/<species_with_dash>
+	$.ajax({
+		url: Drupal.settings.base_url + '/cartogratree_uiapi/speciesinfo/popgen/' + species_with_dash,
+		method: 'GET',
+		success: function(data) {
+			console.log('Species popgen data', data);
+			$('#species-popgen-content').html('');
+			var popgen_content = '';
+			popgen_content = data.markup;
+			$('#species-popgen-content').html(popgen_content);
+		}
+	});
+
+
+		// DEPRECATED 5/14/2026 - This removes the iframe that loads the organism species page from TreeGenes
+		// // Lookup if there is a species page on TreeGenes for this data.species
+		// setTimeout(async function() {
+		// 	$('#species-details-info-iframe-species-container').html('');
+		// 	$('#species-details-info-species-link-container').html('');
+		// 	var species_with_dash = '';
+		// 	try {
+		// 		species_with_dash = data.species.replace(' ', '-');
+		// 		var url = 'https://treegenesdb.org/org/' + species_with_dash + '?hide_header=1';
+		// 		var url_exists = false;
+		// 		try {
+		// 			const response = await fetch(url, { method: 'HEAD' }); // Using HEAD method for efficiency
+		// 			url_exists = response.ok;
+		// 		} catch (error) {
+		// 			console.error(`Error checking URL ${url}:`, error);
+		// 		}
+		// 		if (url_exists) {
+		// 			$('#species-details-info-species-link-container').html('<div class="p-2"><a target="_blank" href="' + url + '">Open details in new window: ' + data.species + '</a></div>')
 					
-					$('#species-details-info-iframe-species-container').html('<iframe id="species-page-iframe" style="border: 0px;" border=0 width="100%" height="500px" src="' + url + '"></iframe>');
-					// setTimeout(function() {
-					// 	console.log("Overriding species page iframe CSS");
-					// 	// Get a reference to the iframe element
-					// 	const iframe = document.getElementById('species-page-iframe');
+		// 			$('#species-details-info-iframe-species-container').html('<iframe id="species-page-iframe" style="border: 0px;" border=0 width="100%" height="500px" src="' + url + '"></iframe>');
+		// 			// setTimeout(function() {
+		// 			// 	console.log("Overriding species page iframe CSS");
+		// 			// 	// Get a reference to the iframe element
+		// 			// 	const iframe = document.getElementById('species-page-iframe');
 
-					// 	// Access the iframe's contentDocument
-					// 	const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+		// 			// 	// Access the iframe's contentDocument
+		// 			// 	const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
 
-					// 	// Create a new style element
-					// 	const style = iframeDoc.createElement('style');
-					// 	style.textContent = `
-					// 	#page-title, #header {
-					// 		display: none !important;
-					// 	}
+		// 			// 	// Create a new style element
+		// 			// 	const style = iframeDoc.createElement('style');
+		// 			// 	style.textContent = `
+		// 			// 	#page-title, #header {
+		// 			// 		display: none !important;
+		// 			// 	}
 
-					// 	`;
+		// 			// 	`;
 
-					// 	// Append the style element to the iframe's head
-					// 	iframeDoc.head.appendChild(style);
-					// }, 7000);
-					$("#species-page-iframe").off("load");
-					$("#species-page-iframe").on("load", function() {
-						console.log('Jquery Species Page IFRAME ON LOAD ALGORITHM');
-						var $iframeContents = $(this).contents();
+		// 			// 	// Append the style element to the iframe's head
+		// 			// 	iframeDoc.head.appendChild(style);
+		// 			// }, 7000);
+		// 			$("#species-page-iframe").off("load");
+		// 			$("#species-page-iframe").on("load", function() {
+		// 				console.log('Jquery Species Page IFRAME ON LOAD ALGORITHM');
+		// 				var $iframeContents = $(this).contents();
 
-						$iframeContents.find('#toolbar').hide();
-						$iframeContents.find("#page-title").hide();
-						$iframeContents.find("#header").hide();
-						$iframeContents.find('.admin-div').hide();
-						$iframeContents.find('.region-sidebar-second').hide();
-						$iframeContents.find('#footer').hide();
-						$iframeContents.find('body').css('background-color', '#FFFFFF');
-						$iframeContents.find('body').css('padding-top', '0px');
-						$iframeContents.find('#main').css('padding-top', '0px');
-						$iframeContents.find('#block-system-main').find('br').remove();
-						$iframeContents.find('.region-content').removeClass('col-md-9');
-						$iframeContents.find('#main .container').css('max-width', '100%');
+		// 				$iframeContents.find('#toolbar').hide();
+		// 				$iframeContents.find("#page-title").hide();
+		// 				$iframeContents.find("#header").hide();
+		// 				$iframeContents.find('.admin-div').hide();
+		// 				$iframeContents.find('.region-sidebar-second').hide();
+		// 				$iframeContents.find('#footer').hide();
+		// 				$iframeContents.find('body').css('background-color', '#FFFFFF');
+		// 				$iframeContents.find('body').css('padding-top', '0px');
+		// 				$iframeContents.find('#main').css('padding-top', '0px');
+		// 				$iframeContents.find('#block-system-main').find('br').remove();
+		// 				$iframeContents.find('.region-content').removeClass('col-md-9');
+		// 				$iframeContents.find('#main .container').css('max-width', '100%');
 
 				
-						// Example: Find an element within the iframe and change its text
-						// $iframeContents.find("#someElementInIframe").text("New text from parent!");
+		// 				// Example: Find an element within the iframe and change its text
+		// 				// $iframeContents.find("#someElementInIframe").text("New text from parent!");
 				
-						// Example: Add a CSS class to an element in the iframe
-						// $iframeContents.find(".anotherElement").addClass("highlight");
+		// 				// Example: Add a CSS class to an element in the iframe
+		// 				// $iframeContents.find(".anotherElement").addClass("highlight");
 				
-						// Example: Get the height of the iframe's body and resize the iframe
-						// var iframeBodyHeight = $iframeContents.find("body").height();
-						// $(this).height(iframeBodyHeight);
-					});
-				}
+		// 				// Example: Get the height of the iframe's body and resize the iframe
+		// 				// var iframeBodyHeight = $iframeContents.find("body").height();
+		// 				// $(this).height(iframeBodyHeight);
+		// 			});
+		// 		}
 
-			}
-			catch (err) {
-				console.log(err);
-			}
-		}, 1000);
+		// 	}
+		// 	catch (err) {
+		// 		console.log(err);
+		// 	}
+		// }, 1000);
 
 		$("#tree-source").text(sourceName);
 		$("#tree-id").text('');

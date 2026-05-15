@@ -1,5 +1,957 @@
 <?php
 
+function cartogratree_uiapi_speciesinfo_popgen($species_text) {
+  global $base_url;
+  $species_parts = explode('-', $species_text);
+  $genus = $species_parts[0];
+  $species = $species_parts[1];
+  $output = [];
+
+  $result_accessions = chado_query('SELECT DISTINCT(accession), project_id, species, title, author, tree_count, year FROM chado.plusgeno_view WHERE species ILIKE :species;',
+  array(
+    ':species' => $genus . ' ' . $species,
+  )
+);
+
+  $count_accessions = $result_accessions->rowCount();
+  $markup = '';
+
+  //$markup .= "<a href='$base_url/tpps_details/main?field_title=species&field_value=$organism_name&tpps_details_search_status=search_executed#results'>Get more TPPS details for " . $organism_name . "</a><br />";
+
+  $markup .= "
+      <style>
+        #popgen_studies_table td {
+          border-bottom: 1px solid #40b363;
+          padding: 3px;
+          padding-top: 10px;
+          padding-bottom: 10px;
+        }
+        #popgen_studies_table th {
+          /*
+          border: 1px solid #40b363;
+          padding: 3px;
+          background-color: #40b363;
+          color: #FFFFFF;
+          */
+        }					
+      </style>
+  
+  ";
+  $markup .= "<table class='species-info-table' id='popgen_studies_table' style='width: 100%; border-collapse: collapse;'>";
+  $markup .= "<tr><th>Study</th><th>Author</th><th>Plants</th><th>Data</th><th>Study details</th></tr>";
+  $study_arr = [];
+  foreach ($result_accessions as $row) {
+    $data = '';
+    $accession_temp = $row->accession;
+    $study_arr[] = $accession_temp;
+
+
+
+    // Load this data from the TPPS study state
+    try {
+      $full_state = tpps_submission($accession_temp)->getState();
+      $saved_values = $full_state['saved_values'];
+      // dpm($saved_values[2]['data_type']);
+      if ($saved_values[2]['data_type'] != "" && isset($saved_values[2]['data_type'])) {
+        $data .= $saved_values[2]['data_type'] . ": ";
+      }
+    }
+    catch (Exception $ex) {
+    
+    }
+
+    // Add phenotypes if any
+    // $study_specific_phenotypes = chado_query('SELECT * FROM chado.phenotypes_and_units_by_study WHERE accession = :accession', [
+    //   ':accession' => $accession_temp
+    // ]);
+    // foreach ($study_specific_phenotypes as $study_row) {
+    //   if ($study_row->phenotype != NULL) {
+    //       $data .= $study_row->phenotype . ', '; 
+    //   }
+    // } 
+
+
+
+    // Add genotypes
+    $study_specific_results = chado_query('SELECT * FROM chado.plusgeno_view WHERE accession = :accession', [
+    ':accession' => $accession_temp
+    ]);
+    foreach ($study_specific_results as $study_row) {
+      if ($study_row->markers != NULL) {
+        if (stripos($data, $study_row->markers) === FALSE) {
+        // dpm('IT CAME HERE');
+        $data .= $study_row->markers . ' (' . $study_row->gen_count . '), ';
+        }
+      }
+    } 
+    $data = rtrim($data, ', ');
+
+    // $authors = explode(",", $row->value);
+    //This is the old code based on the species but now we have the actual studies
+    //$markup .= $row->accession . " | " .  $authors[0]  . " et al (" . $row->pyear . ") | " . $row->count . " trees (<a href='$base_url/cartogratree?genus=$genus&species=$species&layer_name=ct:ct_view'>Display in CartograTree</a>)<br />";
+    //$markup .= '<tr><td><a href="/tpps_details/accession/' . $row->accession . '">' . $row->accession . "</a></td><td>" .  explode(',',$row->author)[0]  . " et al (" . $row->year . ") </td><td>" . $row->tree_count . " trees </td><td><a href='$base_url/cartogratree?accession=" . $row->accession . "&layer_name=ct:ct_view'>Display in CartograTree</a></td></tr>";
+    $author = trim($row->author);
+    if (stripos($author, ',') == 0) {
+      // remove it
+      $author = substr($author, 1, strlen($author));
+      $author = trim($author);
+    }
+    $author = explode(',',trim($author))[0];
+    $markup .= '<tr><td><a target="_blank" href="/tpps/details/' . $row->accession . '">' . $row->accession . "</a></td><td>" .  $author  . " et al (" . $row->year . ") </td><td>" . $row->tree_count . " plants </td><td study-accession='" . $row->accession . "' class='data'>$data</td><td><a target='_blank' href='$base_url/tpps/details/" . $row->accession . "'>Show</a></td></tr>";
+  }
+  $markup .= "</table>";
+  //$markup .= "<br /><a href='$base_url/tpps_details/main'>[View all TPPS submissions]</a>";
+  $markup .= "<br /><a target='_blank' href='$base_url/tpps/details'>[View all TPPS submissions]</a> ";
+
+  $output['markup'] = $markup;
+  drupal_json_output($output);
+}
+
+function cartogratree_uiapi_speciesinfo_transcriptome($species_text) {
+	//$time_start = microtime();
+	global $base_url;
+	$transcriptome = array();
+
+  $species_parts = explode('-', $species_text);
+  $genus = $species_parts[0];
+  $species = $species_parts[1];
+
+  // Find organism_id by looking up the chado.organism table
+  $sql_organism = 'SELECT * FROM chado.organism WHERE genus ILIKE :genus AND species ILIKE :species LIMIT 1;';
+  $results_organism = chado_query($sql_organism, [
+    ':genus' => $genus,
+    ':species' => $species
+  ]);
+  $organism_id = NULL;
+  foreach ($results_organism as $row) {
+    $organism_id = $row->organism_id;
+  }
+
+
+  // Get the cvterm for name = 'organism 4 letter code' from the chado.cvterm table
+  $sql_cvterm = 'SELECT * FROM chado.cvterm WHERE name ILIKE :cvterm_name LIMIT 1;';
+  $results_cvterm = chado_query($sql_cvterm, [
+    ':cvterm_name' => 'organism 4 letter code'
+  ]);
+  $cvterm_id_organism_4_letter_code = NULL;
+  foreach ($results_cvterm as $row) {
+    $cvterm_id_organism_4_letter_code = $row->cvterm_id;
+  }
+
+
+  // Get the 4 letter code from chado.organismproperty table using the organism_id and cvterm_id_organism_4_letter_code
+  $sql_four_letter_code = 'SELECT * FROM chado.organismprop WHERE organism_id = :organism_id AND type_id = :cvterm_id_organism_4_letter_code LIMIT 1;';
+  $results_four_letter_code = chado_query($sql_four_letter_code, [
+    ':organism_id' => $organism_id,
+    ':cvterm_id_organism_4_letter_code' => $cvterm_id_organism_4_letter_code
+  ]);
+  foreach ($results_four_letter_code as $row) {
+    $transcriptome['four_letter_code'] = $row->value;
+  }
+	
+	// $transcriptome['four_letter_code'] = organism_api_get_four_letter_code($organism_id); //I think this retrieves it exactly for the directory name
+	//$local_dir = "/linuxshare/projects/treegenes/tgwebprod_store/FTP/Transcriptome/";
+	$local_dir = "/isg/treegenes/treegenes_store/FTP/Transcriptome/";
+	
+	//EST COUNT AND DOWNLOAD
+	$est_file = $local_dir . "EST/" . $transcriptome['four_letter_code'] . "/" . $transcriptome['four_letter_code'] . "_EST.fasta";
+	$transcriptome['est_http_link'] = "/FTP/Transcriptome/EST/" . $transcriptome['four_letter_code'] . "/" . $transcriptome['four_letter_code'] . "_EST.fasta";
+
+	
+  $args = array();
+	$sql = "SELECT transcriptome_est_count as est_count FROM chado.species_summary WHERE organism_id = '$organism_id' LIMIT 1";
+	//dpm($sql);
+	$results = chado_query($sql, $args);
+	//$results_count = $results->rowCount();
+	
+	$est_count = 0;
+	foreach($results as $row) {
+		$est_count = $row->est_count;
+	}
+  $transcriptome['est_count'] = $est_count;
+	//echo "NCBI EST: $est_count ESTs | <a href='$est_http_link'>Download EST FASTA</a><br />";
+
+	//cDNA COUNT AND DOWNLOAD
+	$cdna_file = $local_dir . "cDNA/" . $transcriptome['four_letter_code'] . "/" . $transcriptome['four_letter_code'] . "_cDNA.fasta";
+	$transcriptome['cdna_http_link'] = "/FTP/Transcriptome/cDNA/" . $transcriptome['four_letter_code'] . "/" . $transcriptome['four_letter_code'] . "_cDNA.fasta";
+
+  $args = array();
+	$sql = "SELECT transcriptome_cdna_count as cdna_count FROM chado.species_summary WHERE organism_id = '$organism_id' LIMIT 1";
+	//dpm($sql);
+	$results = chado_query($sql, $args);
+	//$results_count = $results->rowCount();
+	
+	$cdna_count = 0;
+	foreach($results as $row) {
+		$cdna_count = $row->cdna_count;
+	}
+
+	$transcriptome['cdna_count'] = $cdna_count;
+
+
+	if($transcriptome['cdna_count'] == "" || $transcriptome['cdna_count'] == '0') {
+	   $transcriptome['cdna_count'] = 0;
+	}
+	//echo "NCBI cDNAs: $transcriptome['cdna_count'] cDNAs | <a href='$cdna_http_link'>Download cDNA FASTA</a><br />";
+
+	//TSA COUNT AND DOWNLOAD
+	$tsa_file = $local_dir . "TSA/" . $transcriptome['four_letter_code'] . "/" . $transcriptome['four_letter_code'] . "_TSA.fasta";
+	$transcriptome['tsa_http_link'] = "/FTP/Transcriptome/TSA/" . $transcriptome['four_letter_code'] . "/" . $transcriptome['four_letter_code'] . "_TSA.fasta";
+	
+  $args = array();
+	$sql = "SELECT transcriptome_tsa_count as tsa_count FROM chado.species_summary WHERE organism_id = '$organism_id' LIMIT 1";
+	//dpm($sql);
+	$results = chado_query($sql, $args);
+	//$results_count = $results->rowCount();
+	
+	$tsa_count = 0;
+	foreach($results as $row) {
+		$tsa_count = $row->tsa_count;
+	}
+
+  $transcriptome['tsa_count'] = $tsa_count;
+
+	//echo "NCBI TSA: $transcriptome['tsa_count'] TSAs | <a href='$transcriptome['tsa_http_link']'>Download TSA FASTA</a><br />";
+
+	//1KP
+	$onekp_file = $local_dir . "/../Transcriptome/1kp/" . $transcriptome['four_letter_code'];
+	$transcriptome['onekp_http_link'] = "/FTP/Transcriptome/1kp/" . $transcriptome['four_letter_code'];
+
+	//echo "1KP Project Transcripts: <!-- X Transcripts | --> <a href='$transcriptome['onekp_http_link']' target='_blank'>Download 1KP FASTA</a><br />";
+
+	//Unigenes
+	$main_dir = "/FTP/TreeGenes_UniGene/"; //This is basically the relational path to the files, we'll use this as the parent directory
+	$transcriptome['link_browse_all_files'] = $main_dir . $transcriptome['four_letter_code'];
+
+	$transcriptome['genes_file'] = "/FTP/Unigenes/98/TreeGenes_UniGene/" . $transcriptome['four_letter_code'] . "/TG_Unigenes_" . $transcriptome['four_letter_code'] . "_complete_partial_genes.fasta";
+	$transcriptome['prots_file'] = "/FTP/Unigenes/98/TreeGenes_UniGene/" . $transcriptome['four_letter_code'] . "/TG_Unigenes_" . $transcriptome['four_letter_code'] . "_complete_partial_prots.fasta";
+	//echo "TreeGenes UniGenes: <!-- X UniGenes | --> Download UniGene FASTA - <a href='$transcriptome['genes_file']'>GENES</a> | <a href='$transcriptome['prots_file']'>PROTS</a> <br />";
+
+	//TSEQ
+	//echo "Sequence Similarity Search: <a href='$base_url/Diamond/submit'>Search Transcripts at TSeq</a><br />";
+
+
+	//echo "<h4>FTP Downloads</h4>";
+	$args = array();
+
+	//UniGene Blast
+	$sql = "select * from tseq_db_existing_locations WHERE type = 'Gene' and category = 'UniGene' and location ilike '%" . $transcriptome['four_letter_code'] . "%';";
+	//dpm('UniGene Blast');
+	//dpm($sql);
+	$result = chado_query($sql, $args);
+
+	$transcriptome['blast_file_count'] = $result->rowCount();
+	//dpm($transcriptome['blast_file_count']);
+	if($transcriptome['blast_file_count'] > 0) {
+	   foreach ($result as $row) {
+		  //dpm($row);
+		  $location = $row->location;
+		  $location = explode('/Unigenes/',$location)[1];
+		  $pathinfo = pathinfo($location);
+		  $transcriptome['link_blast_blast'] = $base_url . '/../FTP/Unigenes/' . $pathinfo['dirname'];
+		  //echo "<a href='$transcriptome['link_blast']' target='_blank'>Download UniGene BLAST index</a><br />";
+	   }
+	}
+
+	//UniGene Diamond
+	$sql = "select * from tseq_db_existing_locations WHERE type = 'Protein' and category = 'UniGene' and location ilike '%" . $transcriptome['four_letter_code'] . "%';";
+	//dpm('UniGene Diamond');
+	//dpm($sql);
+	$result = chado_query($sql, $args);
+
+	$transcriptome['diamond_file_count'] = $result->rowCount();
+	//dpm($transcriptome['diamond_file_count']);
+	if($transcriptome['diamond_file_count'] > 0) {
+	   foreach ($result as $row) {
+		  //dpm($row);
+		  $location = $row->location;
+		  $location = explode('/Unigenes/',$location)[1];
+		  $pathinfo = pathinfo($location);
+		  $transcriptome['link_diamond_blast'] = $base_url . '/../FTP/Unigenes/' . $pathinfo['dirname'];
+		  //echo "<a href='$transcriptome['link_blast']' target='_blank'>Download UniGene BLAST index</a><br />";
+	   }
+	}
+
+
+
+
+	//TSA Diamond
+	$sql = "select * from tseq_db_existing_locations WHERE type ilike 'Protein' and category ilike 'TSA' and location ilike '%" . $transcriptome['four_letter_code'] . "%';";
+	//dpm('TSA Diamond');
+	//dpm($sql);
+	$result = chado_query($sql, $args);
+
+	$tsa_diamond_file_count = $result->rowCount();
+	//dpm($tsa_diamond_file_count);
+	if($tsa_diamond_file_count > 0) {
+	   foreach ($result as $row) {
+		  //dpm($row);
+		  $location = $row->location;
+		  $location = explode('/FTP/',$location)[1];
+		  $pathinfo = pathinfo($location);
+		  $link_diamond = $base_url . '/../FTP/' . $location;
+		  $transcriptome['link_tsa_diamond_blast'] = $base_url . '/../FTP/' . str_ireplace('.dmnd', '.fasta', $location);
+		  //echo "<a href='$link_diamond' target='_blank'>Download TSA Diamond index</a><br />";
+		  //echo "<a href='$transcriptome['link_blast']' target='_blank'>Download TSA BLAST index</a><br />";
+	   }
+	}
+
+  drupal_json_output($transcriptome);
+
+	//$time_end = microtime();
+	//drupal_set_message("Time taken:" . ($time_end - $time_start));
+	//TSA BLAST
+	//$time_end = microtime();
+	//dpm("Time taken:" . ($time_end - $time_start));	  
+}
+
+function cartogratree_uiapi_speciesinfo_genome($species_text) {
+  global $base_url;
+  $genome = array();
+  $species_parts = explode('-', $species_text);
+  $genus = $species_parts[0];
+  $species = $species_parts[1];
+
+  // Find organism_id by looking up the chado.organism table
+  $sql_organism = 'SELECT * FROM chado.organism WHERE genus ILIKE :genus AND species ILIKE :species LIMIT 1;';
+  $results_organism = chado_query($sql_organism, [
+    ':genus' => $genus,
+    ':species' => $species
+  ]);
+  $organism_id = NULL;
+  foreach ($results_organism as $row) {
+    $organism_id = $row->organism_id;
+  }
+
+
+  // Get the cvterm for name = 'organism 4 letter code' from the chado.cvterm table
+  $sql_cvterm = 'SELECT * FROM chado.cvterm WHERE name ILIKE :cvterm_name LIMIT 1;';
+  $results_cvterm = chado_query($sql_cvterm, [
+    ':cvterm_name' => 'organism 4 letter code'
+  ]);
+  $cvterm_id_organism_4_letter_code = NULL;
+  foreach ($results_cvterm as $row) {
+    $cvterm_id_organism_4_letter_code = $row->cvterm_id;
+  }
+
+
+  // Get the 4 letter code from chado.organismproperty table using the organism_id and cvterm_id_organism_4_letter_code
+  $sql_four_letter_code = 'SELECT * FROM chado.organismprop WHERE organism_id = :organism_id AND type_id = :cvterm_id_organism_4_letter_code LIMIT 1;';
+  $results_four_letter_code = chado_query($sql_four_letter_code, [
+    ':organism_id' => $organism_id,
+    ':cvterm_id_organism_4_letter_code' => $cvterm_id_organism_4_letter_code
+  ]);
+  foreach ($results_four_letter_code as $row) {
+    $genome['four_letter_code'] = $row->value;
+  }
+
+  
+  // dpm($organism_id);
+  $main_dir = "/FTP/Genomes/"; //This is basically the relational path to the files, we'll use this as the parent directory
+  // $genome['four_letter_code'] = organism_api_get_four_letter_code($organism_id); //I think this retrieves it exactly for the directory name
+  if (empty($genome['four_letter_code']) or $genome['four_letter_code'] == '') {
+    $genome['four_letter_code'] = 'FOUR-LETTER-CODE-DOES-NOT-EXIST';
+  }
+  // dpm($genome['four_letter_code']);
+
+  $genome['version'] = "v1.0"; //Version 1.0 but overriden by the future if is_dir clause
+
+  //$local_dir = "/linuxshare/projects/treegenes/tgwebprod_store/FTP/Genomes/";
+  $root_dir = "/isg/treegenes/treegenes_store/";
+  $local_dir = "/isg/treegenes/treegenes_store/FTP/Genomes/";
+  // dpm($genome);
+  $local_dir_gene = $local_dir . $genome['four_letter_code'];
+
+
+  // Lookup species name (Format: Genus_species)
+  $species_results = chado_query('SELECT genus, species FROM chado.organism WHERE organism_id = :organism_id', [
+    ':organism_id' => $organism_id
+  ]);
+  $species = NULL;
+  foreach ($species_results as $species_row) {
+    $species = $species_row->genus . '_' . $species_row->species;
+  }
+  if (empty($species)) {
+    $species = 'SPECIES-DOES-NOT-EXIST';
+  }
+  $local_dir_gene_new_format = $local_dir . $species;
+  $genome_species_identifier = $genome['four_letter_code'];
+  if (is_dir($local_dir_gene_new_format)) {
+    // override the local dir gene
+    $local_dir_gene = $local_dir_gene_new_format;
+    $genome_species_identifier = $species;
+  }
+
+  $genome['ftp_all'] = $main_dir . $genome_species_identifier;
+	
+	$genome['scaffolds_count'] = 'N/A';
+	$genome['genes_count'] = 'N/A';
+	if(is_dir($local_dir_gene)) {
+		$versions = scandir($local_dir_gene);
+		$versions_count = count($versions);
+
+		/* This code sorts the version directories by modified time - so the latest modified time is used for the latest version */
+		$versions_temp = array();
+		try {
+			for($i=0; $i<$versions_count; $i++) {
+				$temp_version = $versions[$i];
+				if(is_dir($local_dir_gene . '/' . $temp_version) && $temp_version != '.' && $temp_version != '..') {
+					$versions_temp[filemtime($local_dir_gene . '/' . $temp_version)] = $temp_version;
+				}
+			}
+			ksort($versions_temp);
+			$versions_temp = array_reverse($versions_temp);
+			$genome['versions_list'] = $versions_temp;
+			foreach($versions_temp as $key => $val) {
+				$genome['version'] = $val;
+				break;//break to only get first value
+			}
+		}
+		catch(Exception $ex) {
+			// dpm($ex->getMessage());
+		}
+		
+
+		//Use latest version
+		//$genome['version'] = $versions[$versions_count - 1];
+		//echo "Version: $version<br />";
+		$genome['version_code'] = str_ireplace("v","", $genome['version']);
+		$genome['version_intval'] = intval($genome['version_code']);
+		
+		if($genome['version_intval'] == 0) {
+			//this is a string value - most probably an upload from Meg's group
+			$genome['version_code'] = 'v' . $genome['version_code']; //this should produce something like 1_0
+		}
+		else {
+			//else this is most probably uploaded from TreeGenes
+			$genome['version_code'] = str_ireplace(".","_", $genome['version_code']); //this should produce something like 1_0
+		}
+		
+		$genome['version_code'] = str_ireplace(".","_", $genome['version_code']); //this should produce something like 1_0
+		
+
+		
+		//print_r($versions);
+		$genome['link_browse_all_files'] = $main_dir . $genome_species_identifier . "/" . $genome['version'];
+		
+		
+		//Updated standardization of files (29/01/2020)
+		
+		$ignore_file_extensions = array();
+		$ignore_file_extensions[] = ".sh";
+		
+		
+		//ALIGNMENTS DIRECTORY/FILES
+		$genome['ftp_alignments_index'] = $genome['link_browse_all_files'] . "/alignments/";
+		$local_dir_alignments = $local_dir_gene . "/" . $genome['version'] . "/alignments/";
+		$files_alignments = scandir($local_dir_alignments);
+		$array_links_alignments = array();
+		foreach($files_alignments as $file_alignment) {
+			if(is_dir($local_dir_alignments . $file_alignment)) {
+				
+			}
+			else {
+				// check if the file starts with a period (.) - these should not be included in the list (hidden files)
+				if(substr($file_alignment, 0, 1 ) != ".") {
+					$array_links_alignments[] = $genome['link_browse_all_files'] . "/alignments/" . $file_alignment;
+				}
+				//dpm($gmap_dir . $gmap_file);
+			}
+		}
+		$genome['links_alignments'] = $array_links_alignments;
+		
+		//ANNOTATION DIRECTORY/FILES
+		$genome['ftp_annotation_index'] = $genome['link_browse_all_files'] . "/annotation/";
+		$local_dir_annotation = $local_dir_gene . "/" . $genome['version'] . "/annotation/";
+		$files_annotation = scandir($local_dir_annotation);
+		$array_links_annotation = array();
+		$array_links_annotation_versions = array();
+		foreach($files_annotation as $file_alignment) {
+			if(is_dir($local_dir_annotation . $file_alignment)) {
+				if (stripos($file_alignment, 'v') !== FALSE) {
+					if(stripos($file_alignment, 'v') == 0) {
+						$array_links_annotation_versions[] = $genome['link_browse_all_files'] . "/annotation/" . $file_alignment;
+					}
+				}
+			}
+			else {
+				if ($file_alignment == 'entap_config.ini') {
+
+				}
+				else {
+					$array_links_annotation[] = $genome['link_browse_all_files'] . "/annotation/" . $file_alignment;
+				}
+				//dpm($gmap_dir . $gmap_file);
+			}
+		}
+
+		// Check for final_annotations_lvl1.tsv
+		if (is_file($local_dir_annotation . 'entap_outfiles/final_results/final_annotations_lvl1.tsv')) {
+			$array_links_annotation[] = $genome['link_browse_all_files'] . "/annotation/entap_outfiles/final_results/final_annotations_lvl1.tsv";
+		}
+		$genome['links_annotation'] = $array_links_annotation;	
+		$genome['links_annotation_versions'] = $array_links_annotation_versions;		
+
+		//GENOME DIRECTORY/FILES
+		$genome['ftp_genome_index'] = $genome['link_browse_all_files'] . "/genome/";
+		$local_dir_genome = $local_dir_gene . "/" . $genome['version'] . "/genome/";
+		
+		//check for QUAST/BUSCO README.txt or README.md
+		if(is_file($local_dir_genome . 'README.txt')) {
+			//file exists
+			$genome['quast_busco_data'] = file($local_dir_genome . 'README.txt');
+		}
+		elseif (is_file($local_dir_genome . 'README.md')) {
+			// file exists
+			$genome['quast_busco_data'] = file($local_dir_genome . 'README.md');
+		}
+		else {
+			$genome['quast_busco_data'] = null;
+		}
+		
+		
+		$files_genome = scandir($local_dir_genome);
+		$array_links_genome = array();
+		foreach($files_genome as $file_alignment) {
+			if(is_dir($local_dir_genome . $file_alignment)) {
+				
+			}
+			else {
+				$array_links_genome[] = $genome['link_browse_all_files'] . "/genome/" . $file_alignment;
+				//dpm($gmap_dir . $gmap_file);
+			}
+		}
+		$genome['links_genome'] = $array_links_genome;	
+		
+		//gene_index DIRECTORY/FILES
+		$genome['ftp_gene_index_index'] = $genome['link_browse_all_files'] . "/index/gene_index/";
+		$local_dir_gene_index = $local_dir_gene . "/" . $genome['version'] . "/index/gene_index/";
+		$files_gene_index = scandir($local_dir_gene_index);
+		$array_links_gene_index = array();
+		foreach($files_gene_index as $item) {
+			if($item == '.' || $item == '..') { }
+			else {
+				$array_links_gene_index[] = $genome['link_browse_all_files'] . "/index/gene_index/" . $item;
+				//dpm($gmap_dir . $gmap_file);
+			}
+		}
+		$genome['links_gene_index'] = $array_links_gene_index;		
+
+		//genome_index DIRECTORY/FILES
+		$genome['ftp_genome_index_index'] = $genome['link_browse_all_files'] . "/index/genome_index/";
+		$local_dir_genome_index = $local_dir_gene . "/" . $genome['version'] . "/index/genome_index/";
+		$files_genome_index = scandir($local_dir_genome_index);
+		$array_links_genome_index = array();
+		foreach($files_genome_index as $item) {
+			if($item == '.' || $item == '..') { }
+			else {
+				$array_links_genome_index[] = $genome['link_browse_all_files'] . "/index/genome_index/" . $item;
+				//dpm($gmap_dir . $gmap_file);
+			}
+		}
+		$genome['links_genome_index'] = $array_links_genome_index;	
+		
+		//protein_index DIRECTORY/FILES
+		$genome['ftp_protein_index_index'] = $genome['link_browse_all_files'] . "/index/protein_index/";
+		$local_dir_protein_index = $local_dir_gene . "/" . $genome['version'] . "/index/protein_index/";
+		$files_protein_index = scandir($local_dir_protein_index);
+		$array_links_protein_index = array();
+		foreach($files_protein_index as $item) {
+			if($item == '.' || $item == '..') { }
+			else {
+				$array_links_protein_index[] = $genome['link_browse_all_files'] . "/index/protein_index/" . $item;
+			}
+		}
+		$genome['links_protein_index'] = $array_links_protein_index;			
+		
+
+		//GMAP files
+		//dpm(scandir($local_dir_gene));
+		$genome['ftp_gmap_index'] = $genome['link_browse_all_files'] . "/index/Genome_Indexes/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".gmap/";
+		$gmap_dir = $local_dir_gene . "/" . $genome['version'] . "/index/Genome_Indexes/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".gmap/";
+		$gmap_files = @scandir($gmap_dir);
+		$gmap_links_array = array();
+		if ($gmap_files === false) {
+			$gmap_files = array();
+		}
+		foreach($gmap_files as $gmap_file) {
+			if(is_dir($gmap_dir . $gmap_file)) {
+				
+			}
+			else {
+				$gmap_links_array[] = $genome['link_browse_all_files'] . "/index/Genome_Indexes/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".gmap/" . $gmap_file;
+				//dpm($gmap_dir . $gmap_file);
+			}
+		}
+		$genome['gmap_files'] = $gmap_links_array;
+		
+		//Bowtie files
+		//dpm(scandir($local_dir_gene));
+		$genome['ftp_bowtie_index'] = $genome['link_browse_all_files'] . "/index/Genome_Indexes/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".bowtie/";
+		$bowtie_dir = $local_dir_gene . "/" . $genome['version'] . "/index/Genome_Indexes/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".bowtie/";
+		$bowtie_files = @scandir($bowtie_dir);
+		$bowtie_links_array = array();
+		if ($bowtie_files === false) {
+			$bowtie_files = array();
+		}
+		foreach($bowtie_files as $bowtie_file) {
+			if(is_dir($bowtie_dir . $bowtie_file)) {
+				
+			}
+			else {
+				$bowtie_links_array[] = $genome['link_browse_all_files'] . "/index/Genome_Indexes/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".bowtie/" . $bowtie_file;
+				//dpm($gmap_dir . $gmap_file);
+			}
+		}
+		$genome['bowtie_files'] = $bowtie_links_array;
+		
+		//BWA files
+		//dpm(scandir($local_dir_gene));
+		$genome['ftp_bwa_index'] = $genome['link_browse_all_files'] . "/index/Genome_Indexes/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".bwa/";
+		$bwa_dir = $local_dir_gene . "/" . $genome['version'] . "/index/Genome_Indexes/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".bwa/";
+		$bwa_files = @scandir($bwa_dir);
+		$bwa_links_array = array();
+		if ($bwa_files === false) {
+			$bwa_files = array();
+		}
+		foreach($bwa_files as $bwa_file) {
+			if(is_dir($bwa_dir . $bwa_file)) {
+				
+			}
+			else {
+				$bwa_links_array[] = $genome['link_browse_all_files'] . "/index/Genome_Indexes/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".bwa/" . $bwa_file;
+				//dpm($gmap_dir . $gmap_file);
+			}
+		}
+		$genome['bwa_files'] = $bwa_links_array;		
+		
+		//annotation directory
+		if(is_file($root_dir . $genome['link_browse_all_files'] . "/annotation/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".cds.fa.gz")){
+			$genome['link_gene_file_in_fasta_format'] = $genome['link_browse_all_files'] . "/annotation/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".cds.fa.gz";
+		}
+		else {
+			$genome['link_gene_file_in_fasta_format'] = '';
+		}
+		
+		if(is_file($root_dir . $genome['link_browse_all_files'] . "/annotation/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".peptides.fa.gz")){
+			$genome['link_protein_file_in_fasta_format'] = $genome['link_browse_all_files'] . "/annotation/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".peptides.fa.gz";
+		}
+		else {
+			$genome['link_protein_file_in_fasta_format'] = '';
+		}
+		
+		if(is_file($root_dir . $genome['link_browse_all_files'] . "/annotation/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".gff.gz")){
+			$genome['link_gff_file'] = $genome['link_browse_all_files'] . "/annotation/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".gff.gz";
+		}
+		else {
+			$genome['link_gff_file'] = '';
+		}
+		
+		if(is_file($root_dir . $genome['link_browse_all_files'] . "/annotation/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".gtf.gz")) {
+			$genome['link_gtf_file'] = $genome['link_browse_all_files'] . "/annotation/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".gtf.gz";
+		}
+		else {
+			$genome['link_gtf_file'] = '';
+		}
+		
+		//genome directory
+		if(is_file($root_dir . $genome['link_browse_all_files'] . "/genome/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".fa.gz")) {
+			$genome['link_fasta_formatted_genome'] = $genome['link_browse_all_files'] . "/genome/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".fa.gz";
+		}
+		else if(is_file($root_dir . $genome['link_browse_all_files'] . "/genome/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".fa")) {
+			$genome['link_fasta_formatted_genome'] = $genome['link_browse_all_files'] . "/genome/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".fa";
+		}
+		else {
+			$genome['link_fasta_formatted_genome'] = "";
+		}
+		$genome['link_fasta_formatted_genome_softmasked'] = $genome['link_browse_all_files'] . "/genome/" . $genome['four_letter_code'] . "." . $genome['version_code'] . ".softmasked.fa.gz";
+
+		$scaffolds_file = $local_dir . $genome['four_letter_code'] . '/' . $genome['version_code'] . "/genome/scaffolds_count.txt";
+		//dpm($scaffolds_file);
+		$genome['scaffolds_count'] = trim(@file_get_contents($scaffolds_file));
+		if($genome['scaffolds_count'] == '') {
+			$genome['scaffolds_count'] = 'N/A';
+		}
+
+		$genes_file = $local_dir . $genome['four_letter_code'] . '/' . $genome['version'] . "/annotation/genes_count.txt";
+		//dpm($genes_file);
+		$genome['genes_count'] = trim(@file_get_contents($genes_file));
+		if($genome['genes_count'] == '') {
+			  $genome['genes_count'] = 'N/A';
+		}
+
+		$genome['link_jbrowse'] = "/JBrowse/?data=$base_url/api/jbrowse/$organism_id";
+
+		if(is_dir($local_dir_gene . "/" . $genome['version'] . "/index/gene_index/" . $genome['four_letter_code'] . "." . str_ireplace('v','',str_ireplace('.','_',$genome['version'])) . ".gene_blast")) {
+			$genome['download_blast_index'] = $genome['link_browse_all_files'] . "/index/gene_index/" . $genome['four_letter_code'] . "." . str_ireplace('v','',str_ireplace('.','_',$genome['version'])) . ".gene_blast";
+		}
+		if(is_dir($local_dir_gene . "/" . $genome['version'] . "/index/genome_index/" . $genome['four_letter_code'] . "." . str_ireplace('v','',str_ireplace('.','_',$genome['version'])) . ".gmap")) {
+			$genome['download_gmap_index'] = $genome['link_browse_all_files'] . "/index/genome_index/" .  $genome['four_letter_code'] . "." . str_ireplace('v','',str_ireplace('.','_',$genome['version'])) . ".gmap";
+		}
+		if(is_dir($local_dir_gene . "/" . $genome['version'] . "/index/genome_index/" . $genome['four_letter_code'] . "." . str_ireplace('v','',str_ireplace('.','_',$genome['version'])) . ".bwa")) {
+			$genome['download_bwa_index'] = $genome['link_browse_all_files'] . "/index/genome_index/" .  $genome['four_letter_code'] . "." . str_ireplace('v','',str_ireplace('.','_',$genome['version'])) . ".bwa";
+		}		
+
+
+		$lines_count = count($genome['quast_busco_data']);
+		$record_lines = false;
+		$lines_output = '';
+		$quast_table_output = "\n";
+		$quast_table_output .= "<div style='font-weight: bold; border: 0px solid #e2e2e2; padding: 10px;'><div style='width: 50%; display: inline-block;'>Name</div><div style='width: 50%; display: inline-block;'>Value</div></div>";
+		//dpm($genome['quast_busco_data']);
+		$quast_total_scaffolds = 'N/A';
+		$quast_total_contigs = 0;
+		$quast_total_contigs_5k = 0;
+		$quast_total_length = 0;
+		$quast_total_length_5k = 0;	
+		$quast_N50 = 0;
+		$quast_L50 = 0;				
+		for($i = 0; $i < $lines_count; $i++) {
+			$line = trim($genome['quast_busco_data'][$i]);
+			$temp_line = trim($line);
+			while(strpos($temp_line, '  ') !== FALSE) {
+				$temp_line = str_replace("  ", " ", $temp_line);
+			}
+			if(stripos($line,'Assembly') !== FALSE) {
+				$record_lines = true;
+			}					
+			else if(stripos($line,'______') !== FALSE) {
+				$record_lines = false;
+				break;
+			}	
+			
+			if($record_lines == true) {
+				// dpm($temp_line);
+				if(stripos($temp_line, '# contigs (>= 0 bp)') !== FALSE) {
+					$quast_total_contigs = explode('# contigs (>= 0 bp)', $temp_line)[1];
+					$quast_table_output .= "<div style='border: 0px solid #e2e2e2; padding: 10px;'><div style='width: 50%; display: inline-block;'>Total contigs</div><div style='width: 50%; display: inline-block;'>$quast_total_contigs</div></div>";
+					$quast_total_scaffolds = explode('# contigs (>= 0 bp)', $temp_line)[1];
+					//dpm($total_scaffolds);
+				}
+				else if(stripos($temp_line, 'Total length (>= 0 bp)') !== FALSE) {
+					$quast_total_length = explode('Total length (>= 0 bp)', $temp_line)[1];
+					$quast_table_output .= "<div style='border: 0px solid #e2e2e2; padding: 10px;'><div style='width: 50%; display: inline-block;'>Total length</div><div style='width: 50%; display: inline-block;'>$quast_total_length</div></div>";
+				}
+				else if(stripos($temp_line, '# contigs (>= 5000 bp)') !== FALSE) {
+					$quast_total_contigs_5k = explode('# contigs (>= 5000 bp)', $temp_line)[1];
+					$quast_table_output .= "<div style='border: 0px solid #e2e2e2; padding: 10px;'><div style='width: 50%; display: inline-block;'>Total contigs (> 5kb)</div><div style='width: 50%; display: inline-block;'>$quast_total_contigs_5k</div></div>";
+					//dpm($total_scaffolds);
+				}
+				else if(stripos($temp_line, 'Total length (>= 5000 bp)') !== FALSE) {
+					$quast_total_length_5k = explode('Total length (>= 5000 bp)', $temp_line)[1];
+					$quast_table_output .= "<div style='border: 0px solid #e2e2e2; padding: 10px;'><div style='width: 50%; display: inline-block;'>Total length (> 5kb)</div><div style='width: 50%; display: inline-block;'>$quast_total_length_5k</div></div>";
+				}	
+				else if(stripos($temp_line, 'N50') !== FALSE) {
+					$quast_N50 = explode('N50', $temp_line)[1];
+					if (trim($quast_N50) != "") {
+						$quast_table_output .= "<div style='border: 0px solid #e2e2e2; padding: 10px;'><div style='width: 50%; display: inline-block;'>N50</div><div style='width: 50%; display: inline-block;'>$quast_N50</div></div>";
+					}
+				}
+				else if(stripos($temp_line, 'L50') !== FALSE) {
+					$quast_L50 = explode('L50', $temp_line)[1];
+					$quast_table_output .= "<div style='border: 0px solid #e2e2e2; padding: 10px;'><div style='width: 50%; display: inline-block;'>L50</div><div style='width: 50%; display: inline-block;'>$quast_L50</div></div>";
+				}		
+				
+				$lines_output .= $temp_line . "\n";
+
+				
+			}
+		
+		}    
+    $genome['quast_busco_data_table'] = $quast_table_output;
+
+		// $result_polypeptides = organism_api_get_polypeptides($organism_id)->fetchObject() ;
+		// $result_genes = organism_api_get_genes($organism_id)->fetchObject();
+		// $result_scaffolds = organism_api_get_scaffolds($organism_id);
+
+		//dpm($genome);
+	}
+	else {
+		//echo "No downloads available at this time, please check back periodically.";
+	}
+
+  drupal_json_output($genome);
+}
+
+function cartogratree_uiapi_speciesinfo_subspecieshybrids($species_text) {
+  $species_parts = explode('-', $species_text);
+  $organism_genus = $species_parts[0];
+  $organism_species = $species_parts[1];
+	$sql = 'SELECT * FROM chado.organism o 
+		LEFT JOIN chado.cvterm c ON o.type_id = c.cvterm_id 
+		WHERE genus ILIKE :organism_genus AND species ILIKE :organism_species AND infraspecific_name IS NOT NULL
+	';
+	$results = chado_query($sql, array(
+		':organism_genus' => $organism_genus . '%',
+		':organism_species' => $organism_species . '%',
+	));
+  $species_hybrids = array();
+	foreach($results as $row) {
+		// dpm($row);
+		$species_hybrids[] = [
+			'species' => $row->genus . ' ' . $row->species . ' ' . $row->infraspecific_name,
+			'type' => $row->name,
+		];
+	}
+
+	// Find type_id for 'speciesaggregate'
+	$sql_type_id = 'SELECT * FROM chado.cvterm WHERE name ILIKE :name LIMIT 1';
+	$results_type_id = chado_query($sql_type_id, array(
+		':name' => 'speciesaggregate'
+	));
+	$type_id = -1;
+	foreach($results_type_id as $row_type_id) {
+		$type_id = $row_type_id->cvterm_id;
+	}
+
+	$sql = 'SELECT * FROM chado.organism WHERE genus ILIKE :organism_genus AND species ILIKE :organism_species AND type_id = :type_id';
+	$results = chado_query($sql, array(
+		':organism_genus' => $organism_genus . '%',
+		':organism_species' => $organism_species . '%',
+		':type_id' => $type_id,
+	));
+	foreach($results as $row) {
+		if($organism_genus == $row->genus && $organism_species == $row->species) {
+			//Do not add this organism since this is the primary organism
+		}
+		else {
+			$species_hybrids[] = [
+				'species' => $row->genus . ' ' . $row->species,
+				'type' => 'speciesaggregate'
+			];
+		}
+	}
+
+	// Find type_id for 'subspecies'
+	$sql_type_id = 'SELECT * FROM chado.cvterm WHERE name ILIKE :name LIMIT 1';
+	$results_type_id = chado_query($sql_type_id, array(
+		':name' => 'subspecies'
+	));
+	$type_id = -1;
+	foreach($results_type_id as $row_type_id) {
+		$type_id = $row_type_id->cvterm_id;
+	}
+
+	$sql = 'SELECT * FROM chado.organism WHERE genus ILIKE :organism_genus AND species ILIKE :organism_species AND type_id = :type_id';
+	$results = chado_query($sql, array(
+		':organism_genus' => $organism_genus . '%',
+		':organism_species' => $organism_species . '%',
+		':type_id' => $type_id,
+	));
+	foreach($results as $row) {
+		//dpm($row);
+		if(!is_array($species_hybrids)) {
+			$species_hybrids = array();
+		}
+		if($organism_genus == $row->genus && $organism_species == $row->species) {
+			//Do not add this organism since this is the primary organism
+		}
+		else {
+			$species_hybrids[] = [
+				'species' => $row->genus . ' ' . $row->species,
+				'type' => 'subspecies'
+			];
+		}
+	}
+
+	// Find type_id for 'varietas'
+	$sql_type_id = 'SELECT * FROM chado.cvterm WHERE name ILIKE :name LIMIT 1';
+	$results_type_id = chado_query($sql_type_id, array(
+		':name' => 'varietas'
+	));
+	$type_id = -1;
+	foreach($results_type_id as $row_type_id) {
+		$type_id = $row_type_id->cvterm_id;
+	}
+
+	$sql = 'SELECT * FROM chado.organism WHERE genus ILIKE :organism_genus AND species ILIKE :organism_species AND type_id = :type_id';
+	$results = chado_query($sql, array(
+		':organism_genus' => $organism_genus . '%',
+		':organism_species' => $organism_species . '%',
+		':type_id' => $type_id,
+	));
+	foreach($results as $row) {
+		//dpm($row);
+		if(!is_array($species_hybrids)) {
+			$species_hybrids = array();
+		}
+		if($organism_genus == $row->genus && $organism_species == $row->species) {
+			//Do not add this organism since this is the primary organism
+		}
+		else {
+			$species_hybrids[] = [
+				'species' => $row->genus . ' ' . $row->species,
+				'type' => 'varietas'
+			];
+		}
+	}
+
+	// Find type_id for 'forma'
+	$sql_type_id = 'SELECT * FROM chado.cvterm WHERE name ILIKE :name LIMIT 1';
+	$results_type_id = chado_query($sql_type_id, array(
+		':name' => 'forma'
+	));
+	$type_id = -1;
+	foreach($results_type_id as $row_type_id) {
+		$type_id = $row_type_id->cvterm_id;
+	}
+
+	$sql = 'SELECT * FROM chado.organism WHERE genus ILIKE :organism_genus AND species ILIKE :organism_species AND type_id = :type_id';
+	$results = chado_query($sql, array(
+		':organism_genus' => $organism_genus . '%',
+		':organism_species' => $organism_species . '%',
+		':type_id' => $type_id,
+	));
+	foreach($results as $row) {
+		//dpm($row);
+		if(!is_array($species_hybrids)) {
+			$species_hybrids = array();
+		}
+		if($organism_genus == $row->genus && $organism_species == $row->species) {
+			//Do not add this organism since this is the primary organism
+		}
+		else {
+			$species_hybrids[] = [
+				'species' => $row->genus . ' ' . $row->species,
+				'type' => 'forma'
+			];
+		}
+	}
+  drupal_json_output($species_hybrids);
+}
+
+function cartogratree_uiapi_speciesinfo_summary($species_text) {
+  $species_parts = explode('-', $species_text);
+  $genus = $species_parts[0];
+  $species = $species_parts[1];
+  $sql_species = 'SELECT * FROM chado.organism WHERE genus ILIKE :genus_text AND species ILIKE :species_text LIMIT 1;';
+  $results = chado_query($sql_species, 
+    [
+      ':genus_text' => $genus,
+      ':species_text' => $species
+    ]
+  );
+  $output = [];
+  foreach ($results as $row) {
+    $output['organism_id'] = $row->organism_id;
+    $output['genus'] = $row->genus;
+    $output['species'] = $row->species;
+    $output['common_name'] = $row->common_name;
+    $output['abbreviation'] = $row->abbreviation;
+    $output['organismprops'] = [];
+
+    $results_properties = db_query('SELECT * FROM chado.organismprop LEFT JOIN chado.cvterm ON chado.organismprop.type_id = chado.cvterm.cvterm_id WHERE organism_id = :organism_id',
+      array(
+        ':organism_id' => $output['organism_id'],
+      )
+    );
+    foreach($results_properties as $row_properties) {
+      //dpm($row_properties);
+      $output['organismprops'][$row_properties->name] = $row_properties->value;
+    }
+  }
+  drupal_json_output($output);
+}
 
 function cartogratree_uiapi_get_phenotype_attributes_by_species_text($species_text) {
     $results = chado_query('SELECT distinct(phenotype_name) 

@@ -147,7 +147,7 @@ var ct_ready_mainjs = function () {
 			cartograplant.buildSelectOption("species", "Species", "string", ["equal", "not_equal"]), // 2
 			// cartograplant.buildSelectOption("marker_type", "Markers", "string", ["equal", "not_equal"]),
 			cartograplant.buildSelectOption("markers", "Markers", "string", ["equal", "not_equal"]), // 3
-			//cartograplant.buildSelectOption("category", "Treesnap Category", "string", ["equal", "not_equal"]), 
+			cartograplant.buildSelectOption("category", "Treesnap Category", "string", ["equal", "not_equal"]), 
 			// cartograplant.buildSelectOption("structure_name", "Plant Structure", "string", ["equal", "not_equal"]), 
 			cartograplant.buildAutocompleteOption("structure_name", "Plant Structure", "string", Drupal.settings.options_data["plant_ontology"]), // 4
 			// cartograplant.buildSelectOption("phenotype_name", "Phenotype Attribute", "string", ["equal", "not_equal"]), 
@@ -159,17 +159,18 @@ var ct_ready_mainjs = function () {
 		];
 
 
+		// The index numbers in the following lines correspond to the order of filters defined above. So 0 corresponds to family, 1 to genus, etc.
 		cartograplant.populateOptions(0, Object.keys(Drupal.settings.options_data.organism_data["family"]).sort());
 		cartograplant.populateOptions(1, Object.keys(Drupal.settings.options_data.organism_data["genus"]).sort());
 		cartograplant.populateOptions(2, Drupal.settings.options_data.organism_data["species"].sort());
 		// cartograplant.populateOptions(3, Drupal.settings.options_data.marker_type, {'SSR':'nSSR'});
 		// cartograplant.populateOptions(3, Drupal.settings.options_data.markers, {'SSR':'nSSR'});
 		cartograplant.populateOptions(3, Drupal.settings.options_data.markers, {'microsatellite':'SSR'});
-		// cartograplant.populateOptions(4, Drupal.settings.options_data.categories);
+		cartograplant.populateOptions(4, Drupal.settings.options_data.categories);
 		// cartograplant.populateOptions(5, Drupal.settings.options_data.plant_ontology);
 		// cartograplant.populateOptions(6, Drupal.settings.options_data["cvterm"]);
 		// populateOptions(5, Drupal.settings.options_data.phenotype);
-		cartograplant.populateOptions(6, Drupal.settings.options_tgdr["pub_title"].sort());
+		cartograplant.populateOptions(7, Drupal.settings.options_tgdr["pub_title"].sort());
 		// cartograplant.populateOptions(7, Drupal.settings.options_tgdr["pub_author"].sort());
 		// cartograplant.populateOptions(8, Drupal.settings.options_tgdr["pub_tgdr"].sort());
 
