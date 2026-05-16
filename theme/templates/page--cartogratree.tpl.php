@@ -2867,6 +2867,7 @@ Today, CartograPlant continues to support the forest tree community, and increas
 										<h5 id="tree-pub-author" style="display: inline-block; margin-right: 10px;">Unknown.</h5>
 										<div class="mb-0" id="tree-pub-year" style="display: inline-block; margin-right: 10px;">2000</div>
 										<a href="#" target="_blank" id="tree-pub-link">View Additional Details</a>
+										
 									</div>
 									<div id="tree-details-view-study-type"></div>
 									<div id="tree-details-view-study-statistics"></div>

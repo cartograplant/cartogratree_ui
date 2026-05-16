@@ -1904,7 +1904,7 @@ function cartogratree_get_category_options($api_key) {
         $categories = unserialize($categories->data);
     }
     if ($categories == FALSE) {
-        $results = chado_query('SELECT distinct(LOWER(category)) as category FROM public.ct_trees_all_view ORDER BY category ASC');
+        $results = chado_query('SELECT distinct(LOWER(category)) as category FROM public.ct_trees ORDER BY category ASC');
         $categories = [];
         foreach ($results as $row) {
             $categories[] = $row->category;
