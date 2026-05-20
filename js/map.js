@@ -1927,6 +1927,491 @@ var ct_ready_mapjs = function() {
 	}
 
 
+	class ModalTreeProjectInfo {
+		constructor() {
+			this.collection_info = [];
+			this.tree_id = null;
+			this.source_name = null; // default
+			this.source_id = null; // the dataset id (source_id in ct_trees view)
+			this.species = null;
+		}
+
+		UI_update_species(species) {
+			this.species = species;
+			if (species != null && species != undefined && species != "") {
+				$('#tree-more-info-label-species').html(this.species)
+			}
+		}
+
+		UI_update_content() {
+			this.resetModalUI();
+			// datasetKey is a global variable that contains the mapping of source_id to dataset_id for all the datasets in the system, this is used to determine the source name for the tree based on its source_id
+			if (this.source_id == 1 || this.source_id == 5) {
+				this.source_name = "TreeSnap";
+				// If treesnap tree, set the button label to Collection Info (Tree Popup window)
+				$('.btn[data-target="#tree-more-info"]').parent().removeClass("hidden");
+				$('.btn[data-target="#tree-more-info"]').html('Collection Info');
+				$('.add-all-study-plants').html('Add all collection plants');
+				this.UI_update_phenotypes_treesnap();
+				console.log('ModalTree TREE_ID: ' + this.tree_id);
+				if(this.tree_id.includes('treesnap')) {
+					$('#treesnap-images-container').removeClass("hidden");
+				}
+				else {
+					if ($('#treesnap-images-container').hasClass("hidden") == false) {
+						$('#treesnap-images-container').addClass("hidden");
+					}
+				}
+				if (treeImgsStore[this.tree_id] == undefined) {
+					$.ajax({
+						url: Drupal.settings.ct_nodejs_api + "/v2/tree/treesnap?api_key=" + Drupal.settings.ct_api + "&tree_id=" + this.tree_id,
+						dataType: "json",
+						async: false,
+						timeout: 4000,
+						success: function (tsData) {
+							console.log('treesnap-data', tsData);
+							$("#tree-submitter").text("Taken by: " + tsData.submitter);
+							$("#tree-collection-date").text("Collection date: " + tsData.collection_date);
+							try {
+								updateTreeImgs(tsData.data.images, data.species, 'treesnap');
+							}
+							catch (err) {
+								console.log('ERROR FOR TREESNAP IMAGES:' + err);
+							}
+							try {
+								treeImgsStore[this.tree_id] = {"submitter": tsData.submitter, "collection_data": tsData.collection_date, "images": tsData.images.images};
+							}
+							catch (err) {
+								console.log(err);
+							}
+	
+						},
+						error: function (xhr, textStatus, errorThrown) {
+							if(debug) {
+								console.log({
+									textStatus
+								});
+								console.log({
+									errorThrown
+								});
+								console.log(xhr.responseText);
+							}
+							// updateTreeImgs(undefined, "dummy_value");
+							updateTreeImgs(undefined, data.species, 'treesnap');
+						}
+					});	
+				}
+				else {	
+					$("#tree-submitter").text("Taken by: " + treeImgsStore[this.tree_id]["submitter"]);
+					$("#treesnap-collection-date").text("Collection date: " + treeImgsStore[this.tree_id]["collection_date"]);
+					updateTreeImgs(treeImgsStore[this.tree_id], data.species);
+				}
+			}
+		}
+
+		UI_update_phenotypes_treesnap() {
+			// Perform a lookup of the tree_id to get the collection name which we will then display on the
+			// 'study details' popup.
+			$.ajax({
+				url: Drupal.settings.ct_nodejs_api + "/v2/trees/treesnap/collection_name_lookup_by_tree_id?tree_id=" + this.tree_id,
+				dataType: "json",
+				success: function (data) {
+					if (data.length > 0) {
+						console.log('Collection name response: ', data);
+						$("#treesnap-collection-container").removeClass("hidden");					
+						$("#treesnap-collection-container").html('<h2 style="padding: 0px;">Treesnap Collection: ' + data[0]['category'] + '</h2>');
+						
+						$.ajax({
+							url: Drupal.settings.base_url + "/cartogratree_uiapi/get_evome_data/" + this.tree_id,
+							dataType: "json",
+							success: function (evome_data) {
+								console.log('evome_data', evome_data);
+								for (var i = 0; i<evome_data.length; i++) {
+									var evome_row = evome_data[i];
+									if (evome_row['name'] == 'willowTreeSampleId') {
+										$("#treesnap-collection-container").append('<div style="color: #FFFFFF;margin-top:10px;margin-left: 3px;background-color: #589a60;display: inline-block;padding: 2px;border-radius: 2px;">EVOME Sample ID: ' + evome_row['value'] + '</div>');
+									}
+								}
+							}
+						});
+						// $("#treesnap-collection-container").append('<div id="sample_id"></div>');
+						
+						
+						// Lookup the number of plants in this collection
+						// if (data.length > 0) {
+						// 	console.log('Collection data: ', data);
+						// 	$("#treesnap-collection-container").append('<div style="margin-left: 5px; margin-top: 5px;">There are ' + data.length + ' plants in this Treesnap collection</div>')
+						// }
+						
+						// Lookup the collection number
+						$.ajax({
+							url: Drupal.settings.ct_nodejs_api + "/v2/trees/treesnap/collection_lookup_by_tree_id?tree_id=" + this.tree_id,
+							dataType: "json",
+							success: function (data) {
+								if (data.length > 0) {
+									console.log('Collection data: ', data);
+									$("#treesnap-collection-container").append('<div style="margin-left: 0px; margin-top: 5px; margin-bottom: 5px;">There are ' + data.length + ' plants in this Treesnap collection</div>')
+								}
+							}
+						});
+						
+					}
+				}
+			});
+		}
+
+		resetModalUI() {
+			$("#tree-pub-title").text(""); 
+			$("#tree-pub-title").addClass("hidden");
+			
+			$("#tree-pub-author").text("");
+			 $("#tree-pub-author").addClass("hidden");
+			
+			$("#tree-pub-year").text(""); 
+			$("#tree-pub-year").addClass("hidden");
+			
+			$("#tree-markers").text(""); 	
+			$("#tree-markers").addClass("hidden");	
+			$("#tree-markers-label").addClass("hidden");
+			
+			$("#tree-study-associated-container").addClass("hidden");
+			$("#tree-phenotypes-container").addClass("hidden");
+			
+			$("#tree-study-type").text(""); 	
+			$("#tree-study-type").addClass("hidden");	
+			$("#tree-study-type-label").addClass("hidden");		
+	
+			$("#tree-pub-link").addClass("hidden");
+			$("#tree-pub-link").attr("href", "#");	
+			$("#tree-pub-link").text("No Publication info found");
+	
+			$('#tree-details-view-study-type').addClass("hidden");
+			$('#tree-details-view-study-type').html('');
+	
+			$('#tree-details-view-study-statistics').addClass("hidden");
+			$('#tree-details-view-study-statistics').html('');
+	
+			$("#tree-phenotypes-label").addClass("hidden");
+			 $("#tree-phenotypes").addClass("hidden");
+			$("#tree-phenotypes").html("");
+	
+			$('#tree-endangered-container').addClass("hidden");
+			$('#tree-endangered-status').html("");
+	
+			$('#tree-more-info-phenotype-container').html("");
+			$('#tree-more-info-label').html("");
+		}
+
+		updateCurrentTreeStatus() {
+			console.log('Updating current tree status for tree id: ' + this.treeId);
+			// Find the current index of the tree in the collection info array
+			var current_index = -1;
+			for (var i = 0; i < this.collection_info.length; i++) {
+				if (this.collection_info[i]['uniquename'] == this.treeId) {
+					current_index = i;
+					break;
+				}
+			}
+
+			$('#tree-more-info .modal-header').html('Collection: Plant ' + (current_index + 1) + ' of ' + this.collection_info.length);
+			// console.log('MAMA TREE DATA OBJECT', this.collection_info[current_index]);
+			//var location_html = '';
+			//location_html += '<span>Location: ' + this.collection_info[current_index]['latitude'] + ', ' + this.collection_info[current_index]['longitude'] + '</span>';
+			//$('#mama-project-plant-location').html(location_html);
+		}
+
+		lookupCollectionInfo() {
+			const self = this; // The parent ModalTreeProjectInfo class context
+			$.ajax({
+				url: Drupal.settings.ct_nodejs_api + "/v2/trees/treesnap/get_collection_info?tree_id=" + this.treeId + "&api_key=" + Drupal.settings.ct_api,
+				method: 'GET',
+				success: function (data) {
+					console.log('collection info data', data);
+					self.collection_info = data;
+					self.collection_info_by_tree_id = {};
+					for (var i = 0; i < data.length; i++) {
+						var row = data[i];
+						self.collection_info_by_tree_id[row['uniquename']] = row;
+					}
+					self.updateCurrentTreeStatus();
+				}
+			});
+		}
+
+		updateContentPreviousTree() {
+			var current_tree_id = this.treeId;
+			// Find the index of the current tree in the collection info array
+			var current_index = -1;
+			for (var i = 0; i < this.collection_info.length; i++) {
+				if (this.collection_info[i]['uniquename'] == current_tree_id) {
+					current_index = i;
+					break;
+				}
+			}
+			if (current_index > 0) {
+				var previous_tree_id = this.collection_info[current_index - 1]['uniquename'];
+				this.setTreeId(previous_tree_id);
+				this.updateContent();
+			}
+			else {
+				// Switch to the last tree in the collection if the current tree is the first one
+				var previous_tree_id = this.collection_info[this.collection_info.length - 1]['uniquename'];
+				this.setTreeId(previous_tree_id);
+				this.updateContent();
+			}
+			this.updateCurrentTreeStatus();
+		}
+
+		updateContentNextTree() {
+			var current_tree_id = this.treeId;
+			// Find the index of the current tree in the collection info array
+			var current_index = -1;
+			for (var i = 0; i < this.collection_info.length; i++) {
+				if (this.collection_info[i]['uniquename'] == current_tree_id) {
+					current_index = i;
+					break;
+				}
+			}
+			if (current_index < this.collection_info.length - 1) {
+				var next_tree_id = this.collection_info[current_index + 1]['uniquename'];
+				this.setTreeId(next_tree_id);
+				this.updateContent();
+			}
+			else {
+				// Switch to the first tree in the collection if the current tree is the last one
+				var next_tree_id = this.collection_info[0]['uniquename'];
+				this.setTreeId(next_tree_id);
+				this.updateContent();
+			}
+			this.updateCurrentTreeStatus()
+		}
+
+		setTreeId(treeId) {
+			this.treeId = treeId;
+		}
+
+		updateContent() {
+			console.log('ModalTreeProjectInfo updating content for tree id: ' + this.treeId);
+		}
+	}
+
+
+	// This is an on click trigger for using the ModalMamaProjectInfo class to populate the plant details
+	// Info modal when a user clicks on previous plant arrow button
+	$(document).on('click', '#mama-project-previous-tree-button', function() {
+		console.log('MAMA Modal previous tree button clicked');
+		cartograplant['modal_mama_project_info'].updateContentPreviousTree();
+	});
+
+	// This is an on click trigger for using the ModalMamaProjectInfo class to populate the plant details
+	// Info modal when a user clicks on next plant arrow button
+	$(document).on('click', '#mama-project-next-tree-button', function() {
+		console.log('MAMA Modal next tree button clicked');
+		cartograplant['modal_mama_project_info'].updateContentNextTree();
+	});
+
+
+	class ModalMamaProjectInfo {
+		constructor() {
+			this.collection_info = {};
+			this.treeId = "";
+			this.mama_project_id = -1;
+			this.mama_project_name = "";
+		}
+
+		updateCurrentTreeStatus() {
+			console.log('Updating current tree status for tree id: ' + this.treeId);
+			// Find the current index of the tree in the collection info array
+			var current_index = -1;
+			for (var i = 0; i < this.collection_info[this.mama_project_id].length; i++) {
+				if (this.collection_info[this.mama_project_id][i]['uniquename'] == this.treeId) {
+					current_index = i;
+					break;
+				}
+			}
+
+			$('#mama-project-more-info .modal-header').html('' + this.mama_project_name + ': Plant ' + (current_index + 1) + ' of ' + this.collection_info[this.mama_project_id].length);
+			console.log('MAMA TREE DATA OBJECT', this.collection_info[this.mama_project_id][current_index]);
+			var location_html = '';
+			location_html += '<span>Location: ' + this.collection_info[this.mama_project_id][current_index]['latitude'] + ', ' + this.collection_info[this.mama_project_id][current_index]['longitude'] + '</span>';
+			$('#mama-project-plant-location').html(location_html);
+		}
+
+		lookupCollectionInfo() {
+			const self = this; // The parent ModalMamaProjectInfo class context
+			$.ajax({
+				url: Drupal.settings.ct_nodejs_api + "/v2/trees/mama/get_collection_info?tree_id=" + this.treeId + "&api_key=" + Drupal.settings.ct_api + "&collection_id=" + this.collectionId,
+				method: 'GET',
+				success: function (data) {
+					console.log('collection info data', data);
+					if (data.length > 0) {
+						// Find the mama_project_id from the response (any row should have this so just go for row 0)
+						self.mama_project_id = data[0]['mama_project_id'];
+						self.mama_project_name = data[0]['mama_project_name'];
+						self.collection_info[self.mama_project_id] = data;
+						if (self.collection_info_by_project_id_and_tree_id == undefined) {
+							self.collection_info_by_project_id_and_tree_id = {};
+						}
+						// If there is no cache for this mama_project_id, create it and populate it with the data from the response
+						if (self.collection_info_by_project_id_and_tree_id[self.mama_project_id] == undefined) {
+							self.collection_info_by_project_id_and_tree_id[self.mama_project_id] = {};
+							for (var i = 0; i < data.length; i++) {
+								var row = data[i];
+								// self.collection_info_by_tree_id[row['uniquename']] = row;
+								self.collection_info_by_project_id_and_tree_id[self.mama_project_id][row['uniquename']] = row;
+							}
+						}
+					}
+					self.updateCurrentTreeStatus();
+				}
+			});
+		}
+
+		updateContentPreviousTree() {
+			var current_tree_id = this.treeId;
+			// Find the index of the current tree in the collection info array
+			var current_index = -1;
+			for (var i = 0; i < this.collection_info[this.mama_project_id].length; i++) {
+				if (this.collection_info[this.mama_project_id][i]['uniquename'] == current_tree_id) {
+					current_index = i;
+					break;
+				}
+			}
+			if (current_index > 0) {
+				var previous_tree_id = this.collection_info[this.mama_project_id][current_index - 1]['uniquename'];
+				this.setTreeId(previous_tree_id);
+				this.updateContent();
+			}
+			else {
+				// Switch to the last tree in the collection if the current tree is the first one
+				var previous_tree_id = this.collection_info[this.mama_project_id][this.collection_info[this.mama_project_id].length - 1]['uniquename'];
+				this.setTreeId(previous_tree_id);
+				this.updateContent();
+			}
+			this.updateCurrentTreeStatus();
+		}
+
+		updateContentNextTree() {
+			var current_tree_id = this.treeId;
+			// Find the index of the current tree in the collection info array
+			var current_index = -1;
+			for (var i = 0; i < this.collection_info[this.mama_project_id].length; i++) {
+				if (this.collection_info[this.mama_project_id][i]['uniquename'] == current_tree_id) {
+					current_index = i;
+					break;
+				}
+			}
+			if (current_index < this.collection_info[this.mama_project_id].length - 1) {
+				var next_tree_id = this.collection_info[this.mama_project_id][current_index + 1]['uniquename'];
+				this.setTreeId(next_tree_id);
+				this.updateContent();
+			}
+			else {
+				// Switch to the first tree in the collection if the current tree is the last one
+				var next_tree_id = this.collection_info[this.mama_project_id][0]['uniquename'];
+				this.setTreeId(next_tree_id);
+				this.updateContent();
+			}
+			this.updateCurrentTreeStatus()
+		}
+
+		setTreeId(treeId) {
+			this.treeId = treeId;
+		}
+
+		updateContent() {
+			console.log('MAMA Modal updating content for tree id: ' + this.treeId);
+			$('.btn[data-target="#mama-project-more-info"]').parent().removeClass("hidden");
+			$('.btn[data-target="#mama-project-more-info"]').html('Project Info');
+			$('#mama-project-tree-id').html(this.treeId.toUpperCase());
+
+			// Find the species from the collection_info_by_tree_id object
+			var genus_species = "";
+			console.log('Looking up species for tree id: ' + this.treeId);
+			try {
+				console.log(this.collection_info_by_project_id_and_tree_id[this.mama_project_id]);
+				if (this.collection_info_by_project_id_and_tree_id[this.mama_project_id] != undefined && this.collection_info_by_project_id_and_tree_id[this.mama_project_id][this.treeId] != undefined) {
+					var genus = this.collection_info_by_project_id_and_tree_id[this.mama_project_id][this.treeId]['genus'];
+					var species = this.collection_info_by_project_id_and_tree_id[this.mama_project_id][this.treeId]['species'];
+					if (genus != undefined && species != undefined) {
+						if (genus != null && genus != "") {
+							genus_species += genus;
+						}
+						if (species != null && species != "") {
+							genus_species += " " + species.replaceAll("Fraxinus", "");
+						}
+					}
+					if (genus_species == "") {
+						$('#mama-project-tree-species').html('');
+						// Hide it
+						$('#mama-project-tree-species').hide();
+					}
+					else {
+						$('#mama-project-tree-species').html(genus_species);
+						$('#mama-project-tree-species').show();
+					}
+				}
+			}
+			catch (err) {
+				console.log('MAMA Genus Species lookup error', err);
+			}
+			
+			
+			try {
+				// treeId = treeId.split("--")[1];	
+				console.log("TREE ID: " + this.treeId);
+				
+
+				$.ajax({
+					url: Drupal.settings.ct_nodejs_api + "/v2/trees/mama/get_tree_phenotypes?api_key=" + Drupal.settings.ct_api + "&tree_id=" + this.treeId,
+					method: 'GET',
+					success: function (data) {
+						$('#project-tree-species').html($('#tree-species').html());
+						console.log('phenotype data', data);
+						if (data.length > 0) {
+							var html = "";
+							var imgs_html = "";
+							html += "<h2>Phenotypes</h2>";
+							html += "<table style='width: 100%;' id='more_info_phenotype_table'>";
+							html += "<tr>";
+							html += "<th style='width: 50%;'>Phenotype</th>";
+							html += "<th style='width: 50%;'>Value</th>";
+							html += "</tr>";
+							for (var i = 0; i<data.length; i++) {
+								console.log('phenotype row', data[i]);
+								var row = data[i];
+								var row_name_lowercase = row['name'].toLowerCase();
+								if (row_name_lowercase.includes("help text")) {
+									continue;
+								}
+								if (row['value'].includes("anecdata.org")) {
+									imgs_html += '<div style="text-align: center; display: inline-block; margin-right: 20px; color: #589a60; font-weight: bold;">';
+									imgs_html += '<img src="' + row['value'] + '" style="width: 250px; height: 250px; border-radius: 4px;"/>';
+									imgs_html += '<div style="margin-top: -4px;padding-top: 10px;padding-bottom: 5px;background-color: #589a60;border-radius: 0px 0px 5px 5px;color: #FFFFFF;">' + row['name'].replaceAll('Add photo of ', '').replaceAll('if possible', '').replaceAll(',', '').replaceAll('.', '').toUpperCase() + '</div>';
+									imgs_html += '</div>';
+								}
+								else {
+									html += '<tr>';
+									html += '<td>' + row['name'] + '</td>';
+									html += '<td>' + row['value'] + '</td>';
+									html += '</tr>';
+								}
+							}
+							html += "</table>";
+							console.log('imgs_html', imgs_html);
+							$('#project-info-phenotypes').html(html);
+							$('#project-info-phenotypes-images').html(imgs_html);
+						}
+					}
+				})
+			}
+			catch (err) {
+				console.log(err);
+			}
+		}
+	}
+
+
 	// This is an on click trigger for using the ModalSpeciesInfo class to populate the species details 
 	// info modal when a user clicks on a species name in the species details table
 	$(document).on('click', '*[data-target="#species-details-info"]', function() {
@@ -4768,17 +5253,29 @@ var ct_ready_mapjs = function() {
 		$('#tree-specific-coord-value').html('Approximate');
 		$('#tree-details .btn-primary[data-target="#tree-more-info"]').show();
 		
+		// New modal object
+		var modal_tree_project_info = new ModalTreeProjectInfo();
 
 		var sourceName = "TreeGenes";
+		modal_tree_project_info.source_name = "TreeGenes";
+		
 		if(debug) {
 			console.log("renderTreeDetails function");
 			console.log(data);
 		}
-		var treeId = data.uniquename;
-		var sourceId = data.source_id;
-		resetTreeModalData();
 
-		$('#tree-more-info-label-species').html(data.species);
+		var treeId = data.uniquename;
+		modal_tree_project_info.tree_id = data.uniquename;
+
+		var sourceId = data.source_id;
+		modal_tree_project_info.source_id = data.source_id;
+
+		// resetTreeModalData();
+		modal_tree_project_info.resetModalUI();
+
+		modal_tree_project_info.UI_update_species(data.species);
+
+		// $('#tree-more-info-label-species').html(data.species);
 
 		console.log('tree source_id', data.source_id);
 		console.log('species', data.species);
@@ -4786,11 +5283,14 @@ var ct_ready_mapjs = function() {
 		$('.btn[data-target="#mama-project-more-info"]').parent().addClass("hidden");
 		// await updateTreeImgs([], data.species);
 		if (data.source_id == 1  || data.source_id == 5) {
+
+			// modal_tree_project_info.UI_update_content();
+
+			sourceName = "TreeSnap";
 			// If treesnap tree, set the button label to Collection Info (Tree Popup window)
 			$('.btn[data-target="#tree-more-info"]').parent().removeClass("hidden");
 			$('.btn[data-target="#tree-more-info"]').html('Collection Info');
 			$('.add-all-study-plants').html('Add all collection plants');
-			sourceName = "TreeSnap";
 
 			// Perform a lookup of the tree_id to get the collection name which we will then display on the
 			// 'study details' popup.
@@ -4898,60 +5398,14 @@ var ct_ready_mapjs = function() {
 		}
 		// else for mama
 		else if (data.source_id == 6) {
+			sourceName = "MAMA EAB";
 			updateTreeImgs([], data.species);
-			$('.btn[data-target="#mama-project-more-info"]').parent().removeClass("hidden");
-			$('.btn[data-target="#mama-project-more-info"]').html('Project Info');
-			$('#project-tree-id').html(treeId.toUpperCase());
-			
-			try {
-				// treeId = treeId.split("--")[1];	
-				console.log("TREE ID: " + treeId);
-				
 
-				$.ajax({
-					url: Drupal.settings.ct_nodejs_api + "/v2/trees/mama/get_tree_phenotypes?api_key=" + Drupal.settings.ct_api + "&tree_id=" + treeId,
-					method: 'GET',
-					success: function (data) {
-						$('#project-tree-species').html($('#tree-species').html());
-						console.log('phenotype data', data);
-						if (data.length > 0) {
-							var html = "";
-							var imgs_html = "";
-							html += "<h2>Phenotypes</h2>";
-							html += "<table style='width: 100%;' id='more_info_phenotype_table'>";
-							html += "<tr>";
-							html += "<th style='width: 50%;'>Phenotype</th>";
-							html += "<th style='width: 50%;'>Value</th>";
-							html += "</tr>";
-							for (var i = 0; i<data.length; i++) {
-								var row = data[i];
-								var row_name_lowercase = row['name'].toLowerCase();
-								if (row_name_lowercase.includes("help text")) {
-									continue;
-								}
-								if (row['value'].includes("https://anecdata.org")) {
-									imgs_html += '<div style="text-align: center; display: inline-block; margin-right: 20px; color: #589a60; font-weight: bold;">';
-									imgs_html += '<img src="' + row['value'] + '" style="width: 250px; height: 250px; border-radius: 4px;"/>';
-									imgs_html += '<div style="margin-top: -4px;padding-top: 10px;padding-bottom: 5px;background-color: #589a60;border-radius: 0px 0px 5px 5px;color: #FFFFFF;">' + row['name'].replaceAll('Add photo of ', '').replaceAll('if possible', '').replaceAll(',', '').replaceAll('.', '').toUpperCase() + '</div>';
-									imgs_html += '</div>';
-								}
-								else {
-									html += '<tr>';
-									html += '<td>' + row['name'] + '</td>';
-									html += '<td>' + row['value'] + '</td>';
-									html += '</tr>';
-								}
-							}
-							html += "</table>";
-							$('#project-info-phenotypes').html(html);
-							$('#project-info-phenotypes-images').html(imgs_html);
-						}
-					}
-				})
-			}
-			catch (err) {
-				console.log(err);
-			}
+			// This updates the MAMA Project Info Modal details
+			cartograplant['modal_mama_project_info'] = new ModalMamaProjectInfo();
+			cartograplant['modal_mama_project_info'].setTreeId(treeId);
+			cartograplant['modal_mama_project_info'].lookupCollectionInfo();
+			cartograplant['modal_mama_project_info'].updateContent();
 		}
 		else {
 			// If not a treesnap tree, set the button label to Study Info (Tree Popup window)
@@ -4999,11 +5453,12 @@ var ct_ready_mapjs = function() {
 				console.log('UpdateTreeImages for BIEN', data.species);
 				updateTreeImgs(undefined, data.species);
 			}
+			
 
 			$("#tree-submitter").text("This is a default image");
 		}
 
-		var source_id = data.source_id;
+		// var source_id = data.source_id;
 
 		// perform biome lookup
 		// console.log("IT CAME HERE");

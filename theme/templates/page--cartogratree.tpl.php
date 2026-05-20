@@ -2448,7 +2448,7 @@ Today, CartograPlant continues to support the forest tree community, and increas
 											<div class="" style="width: 100%;">
 												<div class="" style="display: inline-block; width: 60%;">
 													<h6 class="">
-														<!-- <i class="fas fa-database" style="margin-right: 5px;"></i>--> <img src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/trees_imgs/plant_treesnap.png" /> MAMA EAB
+														<!-- <i class="fas fa-database" style="margin-right: 5px;"></i>--> <img src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/trees_imgs/plant_treesnap.png" /> MAMA
 													</h6>
 												</div>
 												<div class="" style="display: inline-block; width: 20%;">
@@ -2553,7 +2553,13 @@ Today, CartograPlant continues to support the forest tree community, and increas
 										</li>
 
 										<!-- WFID TODO -->
-										<?php if( user_access("access cartogratree wfid") ) { ?>
+										<?php 
+										
+										// if( user_access("access cartogratree wfid") ) {
+										if ($show_wfid) {
+											// This defaults to false as of 5/17/2026 request by Jill / Meghan
+										
+										?>
 										
 										<li class="list-group-item list-group-item-action d-flex">
 											<div class="" style="width: 100%;">
@@ -2969,7 +2975,7 @@ Today, CartograPlant continues to support the forest tree community, and increas
 <div class="modal fade" id="mama-project-more-info" tabindex="-1" role="dialog" aria-labelledby="project-more-info-label" aria-hidden="true">	
 	<div class="modal-dialog modal-lg" role="document">
 		<div class="modal-content">
-			<div class="modal-header">
+			<div class="modal-header" style="justify-content: unset;">
 				<!-- <h3 class="modal-title" id="project-more-info-label">Project Info</h3> -->
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
@@ -2981,11 +2987,23 @@ Today, CartograPlant continues to support the forest tree community, and increas
 					<!-- <div id="biome-number" style="display: inline-block; margin-left: 10px;"></div> -->
 					
 					<div id="project-info-desc" style="margin-left: 5px; "></div>
-					<h2 id="project-tree-id"></h2>
-					<div id="project-tree-species" style="padding: 5px 10px 5px 10px; background-color: #589a60; border-radius: 5px; color: #FFFFFF; display: inline-block;"></div>
-					<h2>Plant specific details</h2>
-					<div id="project-info-phenotypes-images" style="margin-left: 5px; "></div>
-					<div id="project-info-phenotypes" style="margin-left: 5px; "></div>
+					<div id="mama-project-collection-current-tree-status" style="padding: 5px; padding-left: 1px; color:rgb(56, 103, 62);"></div>
+					<div style="margin-left: 2px;">
+						<div id="mama-project-tree-id" style="display: inline-block; font-size: 24px; width: 15%;"></div>
+						<div id="mama-project-previous-tree-button" style="display: inline-block; margin-left: 10px; cursor: pointer;" title="Previous plant in project" data-placement="top" data-toggle="tooltip">
+							<i class="fa-solid fa-angle-left fa-beat-fade fa-xl"></i>
+						</div>
+						<div id="mama-project-next-tree-button" style="display: inline-block; margin-left: 10px; cursor: pointer;" title="Next plant in project" data-placement="top" data-toggle="tooltip">
+						<i class="fa-solid fa-angle-right fa-beat-fade fa-xl"></i>
+						</div>
+					</div>
+					<div id="mama-project-tree-species" style="padding: 5px 10px 5px 10px; background-color: #589a60; border-radius: 5px; color: #FFFFFF; display: inline-block;"></div>
+					<h2 id="mama-project-plant-specific-details-title" style="padding-bottom: 4px;">Plant specific details</h2>
+					<div id="mama-project-plant-specific-details" style="margin-left: 1px; margin-bottom: 4px; ">
+						<div id="mama-project-plant-location"></div>
+					</div>
+					<div id="project-info-phenotypes-images" style="margin-left: 0px; "></div>
+					<div id="project-info-phenotypes" style="margin-left: 0px; "></div>
 				</div>
 			</div>
 			<div class="modal-footer">
