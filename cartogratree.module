@@ -74,6 +74,34 @@ function cartogratree_menu()
         ),
     );
 
+
+    $items['cartogratree_uiapi/layers/get_layers_by_analysis_category_id/%'] = array(
+        'description' => 'Cartogratree UI API: Get layers by analysis category id',
+        'title' => 'Cartogratree UI API: Get layers by analysis category id',
+        'page callback' => 'cartogratree_uiapi_get_layers_by_analysis_category_id',
+        'page arguments' => array(
+            3,
+        ),
+        'file' => 'includes/cartogratree.uiapi.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
+    // JSON: All Analysis Categories in an array of objects with category_id and title
+    $items['cartogratree_uiapi/layers/get_analysis_categories'] = array(
+        'description' => 'Cartogratree UI API: Get analysis categories for layers.',
+        'title' => 'Cartogratree UI API: Get analysis categories for layers.',
+        'page callback' => 'cartogratree_uiapi_get_analysis_categories',
+        'page arguments' => array(
+            // 2,
+        ),
+        'file' => 'includes/cartogratree.uiapi.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
     $items['cartogratree_uiapi/speciesinfo/subspecieshybrids/%'] = array(
         'description' => 'Cartogratree UI API: Species Info Subspecies and Hybrids',
         'title' => 'Cartogratree UI API: Species Info Subspecies and Hybrids',
@@ -1308,7 +1336,30 @@ function cartogratree_preprocess_page(&$variables)
         }
 
         list($groups, $layers, $layer_ids) = cartogratree_get_groups_layers($rids, $uid);
+        // Override to force layer_menu_version=2 (PRODUCTION)
+        $_GET['layer_menu_version'] = 2;
+
+
+        if (intval($_GET['layer_menu_version']) == 2) {
+            $layers = [];
+        }
         $variables['cartogratree_layers'] = $groups;
+
+        // $variables['layers_by_analysis_group'] = [];
+        // foreach ($variables['cartogratree_layers'] as $t_layer) {
+        //     $analysis_category_id = intval($t_layer['analysis_category_id']);
+        //     if ($analysis_category_id == 0 || $analysis_category_id == null) {
+        //         $cat_name = "Uncategorized";
+        //     }
+        //     $cat_name = $t_layer['analysis_category_name'];
+        //     if (!isset($variables['layers_by_analysis_group'][$cat_name])) {
+        //         $variables['layers_by_analysis_group'][$cat_name] = [];
+        //     }
+        //     $variables['layers_by_analysis_group'][$cat_name][] = $t_layer;
+        // }
+        // $settings['layers_by_analysis_group'] = $variables['layers_by_analysis_group'];
+
+
         $variables['logged_in'] = user_is_logged_in();
 
         $fields_data = cartogratree_get_tree_options($api_key);
@@ -1729,6 +1780,7 @@ function cartogratree_get_groups_layers($rids, $uid)
 {
     $query = db_select('cartogratree_layers', 'l');
     $query->leftJoin('cartogratree_layers_environmental_units', 'e', 'e.layer_id = l.layer_id');
+    $query->leftJoin('cartogratree_layers_analysis_categories', 'c', 'c.category_id = l.analysis_category_id');
     $query->join('cartogratree_groups', 'g', 'g.group_id = l.group_id');
     $query->join('cartogratree_subgroups', 's', 's.subgroup_id = l.subgroup_id');
     $query->join('cartogratree_groups_subgroups', 'gs', 'gs.group_id = g.group_id AND gs.subgroup_id = s.subgroup_id');
@@ -1737,7 +1789,8 @@ function cartogratree_get_groups_layers($rids, $uid)
         ->condition('p.uid', $uid, '=')
         ->condition('p.rid', $rids, 'IN');*/
     $records = $query //->condition($or_cond)
-        ->fields('l', array('layer_id', 'title', 'name', 'url', 'layer_rank', 'trees_layer', 'layer_type', 'layer_host', 'layer_styles', 'layer_embedded_data_decimal_precision', 'layer_allow_user_select_colors', 'layer_year_range_filter_option', 'layer_year_range_filter_geoserver_parameter', 'layer_year_range_filter_year_start', 'layer_year_range_filter_year_end', 'layer_legend_orientation', 'layer_legend_hide_default', 'layer_multilayer_rangeslider_year_option', 'layer_multilayer_rangeslider_start_year', 'layer_multilayer_rangeslider_end_year', 'layer_legend_image'))
+        ->fields('l', array('layer_id', 'title', 'name', 'url', 'layer_rank', 'trees_layer', 'layer_type', 'layer_host', 'layer_styles', 'layer_embedded_data_decimal_precision', 'layer_allow_user_select_colors', 'layer_year_range_filter_option', 'layer_year_range_filter_geoserver_parameter', 'layer_year_range_filter_year_start', 'layer_year_range_filter_year_end', 'layer_legend_orientation', 'layer_legend_hide_default', 'layer_multilayer_rangeslider_year_option', 'layer_multilayer_rangeslider_start_year', 'layer_multilayer_rangeslider_end_year', 'layer_legend_image', 'analysis_category_id'))
+        ->fields('c', array('title'))
         ->fields('e', array('unit_labels'))
         ->fields('g', array('group_name', 'group_rank'))
         ->fields('s', array('subgroup_name'))
@@ -1750,10 +1803,15 @@ function cartogratree_get_groups_layers($rids, $uid)
     $layers = array();
     $layer_ids = array();
     foreach ($records as $record) {
+        // dpm($record);
+        
         $curr_group = &$groups[$record->group_rank];
         //$curr_group['id'] = $record->layer_id;
         $curr_group['group_name'] = $record->group_name;
         $curr_group['group_rank'] = $record->group_rank;
+
+        $curr_group['analysis_category_id'] = $record->analysis_category_id;
+        $curr_group['analysis_category_title'] = $record->c_title;
         /*
         if ($record->subgroup_name != '[No subgroup]') {
         	$curr_group['has_subgroups'] = TRUE;
@@ -1796,6 +1854,8 @@ function cartogratree_get_groups_layers($rids, $uid)
 
         // layer_legend_orientation
         $curr_layer['layer_legend_orientation'] = $record->layer_legend_orientation;
+        $curr_layer['analysis_category_id'] = $record->analysis_category_id;
+        $curr_layer['analysis_category_title'] = $record->c_title;
 
         $cartogratree_layer = &$layers["cartogratree_layer_" . $record->layer_id];
         $cartogratree_layer['layer_id'] = $record->layer_id;
@@ -1829,6 +1889,8 @@ function cartogratree_get_groups_layers($rids, $uid)
         $cartogratree_layer['layer_legend_hide_default'] = $record->layer_legend_hide_default;
         $cartogratree_layer['host'] = $record->layer_host;
         $cartogratree_layer['filters'] = 0;
+        $cartogratree_layer['analysis_category_id'] = $record->analysis_category_id;
+        $cartogratree_layer['analysis_category_title'] = $record->c_title;
         $layer_ids[] = $record->layer_id; //push to layer_ids array
     }
     return array($groups, $layers, $layer_ids);
@@ -1990,7 +2052,10 @@ function cartogratree_get_publications_info()
         // 	$tgdr['pub_tgdr'][] = $row->accession;
         // }
         $tgdr['pub_title'][] = $row->title;
-        $tgdr['pub_author'][] = $row->author;
+        $author = $row->author;
+        $author = ltrim($author, ', ');
+        $author = rtrim($author, ',');
+        $tgdr['pub_author'][] = $author;
         $tgdr['pub_tgdr'][] = $row->accession;
     }
     return $tgdr;

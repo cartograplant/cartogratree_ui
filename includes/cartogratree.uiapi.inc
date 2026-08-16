@@ -967,6 +967,62 @@ function cartogratree_uiapi_get_phenotype_attributes_by_species_text($species_te
     drupal_json_output($phenotypes);
 }
 
+function cartogratree_uiapi_get_layers_by_analysis_category_id($analysis_category_id) {
+    $results = chado_query('SELECT *, l.title as layer_title, c.title as category_title FROM public.cartogratree_layers l
+        LEFT JOIN public.cartogratree_groups g ON l.group_id = g.group_id 
+        LEFT JOIN public.cartogratree_subgroups sg ON l.subgroup_id = sg.subgroup_id
+        LEFT JOIN public.cartogratree_layers_analysis_categories c ON l.analysis_category_id = c.category_id
+        LEFT JOIN public.cartogratree_groups_subgroups gsg ON g.group_id = gsg.group_id AND sg.subgroup_id = gsg.subgroup_id
+        WHERE analysis_category_id = :analysis_category_id ORDER BY layer_id ASC;', 
+        [':analysis_category_id' => $analysis_category_id]);
+    $layers = [];
+    foreach ($results as $row) {
+        // $layers[] = (array) $row;
+        $layers[] = [
+            'layer_id' => $row->layer_id,
+            'host' => $row->layer_host, // for backwards compatibility
+            'isMultiLayeredYear' => $row->layer_multilayer_rangeslider_year_option,
+            'layer_multilayer_rangeslider_start_year' => $row->layer_multilayer_rangeslider_start_year,
+            'layer_multilayer_rangeslider_end_year' => $row->layer_multilayer_rangeslider_end_year,
+            'layer_multilayer_rangeslider_year_option' => $row->layer_multilayer_rangeslider_year_option,
+            'layer_year_range_filter_option' => $row->layer_year_range_filter_option,
+            'layer_year_range_filter_year_start' => $row->layer_year_range_filter_year_start,
+            'layer_year_range_filter_year_end' => $row->layer_year_range_filter_year_end,
+            'layer_year_range_filter_geoserver_parameter' => $row->layer_year_range_filter_geoserver_parameter,
+            'layer_styles' => $row->layer_styles,
+            'layer_host' => $row->layer_host,
+            'layer_name' => $row->name,
+            'layer_title' => $row->layer_title,
+            'description' => $row->description,
+            'group_id' => $row->group_id,
+            'group_name' => $row->group_name,
+            'group_rank' => $row->group_rank,
+            'subgroup_id' => $row->subgroup_id,
+            'subgroup_name' => $row->subgroup_name,
+            'subgroup_rank' => $row->subgroup_rank,
+            'analysis_category_id' => $row->analysis_category_id,
+            'analysis_category_title' => $row->category_title,
+        ];
+    };
+    drupal_json_output($layers);
+}
+
+function cartogratree_uiapi_get_analysis_categories() {
+    $results = chado_query('SELECT * FROM public.cartogratree_layers_analysis_categories ORDER BY category_id ASC;', []);
+    $categories = [];
+    $categories[] = [
+        'category_id' => null,
+        'title' => 'Uncategorized'
+    ];
+    foreach ($results as $row) {
+        $categories[] = [
+            'category_id' => $row->category_id,
+            'title' => $row->title,
+        ];
+    };
+    drupal_json_output($categories);
+}
+
 function cartogratree_uiapi_get_plant_structures_by_species_text($species_text) {
     $results = chado_query('SELECT distinct(structure_name) 
         FROM public.ct_trees_all_view   

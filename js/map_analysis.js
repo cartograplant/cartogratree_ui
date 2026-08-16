@@ -5,6 +5,13 @@ var analysis_completion_json = {
 	analysis_study_filter_markers_and_genotypes: {},
 }
 var analysis_left_menu_collapsed = false;
+var analysis_object = {
+	sections: {
+		'environmental_metrics': {
+			functions: {}
+		}
+	}
+};
 var ct_ready_map_analysis = function() {
 	var galaxy_id = null; // the galaxy server / connection to be used for analysis
 	var workflow_id = null; // the workflow id to be used for the analysis
@@ -7069,9 +7076,8 @@ var ct_ready_map_analysis = function() {
 						success: function(data) {
 							var data = JSON.parse(data);
 							console.log('GWAS Step Completion:', data);
-
 							// if (data['response']['success'] == "true") {
-							if (data['response']['endTime'] != 'null' && data['response']['endTime'] != null && data['response']['endTime'] != undefined) {
+							if (data['response']['success'] == "true" && data['response']['endTime'] != 'null' && data['response']['endTime'] != null && data['response']['endTime'] != undefined) {
 								// Remove the PID
 								$('#nextflow-gwas-data').attr('data-gwas-pid', '');
 								$('#nextflow-gwas-results').html('✅ GWAS Step Completed');
@@ -7104,6 +7110,13 @@ var ct_ready_map_analysis = function() {
 									//	target: '.vis-img-zoom'
 									//});
 								}
+								clearInterval(analysis_timers['gwas_step_execution_completion_json']);
+							}
+							else if (data['response']['success'] == "false" && data['response']['errorMessage'] != null && data['response']['errorMessage'] != 'null') {
+								// Remove the PID
+								$('#nextflow-gwas-data').attr('data-gwas-pid', '');
+								$('#nextflow-gwas-results').html('<div>❌ GWAS Step Failed</div>');
+								$('#nextflow-gwas-results').append('<div>' + data['response']['errorMessage'] + '</div>');
 								clearInterval(analysis_timers['gwas_step_execution_completion_json']);
 							}
 							// else if (data['response']['success'] == "false") {
@@ -7187,7 +7200,7 @@ var ct_ready_map_analysis = function() {
 							html += '<tr>';
 							html += '<td style="padding-bottom: 10px; text-transform: capitalize;">' + step_property_description + '</td>';
 							html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
-							html += '<select class="property_form_field" data-input-name="' + step_property_key + '">';
+							html += '<select style="cursor: pointer" class="property_form_field" data-input-name="' + step_property_key + '">';
 							var options = step_property_object['options'];
 
 							var options_keys = Object.keys(options);
@@ -7341,8 +7354,8 @@ var ct_ready_map_analysis = function() {
 	}
 
 
-	$('body').off('click', '#nextflow-gwas-interface select#gwas_choose_sub_workflow');
-	$('body').on('click', '#nextflow-gwas-interface select#gwas_choose_sub_workflow', function() {
+	$('body').off('click input', '#nextflow-gwas-interface select#gwas_choose_sub_workflow');
+	$('body').on('click input', '#nextflow-gwas-interface select#gwas_choose_sub_workflow', function() {
 		console.log('gwas_choose_sub_workflow selected');
 		var model = $(this).val();
 		console.log('gwas_parent_model_name', gwas_parent_model_name);
@@ -7374,8 +7387,8 @@ var ct_ready_map_analysis = function() {
 	var gwas_model_data = '';
 	$('#analysis-create-analysis-section-tab').click(function() {
 
-		$('body').off('click', '#nextflow-gwas-interface select[data-input-name="workflow"]');
-		$('body').on('click', '#nextflow-gwas-interface select[data-input-name="workflow"]', function() {
+		$('body').off('click input', '#nextflow-gwas-interface select[data-input-name="workflow"]')
+		$('body').on('click input', '#nextflow-gwas-interface select[data-input-name="workflow"]', function() {
 			console.log('GWAS model selected');
 			$('#nextflow-gwas-interface-model-options').html(''); // clear previous model UI
 
@@ -7402,13 +7415,13 @@ var ct_ready_map_analysis = function() {
 			html_submodels_choice_html += '<tr>';
 			html_submodels_choice_html += '<td style="padding-bottom: 10px; text-transform: capitalize;">Choose sub workflow</td>';
 			html_submodels_choice_html += '<td style="padding-left: 10px; padding-bottom: 10px;">';
-			html_submodels_choice_html += '<select id="gwas_choose_sub_workflow">';
+			html_submodels_choice_html += '<select style="cursor: pointer" id="gwas_choose_sub_workflow">';
 			// The keys will contain the submodels
 			var submodels_keys = Object.keys(workflow_data);
 			for (var sm_i = 0; sm_i < submodels_keys.length; sm_i++) {
 				var submodel_key = submodels_keys[sm_i];
 				console.log('submodel_key', submodel_key);
-				html_submodels_choice_html += '<option value="' + submodel_key + '">' + workflow_data[submodel_key]['title'] + '</option>';
+				html_submodels_choice_html += '<option style="cursor: pointer" value="' + submodel_key + '">' + workflow_data[submodel_key]['title'] + '</option>';
 			}
 			html_submodels_choice_html += '</select>';
 			html_submodels_choice_html += '<table>';
@@ -7530,7 +7543,7 @@ var ct_ready_map_analysis = function() {
 								interface_html += '<div style="padding-bottom: 10px; text-transform: capitalize;">' + input_properties[property_name]['description'] + '</div>';
 								interface_html += '<div style="padding-bottom: 10px;">';
 								// interface_html += '<input type="text" data-input-name="' + property_name + '" />'
-								interface_html += '<select class="property_form_field" data-input-name="' + din + '">';
+								interface_html += '<select style="cursor: pointer" class="property_form_field" data-input-name="' + din + '">';
 								var property_options_keys = Object.keys(property_options);
 								console.log('property_options_keys', property_options_keys);
 								for (var ok_i = 0; ok_i < property_options_keys.length; ok_i++) {
@@ -8971,6 +8984,10 @@ var ct_ready_map_analysis = function() {
 						category_group_container_html += "</div>";
 						var category_group_container = $(category_group_container_html);
 
+						if (data[i]['group_name'] == null) {
+							continue;
+						}
+
 						var item_html = "<div style='display: inline-block; font-size: 20px; position: relative;top: -5px;'>˪ </div><input type='checkbox' class='analysis_category_group_checkbox' id='analysis_category_" + category_id + "_group_" + data[i]['group_id'] + "'><div style='display: inline-block; color:#FFFFFF; background-color: #dc6e00; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; vertical-align: middle;'>group</div>" + data[i]['group_name'] + "</div>";
 						item_html += '<div style="padding-left: 20px;" class="search_box_container" id="analysis_category_' + category_id + '_groups_' + data[i]['group_id'] + '_search_box_container" data-category="' + category_id +  '" data-group="' + data[i]['group_id'] + '">';
 						item_html += '<div data-toggle="tooltip" title="Search group properties" style="display: inline-block; color:#FFFFFF; background-color: #ae46ef; border-radius: 2px; font-size: 10px; margin-left: 5px; margin-right: 5px; text-transform: uppercase; padding: 2px; padding-left: 4px; padding-right: 4px; vertical-align: middle;"><i class="fa fa-search" aria-hidden="true"></i> Search</div>'
@@ -9810,13 +9827,15 @@ var ct_ready_map_analysis = function() {
 	var analysis_envdata_end_time = 0;
 
 
-	try {
-		$(document).off('click', '#analysis-generateoutput-envdata-section-button');
-	}
-	catch (error) {}
+	try { $(document).off('click', '#analysis-generateoutput-envdata-section-button');} catch (error) {}
 
 	// This is version 3
 	$(document).on('click', '#analysis-generateoutput-envdata-section-button', function() {
+		analysis_object['sections']['environmental_metrics']['functions']['generateoutput-envdata']();
+	});
+
+	// Save function to the analysis_object for environmental metrics section
+	analysis_object['sections']['environmental_metrics']['functions']['generateoutput-envdata'] = function () {
 		var tree_list_for_websocket_command = '';
 
 		var selections_studies = get_selections_studies();
@@ -9859,13 +9878,21 @@ var ct_ready_map_analysis = function() {
 		);
 		console.log('End of sending data to CTAPIWSS CONN');
 		aes_progressbar_description.html("Payload sent, awaiting environmental stream response...");
-	});
+	}
+	// });
 
 	// This is to retrieve envdata from the dynamic database tables instead
 	try {
 		$('#analysis-generateoutput-envdata-section-from-db-button').off('click');
 	} catch (error) {}
 	$('#analysis-generateoutput-envdata-section-from-db-button').click(function() {
+		analysis_object['sections']['environmental_metrics']['functions']['generateoutput-envdata']();
+		
+		// The following additional function will get called after the WSS has fully responded
+		// analysis_object['sections']['environmental_metrics']['functions']['generateoutput-envdata-from-db']();
+	});
+
+	analysis_object['sections']['environmental_metrics']['functions']['generateoutput-envdata-from-db'] = function () {
 		console.log('Checking database for plants with locations');
 		console.log('detected_studies', Object.keys(cartograplant.detected_studies))
 		// We first need to get all the tree ids
@@ -10306,9 +10333,7 @@ var ct_ready_map_analysis = function() {
 				}
 			})				
 		}
-
-
-	});
+	}
 
 
 

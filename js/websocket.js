@@ -58,11 +58,14 @@
 					var aes_progressbar_description = $("#analysis-envdata-section-progressbar-description");
 					aes_progressbar_description.html("Received tree data for " + analysis_envdata_current_progress_tree_count + " of " + analysis_envdata_current_progress_tree_total + " trees");			
 
-					if(analysis_envdata_current_progress_tree_count == analysis_envdata_current_progress_tree_total) {
-						var item_html = "<button id='download_analysis_envdata_csv_data_button' class='btn btn-primary'>Download ENVDATA</button>";
-						$('#download_analysis_envdata_csv_data_button_container').html(item_html);				
-					}
+					// if(analysis_envdata_current_progress_tree_count == analysis_envdata_current_progress_tree_total) {
+					// 	var item_html = "<button id='download_analysis_envdata_csv_data_button' class='btn btn-primary'>Download ENVDATA</button>";
+					// 	$('#download_analysis_envdata_csv_data_button_container').html(item_html);				
+					// }
 
+				}
+				else if (msg.startsWith('environmental_data_csv_line_complete::true')) {
+					analysis_object['sections']['environmental_metrics']['functions']['generateoutput-envdata-from-db']();
 				}
 				else if (msg.startsWith('snps_to_missing_freq_single_tree::')) {
 					var msg_parts = msg.split('::');

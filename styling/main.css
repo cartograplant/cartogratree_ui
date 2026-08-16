@@ -823,6 +823,11 @@ select {
   margin-top: 5px;
 }
 
+/* WebKit / Safari support */
+#nextflow-gwas-interface select[data-input-name="workflow"] {
+  cursor: pointer;
+}
+
 .navbar-brand img{
   width: 35vh;
 }

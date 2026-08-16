@@ -65,6 +65,15 @@
 				?>
                     <i class="fas fa-flask" style="margin-right: 5px;"></i> Jobs
                 </a>
+            </li>
+			<li class="nav-item">
+				<?php
+                	//if($variables['logged_in']){
+                		echo '<a class="nav-link" style="margin-right: 15px;" id="studies-btn" href="#">';					
+					// }
+				?>
+                    <i class="fas fa-book" style="margin-right: 5px;"></i> Studies
+                </a>
             </li>	
             <li class="nav-item">
                 <a class="nav-link" style="margin-right: 15px;" id="user-guide-btn" target="_blank" href="https://cartograplant.readthedocs.io/en/latest/user.html" target="_blank">					
@@ -942,7 +951,7 @@
 													<div style="border: 1px solid #c3b113; background-color: #fff2be; padding: 10px; text-align: center; margin-bottom: 10px;">
 													<i class="fa-solid fa-circle-info"></i> By adjusting your selected environmental layers, the PCA scatterplot will (re)generate after you click Gather and upload to workspace button. 
 													</div>
-													<div style="text-align: center;"><button id="analysis-generateoutput-envdata-section-button" class="btn btn-primary">Precache values</button><div id="analysis-generateoutput-elapsed-time" style="display: inline-block;"></div></div><br />
+													<!-- <div style="text-align: center;"><button id="analysis-generateoutput-envdata-section-button" class="btn btn-primary">Precache values</button><div id="analysis-generateoutput-elapsed-time" style="display: inline-block;"></div></div><br /> -->
 													<?php //} ?>
 													<div style="text-align: center;"><button id="analysis-generateoutput-envdata-section-from-db-button" class="btn btn-primary">Gather and upload to workspace</button></div>
 													<div style="text-align: center;" id="analysis-generateoutput-envdata-section-from-db-filename"></div>
@@ -1157,6 +1166,62 @@
     </div>
 </div>
 
+<!-- studies form -->
+<div class="modal fade" id="studies-form" tabindex="-1" role="dialog" aria-labelledby="analyzeMap" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="cartogratreeTitle">
+					<img class="lazy" style="width: 120px; " id="ct-logo" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/cp_logo.png">
+					Studies
+				</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+				<!--
+				<ul class="nav nav-tabs nav-fill">
+					<li class="nav-item">
+						<a id='studies-latest-tab' class="nav-link studies-nav-tab studies-latest active" data-toggle="tab" href="#studies-latest">Studies</a>
+					</li>	
+				</ul>
+				-->
+	
+				<div class="tab-content">
+					<div id="studies-latest" class="tab-pane fade in active">	
+						<div class="studies-tab-content">
+							<!-- 
+							<div style="margin-bottom: 10px;">
+								<div>Your Job Analyses</div>
+							</div>
+							-->
+							<div style="margin-bottom: 10px;">
+								<div id="studies-list"></div>
+								<iframe id="studies-list-iframe" style="width: 100%; height: 800px; border: none;" src="https://treegenesdb.org/tpps/details"></iframe>
+							</div>																
+						</div>
+					</div>	
+					<!-- 			
+					<div id="jobs-details" class="tab-pane fade in inactive">	
+						<div class="jobs-tab-content">
+							<div style="margin-bottom: 10px;">
+								<div>Job Information</div>
+							</div>
+							<div style="margin-bottom: 10px;">
+								<div id="jobs-details-info"></div>
+							</div>
+						</div>
+					</div>
+					-->
+				</div>
+			</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- About popup, info taken from original cartogratree -->
 <div class="modal fade" id="about" tabindex="-1" role="dialog" aria-labelledby="aboutCartogratree" aria-hidden="true">
@@ -2298,78 +2363,193 @@ Today, CartograPlant continues to support the forest tree community, and increas
 							-->
 							
 							<?php
-								foreach($variables['cartogratree_layers'] as $group){
-									if($group['group_name'] != 'Trees'){
-										//generate outer most list 
-										$group_name = $group['group_name'];
-										$group_name_parts = explode('(', $group_name);
-										$group_name_title = $group_name_parts[0];
-										$group_name_source = str_replace(')', '', $group_name_parts[1]); 
-										echo '<a href="#main-layer-' . $group['group_rank'] . '"  data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">';
-										if(count($group['subgroups']) > 1){
-											echo '<div class="d-flex w-100 justify-content-start align-items-center"><h6><span class="menu-collapsed">' . $group_name_title . '</span></h6><span class="submenu-icon ml-auto"></span><h6><div style="text-align: right; font-size: 8px; margin-left: 5px;">' . $group_name_source . '</div></h6></div></a>';
-										}
-										else{
-											echo '<div class="d-flex w-100 justify-content-start align-items-center"><h6><span class="menu-collapsed">' . $group_name_title . '</span></h6><span class="submenu-icon ml-auto"></span><h6><div style="text-align: right; font-size: 8px; margin-left: 5px;">' . $group_name_source . '</div></h6></div></a>';
-										}
-										echo '<div class="collapse sidebar-submenu" id="main-layer-' . $group['group_rank'] . '"><ul class="list-unstyled components layers-container">';    
-										if(count($group['subgroups']) == 1){
-											foreach($group['subgroups'] as $key => $subgroup){
-												foreach($subgroup['layers'] as $layer){
-													echo '<li class="justify-content-center container layers-items-header"><div class="row inner-layer-header row-100">';
-													echo '<div class="col-7"><div style="font-size:10px; line-height: 1.6em;"  id="ct-layer-title-' . $layer['layer_id'] . '">';
-													
-													//Clean up code for Species Ranges
-													if(stripos($layer['layer_title'],'range') !== FALSE) {
-														$layer['layer_title'] = str_ireplace(' range','', $layer['layer_title']);
+								$layer_menu_version = 2; // PRODUCTION
+								if ($_GET['layer_menu_version'] != null) {
+									$layer_menu_version = intval($_GET['layer_menu_version']);
+								}
+								if ($layer_menu_version == 2) {
+									// // STEP 1: Get all analysis category names
+									// $groups_by_analysis_category_name = [];
+									// // dpm($variables['cartogratree_layers']);
+									// foreach($variables['cartogratree_layers'] as $group){
+									// 	$analysis_category_name = $group['analysis_category_title'];
+									// 	if ($analysis_category_name == null || $analysis_category_name == '') {
+									// 		$analysis_category_name = 'Uncategorized';
+									// 	}
+									// 	if ($groups_by_analysis_category_name[$group['analysis_category_name']] == null) {
+									// 		$groups_by_analysis_category_name[$group['analysis_category_name']] = [];
+									// 	}
+									// 	$groups_by_analysis_category_name[$analysis_category_name][] = $group;
+									// }
+
+									// $analysis_category_names = array_keys($groups_by_analysis_category_name);
+									// sort($analysis_category_names);
+
+									// foreach ($analysis_category_names as $analysis_category_name) {
+									// 	$analysis_category_name_machine_name = str_ireplace(' ', '_', $analysis_category_name);
+									// 	echo '<a href="#analysis-category-group-' . $analysis_category_name_machine_name . '" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">';
+									// 	echo $analysis_category_name . "<br />";
+									// 	echo '</a>';
+									// 	echo '<div class="collapse sidebar-submenu" id="analysis-category-group-' . $analysis_category_name_machine_name . '"><ul class="list-unstyled components layers-container">';
+									// 	// echo 'Analysis Category Group Container';
+									// 	foreach($variables['cartogratree_layers'] as $group){
+									// 		if($group['group_name'] != 'Trees'){
+									// 			//generate outer most list 
+									// 			$group_name = $group['group_name'];
+									// 			$group_name_parts = explode('(', $group_name);
+									// 			$group_name_title = $group_name_parts[0];
+									// 			$group_name_source = str_replace(')', '', $group_name_parts[1]); 
+									// 			echo '<a href="#main-layer-' . $group['group_rank'] . '"  data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">';
+									// 			if(count($group['subgroups']) > 1){
+									// 				echo '<div class="d-flex w-100 justify-content-start align-items-center"><h6><span class="menu-collapsed">' . $group_name_title . '</span></h6><span class="submenu-icon ml-auto"></span><h6><div style="text-align: right; font-size: 8px; margin-left: 5px;">' . $group_name_source . '</div></h6></div></a>';
+									// 			}
+									// 			else{
+									// 				echo '<div class="d-flex w-100 justify-content-start align-items-center"><h6><span class="menu-collapsed">' . $group_name_title . '</span></h6><span class="submenu-icon ml-auto"></span><h6><div style="text-align: right; font-size: 8px; margin-left: 5px;">' . $group_name_source . '</div></h6></div></a>';
+									// 			}
+									// 			echo '<div class="collapse sidebar-submenu" id="main-layer-' . $group['group_rank'] . '"><ul class="list-unstyled components layers-container">';    
+									// 			if(count($group['subgroups']) == 1){
+									// 				foreach($group['subgroups'] as $key => $subgroup){
+									// 					foreach($subgroup['layers'] as $layer){
+									// 						$t_analysis_category_title = $layer['analysis_category_title'];
+									// 						if ($t_analysis_category_title != $analysis_category_name) {
+									// 							continue; // this will skip this layer if it doesn't match the analysis category we are currently processing. This is necessary because some layers have an analysis category that doesn't match the group level analysis category, and we want to make sure they end up in the correct analysis category group in the menu
+									// 						}
+									// 						echo '<li class="justify-content-center container layers-items-header"><div class="row inner-layer-header row-100">';
+									// 						echo '<div class="col-7"><div style="font-size:10px; line-height: 1.6em;"  id="ct-layer-title-' . $layer['layer_id'] . '">';
+															
+									// 						//Clean up code for Species Ranges
+									// 						if(stripos($layer['layer_title'],'range') !== FALSE) {
+									// 							$layer['layer_title'] = str_ireplace(' range','', $layer['layer_title']);
+									// 						}
+	
+									// 						echo $layer['layer_title'] . '</div>';
+									// 						echo '</div><div class="col-3">';
+									// 						echo '<button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button>';
+									// 						echo '<div style="position: relative; left: -15px; width: 100px;">';
+									// 						echo '<i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 45px;" class="fas fa-info-circle"></i>';
+									// 						echo '<i title="Legend details" id="legend_legend_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 0px; display: none; font-size:18px;" class="fas fa-chart-bar"></i>';
+									// 						echo '</div>';
+									// 						echo '</div></div>';
+									// 						echo '<div id="opacity-ctrl-' . $layer['layer_id'] . '" class="row inner-layer-op row-100 hidden">';
+									// 						echo '<div class="col-5"><label>Opacity <span id="opacity-value-' . $layer['layer_id'] . '">100%</span></label></div>';
+									// 						echo '<div class="col-7"><input class="opacity" id="slider-' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" type="range" min="5" max="100" step="0" value="100"/></div>';
+									// 						echo '</div></li>';	
+									// 					}
+									// 				}
+									// 			}
+									// 			else{
+									// 				foreach($group['subgroups'] as $key => $subgroup){
+									// 					echo '<li class="justify-content-center layers-items-header"><h6><a class="layer_group_title" href="#layer-group-' . $key . $group['group_rank'] . '" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">';
+									// 					echo preg_replace('/\sv\d+/', '', $subgroup['subgroup_name']) . '</a></h6><div class="collapse container-fluid" id="layer-group-' . $key . $group['group_rank'] . '"><ul class="list-unstyled components layers-container">';
+									// 					foreach($subgroup['layers'] as $layer){
+									// 						$t_analysis_category_title = $layer['analysis_category_title'];
+									// 						if ($t_analysis_category_title != $analysis_category_name) {
+									// 							continue; // this will skip this layer if it doesn't match the analysis category we are currently processing. This is necessary because some layers have an analysis category that doesn't match the group level analysis category, and we want to make sure they end up in the correct analysis category group in the menu
+									// 						}
+															
+									// 						echo '<li class="justify-content-center container layers-items">';
+									// 						echo '<div class="row inner-layer-header" style="margin-left: -2.0rem;">';
+									// 						echo '<div class="col-6"><div style="font-size:10px; line-height: 1.6em;"  id="ct-layer-title-' . $layer['layer_id'] . '">';
+															
+									// 						//Clean up code for Precipitation layers
+									// 						// if(stripos($layer['layer_title'],'precipitation') !== FALSE) {
+									// 						// 	$layer['layer_title'] = str_ireplace('precipitation ','', $layer['layer_title']);
+									// 						// }
+	
+									// 						echo $layer['layer_title'] . '</div></div>';
+									// 						echo '<div class="col-6">';
+									// 						echo '<div><button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button></div>';
+									// 						echo '<div style="position: relative; left: 35px;">';
+									// 						echo '<i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 0px;" class="fas fa-info-circle"></i>';
+									// 						echo '<i title="Legend details" id="legend_legend_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 0px; display: none; font-size:18px;" class="fas fa-chart-bar"></i>';
+									// 						echo '</div>';
+									// 						echo '</div>';
+									// 						echo '</div>'; // end row
+									// 						echo '<div id="opacity-ctrl-' . $layer['layer_id'] . '" class="row inner-layer-op hidden"><div class="col-5"><label>Opacity <span id="opacity-value-' . $layer['layer_id'] . '">100%</span></label></div><div class="col-7"><input class="opacity" id="slider-' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" type="range" min="5" max="100" step="0" value="100"/></div></div></li>';
+									// 					}
+									// 					echo '</ul></div></li>';
+									// 				}
+									// 			}
+									// 			echo '</ul></div>';
+									// 		}
+									// 	} 
+									// 	echo '</div>';
+									// }
+								}
+								else {
+									foreach($variables['cartogratree_layers'] as $group){
+										if($group['group_name'] != 'Trees'){
+											//generate outer most list 
+											$group_name = $group['group_name'];
+											$group_name_parts = explode('(', $group_name);
+											$group_name_title = $group_name_parts[0];
+											$group_name_source = str_replace(')', '', $group_name_parts[1]); 
+											echo '<a href="#main-layer-' . $group['group_rank'] . '"  data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">';
+											if(count($group['subgroups']) > 1){
+												echo '<div class="d-flex w-100 justify-content-start align-items-center"><h6><span class="menu-collapsed">' . $group_name_title . '</span></h6><span class="submenu-icon ml-auto"></span><h6><div style="text-align: right; font-size: 8px; margin-left: 5px;">' . $group_name_source . '</div></h6></div></a>';
+											}
+											else{
+												echo '<div class="d-flex w-100 justify-content-start align-items-center"><h6><span class="menu-collapsed">' . $group_name_title . '</span></h6><span class="submenu-icon ml-auto"></span><h6><div style="text-align: right; font-size: 8px; margin-left: 5px;">' . $group_name_source . '</div></h6></div></a>';
+											}
+											echo '<div class="collapse sidebar-submenu" id="main-layer-' . $group['group_rank'] . '"><ul class="list-unstyled components layers-container">';    
+											if(count($group['subgroups']) == 1){
+												foreach($group['subgroups'] as $key => $subgroup){
+													foreach($subgroup['layers'] as $layer){
+														echo '<li class="justify-content-center container layers-items-header"><div class="row inner-layer-header row-100">';
+														echo '<div class="col-7"><div style="font-size:10px; line-height: 1.6em;"  id="ct-layer-title-' . $layer['layer_id'] . '">';
+														
+														//Clean up code for Species Ranges
+														if(stripos($layer['layer_title'],'range') !== FALSE) {
+															$layer['layer_title'] = str_ireplace(' range','', $layer['layer_title']);
+														}
+
+														echo $layer['layer_title'] . '</div>';
+														echo '</div><div class="col-3">';
+														echo '<button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button>';
+														echo '<div style="position: relative; left: -15px; width: 100px;">';
+														echo '<i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 45px;" class="fas fa-info-circle"></i>';
+														echo '<i title="Legend details" id="legend_legend_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 0px; display: none; font-size:18px;" class="fas fa-chart-bar"></i>';
+														echo '</div>';
+														echo '</div></div>';
+														echo '<div id="opacity-ctrl-' . $layer['layer_id'] . '" class="row inner-layer-op row-100 hidden">';
+														echo '<div class="col-5"><label>Opacity <span id="opacity-value-' . $layer['layer_id'] . '">100%</span></label></div>';
+														echo '<div class="col-7"><input class="opacity" id="slider-' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" type="range" min="5" max="100" step="0" value="100"/></div>';
+														echo '</div></li>';	
 													}
-
-													echo $layer['layer_title'] . '</div>';
-													echo '</div><div class="col-3">';
-													echo '<button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button>';
-													echo '<div style="position: relative; left: -15px; width: 100px;">';
-													echo '<i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 45px;" class="fas fa-info-circle"></i>';
-													echo '<i title="Legend details" id="legend_legend_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 0px; display: none; font-size:18px;" class="fas fa-chart-bar"></i>';
-													echo '</div>';
-													echo '</div></div>';
-													echo '<div id="opacity-ctrl-' . $layer['layer_id'] . '" class="row inner-layer-op row-100 hidden">';
-													echo '<div class="col-5"><label>Opacity <span id="opacity-value-' . $layer['layer_id'] . '">100%</span></label></div>';
-													echo '<div class="col-7"><input class="opacity" id="slider-' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" type="range" min="5" max="100" step="0" value="100"/></div>';
-													echo '</div></li>';	
 												}
 											}
-										}
-										else{
-											foreach($group['subgroups'] as $key => $subgroup){
-												echo '<li class="justify-content-center layers-items-header"><h6><a class="layer_group_title" href="#layer-group-' . $key . $group['group_rank'] . '" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">';
-												echo preg_replace('/\sv\d+/', '', $subgroup['subgroup_name']) . '</a></h6><div class="collapse container-fluid" id="layer-group-' . $key . $group['group_rank'] . '"><ul class="list-unstyled components layers-container">';
-												foreach($subgroup['layers'] as $layer){
-													echo '<li class="justify-content-center container layers-items">';
-													echo '<div class="row inner-layer-header" style="margin-left: -2.0rem;">';
-													echo '<div class="col-6"><div style="font-size:10px; line-height: 1.6em;"  id="ct-layer-title-' . $layer['layer_id'] . '">';
-													
-													//Clean up code for Precipitation layers
-													// if(stripos($layer['layer_title'],'precipitation') !== FALSE) {
-													// 	$layer['layer_title'] = str_ireplace('precipitation ','', $layer['layer_title']);
-													// }
+											else{
+												foreach($group['subgroups'] as $key => $subgroup){
+													echo '<li class="justify-content-center layers-items-header"><h6><a class="layer_group_title" href="#layer-group-' . $key . $group['group_rank'] . '" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">';
+													echo preg_replace('/\sv\d+/', '', $subgroup['subgroup_name']) . '</a></h6><div class="collapse container-fluid" id="layer-group-' . $key . $group['group_rank'] . '"><ul class="list-unstyled components layers-container">';
+													foreach($subgroup['layers'] as $layer){
+														echo '<li class="justify-content-center container layers-items">';
+														echo '<div class="row inner-layer-header" style="margin-left: -2.0rem;">';
+														echo '<div class="col-6"><div style="font-size:10px; line-height: 1.6em;"  id="ct-layer-title-' . $layer['layer_id'] . '">';
+														
+														//Clean up code for Precipitation layers
+														// if(stripos($layer['layer_title'],'precipitation') !== FALSE) {
+														// 	$layer['layer_title'] = str_ireplace('precipitation ','', $layer['layer_title']);
+														// }
 
-													echo $layer['layer_title'] . '</div></div>';
-													echo '<div class="col-6">';
-													echo '<div><button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button></div>';
-													echo '<div style="position: relative; left: 35px;">';
-													echo '<i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 0px;" class="fas fa-info-circle"></i>';
-													echo '<i title="Legend details" id="legend_legend_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 0px; display: none; font-size:18px;" class="fas fa-chart-bar"></i>';
-													echo '</div>';
-													echo '</div>';
-													echo '</div>'; // end row
-													echo '<div id="opacity-ctrl-' . $layer['layer_id'] . '" class="row inner-layer-op hidden"><div class="col-5"><label>Opacity <span id="opacity-value-' . $layer['layer_id'] . '">100%</span></label></div><div class="col-7"><input class="opacity" id="slider-' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" type="range" min="5" max="100" step="0" value="100"/></div></div></li>';
+														echo $layer['layer_title'] . '</div></div>';
+														echo '<div class="col-6">';
+														echo '<div><button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button></div>';
+														echo '<div style="position: relative; left: 35px;">';
+														echo '<i title="Layer details" id="layer_info_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 0px;" class="fas fa-info-circle"></i>';
+														echo '<i title="Legend details" id="legend_legend_icon_' . $layer['layer_id'] . '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 0px; display: none; font-size:18px;" class="fas fa-chart-bar"></i>';
+														echo '</div>';
+														echo '</div>';
+														echo '</div>'; // end row
+														echo '<div id="opacity-ctrl-' . $layer['layer_id'] . '" class="row inner-layer-op hidden"><div class="col-5"><label>Opacity <span id="opacity-value-' . $layer['layer_id'] . '">100%</span></label></div><div class="col-7"><input class="opacity" id="slider-' . $layer['layer_id'] . '-' . $layer['layer_host'] . '" type="range" min="5" max="100" step="0" value="100"/></div></div></li>';
+													}
+													echo '</ul></div></li>';
 												}
-												echo '</ul></div></li>';
 											}
+											echo '</ul></div>';
 										}
-										echo '</ul></div>';
-									}
-								} 
+									} 
+								}
 							?> 
 						</ul>
 					</div>					
@@ -2860,7 +3040,7 @@ Today, CartograPlant continues to support the forest tree community, and increas
 						</div>	
 					</div>
 					<div id="treesnap-collection-container" style="width: 100%;padding-left: 20px;padding-right: 10px;" class="hidden">
-
+						<div class="treesnap-collection-content"></div>
 					</div>
 					<div style="width: 100%;">
 						<div id="tree-study-associated-container" style="display: inline-block; width: 48%;padding-left: 20px;padding-right: 10px; vertical-align: top;">
