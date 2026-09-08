@@ -711,7 +711,7 @@ select {
 } 
 
 .inner-layer-op {
-  border-bottom: 1px solid gray;
+  /* border-bottom: 1px solid gray; */
   margin-bottom: .5rem;
 }
 
@@ -904,7 +904,7 @@ select {
 .sidebar-submenu .layers-items-header{
   background-color: #FFFFFF !important;
   padding: .3em !important;
-  border-bottom: 1px solid #000000 !important;
+  /* border-bottom: 1px solid #ebebeb !important; */
 }
 
 .sidebar-submenu .layers-items-header a{

@@ -65,7 +65,8 @@
 
 				}
 				else if (msg.startsWith('environmental_data_csv_line_complete::true')) {
-					analysis_object['sections']['environmental_metrics']['functions']['generateoutput-envdata-from-db']();
+					// analysis_object['sections']['environmental_metrics']['functions']['generateoutput-envdata-from-db']();
+					Analysis.environmental_metrics_generateoutput_envdata_from_db();
 				}
 				else if (msg.startsWith('snps_to_missing_freq_single_tree::')) {
 					var msg_parts = msg.split('::');

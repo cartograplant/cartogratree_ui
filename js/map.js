@@ -359,10 +359,16 @@ var ct_ready_mapjs = async function() {
 				}
 				//if (subgroup_name != null) {
 					if ($('#analysis-category-group-' + category_id + '-group-' + group_id + '-subgroup-' + subgroup_id).length == 0) {
-						subgroup_container_html += '<a href="#analysis-category-group-' + category_id + '-group-' + group_id + '-subgroup-' + subgroup_id + '" data-toggle="collapse" aria-expanded="false" style="outline: unset !important; font-size: 10px; padding-left: 18px !important;" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">';
-						subgroup_container_html += '' + subgroup_name;
-						subgroup_container_html += '</a>';
-						subgroup_container_html += '<div class="collapse sidebar-submenu subgroup-' + subgroup_id + '" id="analysis-category-group-' + category_id + '-group-' + group_id + '-subgroup-' + subgroup_id + '">';
+						// If the subgroup name is not '[No subgroup]', we will create a link and collapsible container, 
+						// else we will hide the link and open the container by default
+						var subgroup_container_classes = "";
+						if (subgroup_name != '[No subgroup]') {
+							subgroup_container_classes = "collapse";
+							subgroup_container_html += '<a href="#analysis-category-group-' + category_id + '-group-' + group_id + '-subgroup-' + subgroup_id + '" data-toggle="collapse" aria-expanded="false" style="outline: unset !important; font-size: 10px; padding-left: 18px !important;" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">';
+							subgroup_container_html += '' + subgroup_name;
+							subgroup_container_html += '</a>';
+						}
+						subgroup_container_html += '<div class="' + subgroup_container_classes + 'sidebar-submenu subgroup-' + subgroup_id + '" id="analysis-category-group-' + category_id + '-group-' + group_id + '-subgroup-' + subgroup_id + '">';
 						subgroup_container_html += '<ul class="list-unstyled components layers-subgroup-container" style="padding-left: 18px; background-color: #FFFFFF;">';
 						// subgroup_container_html += 'SUBGROUP CONTAINER';
 						subgroup_container_html += '</ul>';
@@ -381,21 +387,23 @@ var ct_ready_mapjs = async function() {
 			var layer_item_html = '';
 			layer_item_html += '<li class="justify-content-center container layers-items-header">';
 			layer_item_html += '<div class="row inner-layer-header row-100">';
-			layer_item_html += '<div class="col-3">';
-			layer_item_html += '<div style="font-size:10px; line-height: 1.6em;"  id="ct-layer-title-' + layer['layer_id'] + '">'
+			// layer_item_html += '<div class="col-3">';
+			layer_item_html += '	<div class="row-100">';
+			layer_item_html += '			<div class="row-100" style="font-size:10px; line-height: 1.6em; position: relative; left: 10px; margin-top: 10px;"  id="ct-layer-title-' + layer['layer_id'] + '">'
 			layer_item_html += layer['layer_title'];
-			layer_item_html += '</div>';
-			layer_item_html += '</div>';
-			layer_item_html += '<div class="col-6">';
-			layer_item_html += '<div><button type="button" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' + layer['layer_id'] + '-' + layer['layer_host'] + '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button></div>';
-			layer_item_html += '<div style="position: relative; left: 35px;">';
-			layer_item_html += '<i title="Layer details" id="layer_info_icon_' + layer['layer_id'] + '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 0px;" class="fas fa-info-circle"></i>';
-			layer_item_html += '<i title="Legend details" id="legend_legend_icon_' + layer['layer_id'] + '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 0px; display: none; font-size:18px;" class="fas fa-chart-bar"></i>';
-			layer_item_html += '</div>';
-			layer_item_html += '</div>';
-			layer_item_html += '</div>'; // end row
-			layer_item_html += '<div id="opacity-ctrl-' + layer['layer_id'] + '" class="row inner-layer-op row-100 hidden">';
-			layer_item_html += '<div class="col-5"><label>Opacity <span id="opacity-value-' + layer['layer_id'] + '">100%</span></label></div>';
+			layer_item_html += '			</div>'; 
+			layer_item_html += '			<div class="row-100" style="position: relative; top: -10px;">';
+			layer_item_html += '				<table><tr>';
+			layer_item_html += '				<td><div style="display: inline-block !important;"><button type="button" style="position: relative; left: -30px; top: 5px;" data-toggle="button" class="btn btn-toggle layers-btn" id="cartogratree_layer_' + layer['layer_id'] + '-' + layer['layer_host'] + '" aria-pressed="false" autocomplete="off"><div class="handle"></div></button></div></td>';
+			layer_item_html += '				<td><div style="display: inline-block !important; position: relative; top: 3px; left: -45px;">';
+			layer_item_html += '					<i title="Layer details" id="layer_info_icon_' + layer['layer_id'] + '" style="color: #08afff; cursor: pointer; font-size: 20px; margin-top:10px; margin-left: 0px;" class="fas fa-info-circle"></i>';
+			layer_item_html += '					<i title="Legend details" id="legend_legend_icon_' + layer['layer_id'] + '" style="color: #08afff; cursor: pointer; margin-left: 4px; margin-right: 0px; display: none; font-size:18px;" class="fas fa-chart-bar"></i>';
+			layer_item_html += '				</div></td>';
+			layer_item_html += '				</tr></table>';
+			layer_item_html += '			</div>'; // end row
+			layer_item_html += '</div>'; // end inner-layer-header
+			layer_item_html += '<div id="opacity-ctrl-' + layer['layer_id'] + '" style="margin-bottom: -10px;" class="row inner-layer-op row-100 hidden">';
+			layer_item_html += '<div class="col-5" style="position: relative; left: 10px;"><label style="font-size: 13px;">Opacity <span id="opacity-value-' + layer['layer_id'] + '">100%</span></label></div>';
 			layer_item_html += '<div class="col-7"><input class="opacity" id="slider-' + layer['layer_id'] + '-' + layer['layer_host'] + '" type="range" min="5" max="100" step="0" value="100"/></div>';
 			layer_item_html += '</div>'; // end opacity row
 			layer_item_html += '</li>';
@@ -1691,11 +1699,11 @@ var ct_ready_mapjs = async function() {
 					// Check if there is a layer_legend_image that is not null
 					var legend_container_geoserver_legend = '';
 					if (Drupal.settings.layers['cartogratree_layer_' + layer_id_number]['layer_legend_image'] != null && Drupal.settings.layers['cartogratree_layer_' + layer_id_number]['layer_legend_image'] != undefined) {
-						legend_container_geoserver_legend = '<div style="text-align: center;" id="legend_container_geoserver_legend_' + layer_id_number + '"><img class="geoserver_legend_img" style="margin-left: 0px;max-width: 150px;"src="' + Drupal.settings.layers['cartogratree_layer_' + layer_id_number]['layer_legend_image'] + '" /></div>';
+						legend_container_geoserver_legend = '<div style="text-align: center;" id="legend_container_geoserver_legend_' + layer_id_number + '"><img class="geoserver_legend_img" style="margin-left: 0px;max-width: 150px;" src="' + Drupal.settings.layers['cartogratree_layer_' + layer_id_number]['layer_legend_image'] + '" /></div>';
 					}
 					else {
 						// Geoserver Legend
-						legend_container_geoserver_legend = '<div style="text-align: center;" id="legend_container_geoserver_legend_' + layer_id_number + '"><img class="geoserver_legend_img" style="margin-left: 10px;min-width: 75%;"src="' + Drupal.settings.cartogratree.gis +  '?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=10&HEIGHT=10&LEGEND_OPTIONS=layout:' + legend_orientation + ';fontSize:10;&LAYER=' + Drupal.settings.layers[this.parentLayer.id]['name'] + '" /></div>';
+						legend_container_geoserver_legend = '<div style="text-align: center;" id="legend_container_geoserver_legend_' + layer_id_number + '"><img class="geoserver_legend_img" style="margin-left: 10px;" src="' + Drupal.settings.cartogratree.gis +  '?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=10&HEIGHT=10&LEGEND_OPTIONS=layout:' + legend_orientation + ';fontSize:10;&LAYER=' + Drupal.settings.layers[this.parentLayer.id]['name'] + '" /></div>';
 					}
 					// Add the geoserver legend to legend_container_html
 					$("#legend_container_" + layer_id_number).append(legend_container_geoserver_legend);
@@ -11360,7 +11368,7 @@ var ct_ready_mapjs = async function() {
 				$("#legend_container_" + layer_id_number).append(legend_container_title);
 
 				// Geoserver Legend
-				var legend_container_geoserver_legend = '<div style="text-align: center;" id="legend_container_geoserver_legend_' + layer_id_number + '"><img class="geoserver_legend_img" style="margin-left: 10px; min-width: 75%;"src="' + Drupal.settings.cartogratree.gis +  '?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=10&HEIGHT=10&LEGEND_OPTIONS=layout:' + legend_orientation + ';fontSize:10;&LAYER=' + layer_name + '" /></div>';
+				var legend_container_geoserver_legend = '<div style="text-align: center;" id="legend_container_geoserver_legend_' + layer_id_number + '"><img class="geoserver_legend_img" style="margin-left: 10px;" src="' + Drupal.settings.cartogratree.gis +  '?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=10&HEIGHT=10&LEGEND_OPTIONS=layout:' + legend_orientation + ';fontSize:10;&LAYER=' + layer_name + '" /></div>';
 				// Add the geoserver legend to legend_container_html
 				$("#legend_container_" + layer_id_number).append(legend_container_geoserver_legend);
 				

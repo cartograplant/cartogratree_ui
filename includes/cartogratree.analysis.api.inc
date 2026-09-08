@@ -1243,6 +1243,7 @@ function cartogratree_analysisapi_lookup_studies_overlapping_analyses($studies_c
 
 function cartogratree_analysisapi_get_nextflow_workspace_files($workspace_name) {
     $results = [];
+    $fmtime = [];
     
     // Also get annotation files from the vcf_locations table
     $results_data = chado_query('SELECT * FROM chado.vcf_locations_view',
@@ -1260,11 +1261,21 @@ function cartogratree_analysisapi_get_nextflow_workspace_files($workspace_name) 
     $user_id = $user->uid;
     $dir_workspaces = '/isg/treegenes/cartograplant_analysis_workspaces/' . $user_id . '/' . $workspace_name;
     $items = scandir($dir_workspaces);
+    // Order by descending time modified
+    usort($items, function($a, $b) use ($dir_workspaces) {
+        return filemtime($dir_workspaces . '/' . $b) - filemtime($dir_workspaces . '/' . $a);
+    });
     foreach ($items as $item) {
         if (is_file($dir_workspaces . '/' . $item)) {
-            $results[] = $dir_workspaces . '/' . $item;
+            $files[] = $dir_workspaces . '/' . $item;
+            $fmtime[] = filemtime($dir_workspaces . '/' . $item);
         }
     }
+
+    $results = [
+        'files' => $files,
+        'fmtime' => $fmtime
+    ];
 
 
     drupal_json_output($results);
