@@ -2395,12 +2395,26 @@ var ct_ready_map_analysis = function() {
 
 		// cartograplant['analysis_selected_overlapping_analysis_study_accessions']
 		// Populate the payload studies key
-		for (var i = 0; i < cartograplant['analysis_selected_overlapping_analysis_study_accessions'].length; i++) {
-			var study = cartograplant['analysis_selected_overlapping_analysis_study_accessions'][i];
-			// cartograplant['analysis_overlapping_analyses_vcf_locations']
-			var analysis_name = cartograplant['analysis_selected_overlapping_analysis_name']
-			var vcf_location = cartograplant['analysis_overlapping_analyses_vcf_locations'][study][analysis_name];
-			payload['studies'][study] = [vcf_location];
+		// SCENARIO 1: This is for multiple studies selected (under the Select Genotypes section for example)
+		if (cartograplant['analysis_selected_overlapping_analysis_study_accessions'] != undefined) {
+			for (var i = 0; i < cartograplant['analysis_selected_overlapping_analysis_study_accessions'].length; i++) {
+				var study = cartograplant['analysis_selected_overlapping_analysis_study_accessions'][i];
+				// cartograplant['analysis_overlapping_analyses_vcf_locations']
+				var analysis_name = cartograplant['analysis_selected_overlapping_analysis_name']
+				var vcf_location = cartograplant['analysis_overlapping_analyses_vcf_locations'][study][analysis_name];
+				payload['studies'][study] = [vcf_location];
+			}
+		}
+
+		// 9/9/2026 - TODO
+		// SCENARIO 2: Fallback
+		if (Object.keys(payload['studies']).length == 0) {
+			// // Attempt to fallback to a single study selected from the Select Genotypes section
+			// var selected_analysis_element = $('#overlapping_analyses_names option:selected');
+			// console.log('selected_analysis_element', selected_analysis_element);
+			// var vcf_location = $(selected_analysis_element).attr('vcf-location');
+			// var study = $(selected_analysis_element).attr('data-study-accession');
+			// payload['studies'][study] = [vcf_location];
 		}
 
 		// Populate the payload trees key
@@ -2818,7 +2832,8 @@ var ct_ready_map_analysis = function() {
 			success: function(data) {
 				console.log('lookup_studies_overlapping_analyses', data);
 				$('#overlapping_analyses_names').html('');
-				if (data['status'] != null && data['overlapping_analyses'] != null) {
+				$('#btn_snps_merge_vcfs').show();
+				if (data['status'] != null && data['overlapping_analyses'] != null && data['overlapping_analyses'].length > 0) {
 					var overlapping_analyses = data['overlapping_analyses'];
 					var overlapping_analyses_study_accessions = data['overlapping_analyses_study_accessions'];
 					var overlapping_analyses_vcf_locations = data['overlapping_analyses_vcf_locations'];
@@ -2831,6 +2846,17 @@ var ct_ready_map_analysis = function() {
 					for (var i = 0; i < overlapping_analyses.length; i++) {
 						var analysis_name = overlapping_analyses[i]['analysis_name'];
 						$('#overlapping_analyses_names').append('<option data-analysis-name="' + analysis_name + '" data-study-accessions="' + overlapping_analyses_study_accessions[analysis_name] + '" value="' + analysis_name + '">' + analysis_name + ' (' + overlapping_analyses_study_accessions[analysis_name] + ')</option>');
+					}
+				}
+				else if (data['status'] != null && data['non_overlapping_analyses'] != null) {
+					// Hide the merge vcf button since this is a single VCF
+					$('#btn_snps_merge_vcfs').hide();
+					var non_overlapping_analyses = data['non_overlapping_analyses'];
+					for (var i = 0; i < non_overlapping_analyses.length; i++) {
+						var analysis_name = non_overlapping_analyses[i]['analysis_name'];
+						var study_accession = non_overlapping_analyses[i]['tgdr_accession'];
+						var vcf_location = non_overlapping_analyses[i]['vcf'];
+						$('#overlapping_analyses_names').append('<option data-analysis-name="' + analysis_name + '" vcf-location="' + vcf_location + '" data-study-accession="' + study_accession + '" value="' + analysis_name + '">' + analysis_name + ' (' + study_accession + ')</option>');
 					}
 				}
 				else {
@@ -2908,21 +2934,24 @@ var ct_ready_map_analysis = function() {
 		
 		$('#analysis_gt_check_status').html('');
 		$('#analysis_merge_vcfs_status').html('');
-		if (studies.length == 0) {
-			$('#btn_snps_gt_check').hide();
-			$('#analysis_gt_check_status').html('[Genotypes check disabled] In order to perform a genotypes check, at least one study with genotypic data must be detected based on your analysis study context. Please refine your study context to include studies with genotypic data and return to this tab.');
-			$('#btn_snps_merge_vcfs').hide();
-			$('#analysis_merge_vcfs_status').html('<span style="color: red;">[VCF merge disabled]</span> In order to perform VCF merges, at least two studies with genotypic data must be detected based on your analysis study context. Please refine your study context to include studies with genotypic data and return to this tab.');
-		}
-		else if (studies.length == 1) {
-			$('#btn_snps_gt_check').show();
-			$('#btn_snps_merge_vcfs').hide();
-			$('#analysis_merge_vcfs_status').html('<span style="color: red;">[VCF merge disabled]</span> In order to perform VCF merges, at least two studies with genotypic data must be detected based on your analysis study context. Please refine your study context to include studies with genotypic data and return to this tab.');
-		}
-		else {
+
+		// 9/9/2026 - Requested by Brandon and Donal to allow genotypes filtering for one or more studies
+		//            instead of 2 or more studies.
+		// if (studies.length == 0) {
+		// 	$('#btn_snps_gt_check').hide();
+		// 	$('#analysis_gt_check_status').html('[Genotypes check disabled] In order to perform a genotypes check, at least one study with genotypic data must be detected based on your analysis study context. Please refine your study context to include studies with genotypic data and return to this tab.');
+		// 	$('#btn_snps_merge_vcfs').hide();
+		// 	$('#analysis_merge_vcfs_status').html('<span style="color: red;">[VCF merge disabled]</span> In order to perform VCF merges, at least two studies with genotypic data must be detected based on your analysis study context. Please refine your study context to include studies with genotypic data and return to this tab.');
+		// }
+		// else if (studies.length == 1) {
+		// 	$('#btn_snps_gt_check').show();
+		// 	$('#btn_snps_merge_vcfs').hide();
+		// 	$('#analysis_merge_vcfs_status').html('<span style="color: red;">[VCF merge disabled]</span> In order to perform VCF merges, at least two studies with genotypic data must be detected based on your analysis study context. Please refine your study context to include studies with genotypic data and return to this tab.');
+		// }
+		// else {
 			$('#btn_snps_gt_check').show();
 			$('#btn_snps_merge_vcfs').show();
-		}
+		// }
 
 		// for(var i=0; i<studies.length; i++) {
 		// 	var study_name = studies[i];
@@ -7519,7 +7548,7 @@ var ct_ready_map_analysis = function() {
 
 	$('body').off('click', '.gwas_button_run_step');
 	$('body').on('click', '.gwas_button_run_step', function() {
-		console.log('GWAS Run Step button clicked');
+		console.log('GWAS Run Step button clicked 1');
 		var vis_file = $(this).attr('data-vis-file');
 		console.log('VIS FILE:' + vis_file);
 		// Get flags from the main form (not the models)
@@ -7550,8 +7579,12 @@ var ct_ready_map_analysis = function() {
 		}
 
 		// Get model from the step form eg relatedness
-		var step_detail_element = $(this).closest('table').find('.gwas_step');
-		var step_name = $(step_detail_element).attr('data-step');
+		// var step_detail_element = $(this).closest('table').find('.gwas_step');
+		// var step_name = $(step_detail_element).attr('data-step');
+		var step_detail_element = $('#gwas_choose_sub_workflow');
+		console.log('step_detail_element', step_detail_element);
+		var step_name = $(step_detail_element).val();
+		console.log('step_name', step_name);
 		var flag_name = 'model';
 		flags[flag_name] = step_name;
 		console.log('Flags from the form', flags);

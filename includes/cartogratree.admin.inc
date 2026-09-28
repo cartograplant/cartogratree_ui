@@ -25,10 +25,15 @@ function cartogratree_admin_list() {
         $output .= ' GIS and API servers.</p>';
     }
     else {
-        $output .= '<p><strong>GIS server:</strong> ' . $gis . ', <strong>API server:</strong> ' . $api . '. ';
+        $output .= '<p><strong>GIS WMS server:</strong> ' . $gis . ', <strong>GIS API server:</strong> ' . $api . '. ';
         $output .= l('Update', 'admin/cartogratree/settings/servers/edit');
         $output .= ' GIS and API servers.</p>';
     }
+
+    $output .= '<p><strong>ADMIN REST API Settings:</strong> ';
+    $output .= l('Edit', 'admin/cartogratree/settings/rest_api/edit');
+    $output .= '</p>';
+
     $output .= '<p><a target="_blank" href="settings/debug/cpapi">Cartograplant NodeJS API realtime console output</a></p>';
     $output .= '<p><a target="_blank" href="settings/debug/checks">Cartograplant Diagnostics (boot) tool</a></p>';
 
@@ -1413,6 +1418,29 @@ function cartogratree_admin_settings_layer_form_submit($form, &$form_state) {
         //dpm($record);
         //dpm($result);
     }
+}
+
+function cartogratree_admin_settings_rest_api_form($form, &$form_state) {
+    $form['admin_rest_api_token'] = array(
+    	'#type' => 'textfield',
+    	'#title' => 'ADMIN REST API TOKEN',
+    	'#description' => 'This is the REST API TOKEN that will grant ADMIN PRIVILEGES',
+    	'#default_value' => variable_get('cartogratree_admin_rest_api_token'),
+    );
+
+    $form['submit'] = array(
+    	'#type' => 'submit',
+    	'#value' => 'Save Changes',
+    );
+
+    return $form;
+}
+
+function cartogratree_admin_settings_rest_api_form_submit($form, &$form_state) {
+    $form_state['rebuild'] = FALSE;
+    $form_state['redirect'] = 'admin/cartogratree/settings/rest_api/edit';
+
+    variable_set('cartogratree_admin_rest_api_token', $form_state['values']['admin_rest_api_token']);
 }
 
 /**

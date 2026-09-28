@@ -1234,10 +1234,32 @@ function cartogratree_analysisapi_lookup_studies_overlapping_analyses($studies_c
 
     $output_results = [
         'status' => 'success',
+        'studies' => $studies,
         'overlapping_analyses' => $results_rows,
         'overlapping_analyses_study_accessions' => $results_rows_accessions,
         'overlapping_analyses_vcf_locations' => $results_rows_vcf_locations
     ];
+
+    // Check if there are no overlapping analyses
+    if (count($output_results['overlapping_analyses']) < 1) {
+        // Add non-overlapping analyses to the output
+        $non_overlapping_analyses_data = chado_query('SELECT * FROM chado.vcf_locations_view WHERE tgdr_accession IN (:studies)',
+            array(
+                ':studies' => $studies,
+            )
+        );
+        $non_overlapping_analyses = [];
+        foreach ($non_overlapping_analyses_data as $non_overlapping_analysis) {
+            $non_overlapping_analyses[] = [
+                'analysis_name' => $non_overlapping_analysis->analysis_name,
+                'tgdr_accession' => $non_overlapping_analysis->tgdr_accession,
+                'vcf' => $non_overlapping_analysis->vcf
+            ];
+        }
+        $output_results['non_overlapping_analyses_status'] = true;
+        $output_results['non_overlapping_analyses'] = $non_overlapping_analyses;
+    }
+
     drupal_json_output($output_results);
 }
 

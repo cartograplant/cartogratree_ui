@@ -10015,21 +10015,38 @@ var ct_ready_mapjs = async function() {
 
 					// Check if there is a vcf combined file from the analysis study context
 					var found_vcf_combined = false;
-					console.log('analysis_study_context', analysis_completion_json['analysis_study_context']);
-					if (analysis_completion_json['analysis_study_context'] != undefined && analysis_completion_json['analysis_study_context'] != null) {
-						var keys = Object.keys(analysis_completion_json['analysis_study_context']['studies']);
-						for (var i = 0; i < keys.length; i++) {
-							var key = keys[i];
-							if (key.includes('combined')) {
-								// Get the location
-								var vcf_combined_location = analysis_completion_json['analysis_study_context']['studies'][key]['vcf'];
-								// Override detected studies to use combined only
-								vcf_info = {};
-								vcf_info['combined_filltags'] = vcf_combined_location;
-								studies = ['combined_filltags'];
-								detected_studies = ['combined_filltags'];
-								found_vcf_combined = true;
-								// override the code below for studies etc
+					if (analysis_completion_json['analysis_study_context']['studies'] == undefined) {
+						// This could happen if it's a single study analysis and the analysis_study_context is not set
+						console.log('analysis_study_context is undefined, attempt to build using single study from the select genotypes section and the vcf for the study selected from the select element');
+						var selected_non_overlapping_analysis = $('#overlapping_analyses_names option:selected');
+						var vcf_combined_location = selected_non_overlapping_analysis.attr('vcf-location');
+						// Override json
+						vcf_info = {};
+						//vcf_info['combined_filltags'] = vcf_combined_location;
+						//studies = ['combined_filltags'];
+						//detected_studies = ['combined_filltags'];
+						vcf_info['prefiltered'] = vcf_combined_location;
+						studies = ['prefiltered'];
+						detected_studies = ['prefiltered'];
+						found_vcf_combined = true;
+					}
+					else {
+						console.log('analysis_study_context', analysis_completion_json['analysis_study_context']);
+						if (analysis_completion_json['analysis_study_context'] != undefined && analysis_completion_json['analysis_study_context'] != null) {
+							var keys = Object.keys(analysis_completion_json['analysis_study_context']['studies']);
+							for (var i = 0; i < keys.length; i++) {
+								var key = keys[i];
+								if (key.includes('combined')) {
+									// Get the location
+									var vcf_combined_location = analysis_completion_json['analysis_study_context']['studies'][key]['vcf'];
+									// Override detected studies to use combined only
+									vcf_info = {};
+									vcf_info['combined_filltags'] = vcf_combined_location;
+									studies = ['combined_filltags'];
+									detected_studies = ['combined_filltags'];
+									found_vcf_combined = true;
+									// override the code below for studies etc
+								}
 							}
 						}
 					}

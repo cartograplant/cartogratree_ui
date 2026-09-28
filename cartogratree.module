@@ -1,5 +1,5 @@
 <?php
-
+include_once(drupal_get_path('module', 'cartogratree') . '/includes/cartogratree.rest.api.inc');
 include_once(drupal_get_path('module', 'cartogratree') . '/includes/cartogratree.analysis.api.inc');
 include_once(drupal_get_path('module', 'cartogratree') . '/includes/cartogratree.cron.api.inc');
 include_once(drupal_get_path('module', 'cartogratree') . '/includes/cartogratree.uipages.inc');
@@ -59,6 +59,48 @@ function cartogratree_menu()
         'page arguments' => array('cartogratree_data_collection_form'),
         'access arguments' => array('cartogratree analysis'),
         'file' => 'includes/cartogratree.user.inc',
+    );
+
+    /* REST API */
+
+    $items['cartogratree_restapi/layers/layer_submit'] = array(
+        'description' => 'Cartogratree REST API: Create Layer',
+        'title' => 'Cartogratree REST API: Create Layer',
+        'page callback' => 'cartogratree_rest_api_layer_submit',
+        'page arguments' => array(
+            2,
+        ),
+        'file' => 'includes/cartogratree.rest.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
+
+    $items['cartogratree_restapi/layers/layer_update'] = array(
+        'description' => 'Cartogratree REST API: Update Layer',
+        'title' => 'Cartogratree REST API: Update Layer',
+        'page callback' => 'cartogratree_rest_api_layer_update',
+        'page arguments' => array(
+            2,
+        ),
+        'file' => 'includes/cartogratree.rest.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );  
+
+    $items['cartogratree_restapi/layers/layer_exists'] = array(
+        'description' => 'Cartogratree REST API: Get Layer by ID',
+        'title' => 'Cartogratree REST API: Get Layer by ID',
+        'page callback' => 'cartogratree_rest_api_layer_exists',
+        'page arguments' => array(
+            3,
+        ),
+        'file' => 'includes/cartogratree.rest.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
     );
 
     $items['cartogratree_uiapi/speciesinfo/summary/%'] = array(
@@ -992,6 +1034,16 @@ function cartogratree_menu()
         'description' => 'Update servers used by the CartograTree application.',
         'page callback' => 'drupal_get_form',
         'page arguments' => array('cartogratree_admin_settings_servers_form', 'edit'),
+        'access arguments' => array('administer cartogratree'),
+        'file' => 'includes/cartogratree.admin.inc',
+    );
+
+    // -- Edit ADMIN REST API settings.
+    $items['admin/cartogratree/settings/rest_api/edit'] = array(
+        'title' => 'Update CartograPlant ADMIN REST API Settings',
+        'description' => 'Update CartograPlant ADMIN REST API Settings',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('cartogratree_admin_settings_rest_api_form', 'edit'),
         'access arguments' => array('administer cartogratree'),
         'file' => 'includes/cartogratree.admin.inc',
     );
