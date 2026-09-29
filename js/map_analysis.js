@@ -7635,6 +7635,9 @@ var ct_ready_map_analysis = function() {
 								// Remove the PID
 								$('#nextflow-gwas-data').attr('data-gwas-pid', '');
 								$('#nextflow-gwas-results').html('✅ GWAS Step Completed');
+								if (data['response']['wza_results'] != undefined && data['response']['wza_results'] != null) {
+									$('#nextflow-gwas-results').append('<div style="border: 1px solid #000000; margin-top: 10px; margin-bottom: 20px; padding: 5px; background: #f3fffc; border-radius: 2px;">WZA Results have been generated! You can find the file ending with extension .vcf_wza.txt in the Manage Workspace tab.</div>');
+								}
 								$('#nextflow-gwas-results').append(generate_completion_message_html(data));
 								$('#nextflow-gwas-visualization').html('');
 								if (data['response']['image'] != null) {
