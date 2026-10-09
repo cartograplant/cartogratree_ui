@@ -7546,6 +7546,15 @@ var ct_ready_map_analysis = function() {
 	});
 
 
+	function safeDecodeBase64(b64) {
+		const binaryString = atob(b64);
+		const bytes = new Uint8Array(binaryString.length);
+		for (let i = 0; i < binaryString.length; i++) {
+			bytes[i] = binaryString.charCodeAt(i);
+		}
+		return new TextDecoder('utf-8').decode(bytes);
+	}
+
 	$('body').off('click', '.gwas_button_run_step');
 	$('body').on('click', '.gwas_button_run_step', function() {
 		console.log('GWAS Run Step button clicked 1');
@@ -7578,16 +7587,21 @@ var ct_ready_map_analysis = function() {
 			flags[flag_name] = flag_value;
 		}
 
-		// Get model from the step form eg relatedness
-		// var step_detail_element = $(this).closest('table').find('.gwas_step');
-		// var step_name = $(step_detail_element).attr('data-step');
+		// Get the Sub Workflow
 		var step_detail_element = $('#gwas_choose_sub_workflow');
 		console.log('step_detail_element', step_detail_element);
 		var step_name = $(step_detail_element).val();
 		console.log('step_name', step_name);
 		var flag_name = 'model';
 		flags[flag_name] = step_name;
+
+		// This is the actual step (since a sub workflow can have multiple steps)
+		flags['step'] = $(this).closest('table').find('.gwas_step').attr('data-step');
+
 		console.log('Flags from the form', flags);
+
+
+		
 		// return;
 		
 		$('#nextflow-gwas-visualization').html(''); // clear the visualization
@@ -7651,16 +7665,39 @@ var ct_ready_map_analysis = function() {
 								}
 								if (data['response']['manhattan'] != null) {
 									var nowInMilliseconds = new Date().getTime();
-									$('#nextflow-gwas-visualization').append('<div class="vis-img-container"><img style="width: 100%;" src="' + Drupal.settings.base_url + '/cartogratree/api/v2/gwas/nextflow_visualization?nocache=' + Math.floor(nowInMilliseconds / 1000) + '&type=manhattan&analysis_id=' + cartograplant.current_analysis_id + '" /></div>');
+									// V2
+									// $('#nextflow-gwas-visualization').append('<div class="vis-img-container"><img style="width: 100%;" src="' + Drupal.settings.base_url + '/cartogratree/api/v2/gwas/nextflow_visualization?nocache=' + Math.floor(nowInMilliseconds / 1000) + '&type=manhattan&analysis_id=' + cartograplant.current_analysis_id + '" /></div>');
+									
+									// V1
 									//$('#nextflow-gwas-visualization').html($('#nextflow-gwas-visualization').html() + '<div class="vis-img-zoom" style="height: 300px; width: 100%;"></div>');
 									//$('#nextflow-gwas-visualization .vis-img-container').zoom({
 									//	magnify:1.5,
 									//	target: '.vis-img-zoom'
 									//});
+
+									// V3
+									data['response']['manhattan'] = data['response']['manhattan'].replace('data:text/html;base64,', '');
+									$('#nextflow-gwas-visualization').append('<iframe id="gwas_manhattan_plot_html" width="100%" height="600px" frameborder="0"></iframe>');
+									var base64str = data['response']['manhattan'];
+									
+
+									var decodedHTML = safeDecodeBase64(base64str);
+									var iframe = document.getElementById('gwas_manhattan_plot_html');
+									var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+									iframeDoc.open();
+									iframeDoc.write(decodedHTML);
+									iframeDoc.close();
 								}
 								if (data['response']['qqplot'] != null) {
-									var nowInMilliseconds = new Date().getTime();
-									$('#nextflow-gwas-visualization').append('<div class="vis-img-container"><img style="width: 100%;" src="' + Drupal.settings.base_url + '/cartogratree/api/v2/gwas/nextflow_visualization?nocache=' + Math.floor(nowInMilliseconds / 1000) + '&type=qqplot&analysis_id=' + cartograplant.current_analysis_id + '" /></div>');
+
+									// V3
+									$('#nextflow-gwas-visualization').append('<div class="vis-img-container"><img style="width: 100%;" src="' + data['response']['qqplot'] + '" /></div>');
+
+									// V2
+									// var nowInMilliseconds = new Date().getTime();
+									// $('#nextflow-gwas-visualization').append('<div class="vis-img-container"><img style="width: 100%;" src="' + Drupal.settings.base_url + '/cartogratree/api/v2/gwas/nextflow_visualization?nocache=' + Math.floor(nowInMilliseconds / 1000) + '&type=qqplot&analysis_id=' + cartograplant.current_analysis_id + '" /></div>');
+									
+									// V1
 									//$('#nextflow-gwas-visualization').html($('#nextflow-gwas-visualization').html() + '<div class="vis-img-zoom" style="height: 300px; width: 100%;"></div>');
 									//$('#nextflow-gwas-visualization .vis-img-container').zoom({
 									//	magnify:1.5,

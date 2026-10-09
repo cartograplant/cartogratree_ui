@@ -10917,6 +10917,7 @@ var ct_ready_mapjs = async function() {
 		return true;
 	}
 
+	cartograplant['getLayersState'] = getLayersState;
 	function getLayersState() {
 		return cartograplant['layers_state'];
 	}
