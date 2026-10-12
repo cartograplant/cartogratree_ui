@@ -9405,6 +9405,27 @@ var ct_ready_map_analysis = function() {
 					$('#analysis-load-selected-map-layers-to-analysis-env-layers-button-status').html('<b>Completed!</b>');
 					$('#analysis-load-selected-map-layers-to-analysis-env-layers-button-status').delay(3000).fadeOut();
 				}, 3000);
+
+				// After selecting the layers, unselect category that don't have at least one group selected
+				setTimeout(function() {
+					$('.analysis_category_checkbox').each(function() {
+						var analysis_category_id = $(this).attr('id').replace('analysis_category_', '');
+						var group_checkboxes = $('#analysis-retrieve-envdata-section-layers-list').find('#analysis_category_groups_' + analysis_category_id).find('.analysis_category_group_checkbox');
+						// Check if all group checkboxes are unchecked
+						var all_groups_unchecked = true;
+						group_checkboxes.each(function() {
+							if($(this).is(':checked')) {
+								all_groups_unchecked = false;
+							}
+						});
+						if(all_groups_unchecked) {
+							// if checked, click it to uncheck it
+							if($(this).is(':checked')) {
+								$(this).click();
+							}
+						}
+					});
+				}, 4000);
 			}
 			else {
 				$('#analysis-load-selected-map-layers-to-analysis-env-layers-button-status').html('Continuing to lookup layer information, please wait...');
