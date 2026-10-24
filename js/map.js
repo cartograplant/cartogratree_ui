@@ -8874,6 +8874,7 @@ var ct_ready_mapjs = async function() {
 		}
 		var unique_study_ids = Object.keys(cartograplant['studies_from_selected_trees']);
 		publication_count = unique_study_ids.length;
+		console.log('get_publication_count_from_selected_trees trees:', unique_study_ids);
 		return publication_count;
 	}
 	
@@ -8898,6 +8899,9 @@ var ct_ready_mapjs = async function() {
 			}
 			$('#num-selected-trees').html(mapState.includedTrees.length);
 			notifyNumSelectedTrees();
+			// Update publications count
+			var pubs_count = get_publication_count_from_selected_trees();
+			$('#num-pubs').html(pubs_count);
 		}
 		else if (treeId.includes('treesnap')) {
 			// Look up treesnap treeid to get list of tree_ids of the same collection
@@ -8920,9 +8924,7 @@ var ct_ready_mapjs = async function() {
 			});
 		}
 
-		// Update publications count
-		var pubs_count = get_publication_count_from_selected_trees();
-		$('#num-pubs').html(pubs_count);
+
 	});
 
 	$(document).on("click", ".add-tree", function () {
