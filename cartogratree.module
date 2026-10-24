@@ -806,6 +806,18 @@ function cartogratree_menu()
         ),
     );
 
+    $items['cartogratree_uiapi/study_vcf_download'] = array(
+        'description' => 'Cartogratree UI API: Study VCF Download',
+        'title' => 'Cartogratree UI API: Study VCF Download',
+        'page callback' => 'cartogratree_uiapi_study_vcf_download',
+        'page arguments' => array(
+            2,
+        ),
+        'file' => 'includes/cartogratree.uiapi.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
 
     $items['cartogratree_uiapi/study_files/%'] = array(
         'description' => 'Cartogratree UI API: Study Files',

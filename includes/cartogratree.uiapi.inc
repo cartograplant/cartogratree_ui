@@ -1417,6 +1417,47 @@ function cartogratree_uiapi_get_vcf_studies_indexed($tgdr_numbers_csv) {
     drupal_json_output($return_results);
 }
 
+function cartogratree_uiapi_study_vcf_download() {
+    // 1. Clear and disable system output buffers to force immediate chunk flushing
+    while (ob_get_level() > 0) {
+        ob_end_flush();
+    }
+    $path = $_GET['path'];
+    // remove all ../ from the path for security reasons
+    $path = str_replace('../', '', $path);
+    $path = str_replace('..\\', '', $path);
+    $path = str_replace('..', '', $path);
+    $path = str_replace('//', '/', $path);
+    $path = str_replace('\\', '/', $path);
+    // Remove any encoding
+    $path = urldecode($path);
+    $path = str_replace('%2e', '', $path);
+    $path = str_replace('%2f', '', $path);
+    $path = str_replace('%5c', '', $path);
+    $path = str_replace('%2e%2e', '', $path);
+    $path = str_replace('%2e%2e%2f', '', $path);
+    $path = str_replace('%2e%2e%5c', '', $path);
+    $path = str_replace('%2e%2e%2f', '', $path);
+    $path = str_replace('%2e%2e%5c', '', $path);
+    $path = str_replace('%2e%2e%2f', '', $path);
+    $path = str_replace('%2e%2e%5c', '', $path);
+    $full_path = '/isg/treegenes/curation' . $path;
+    if (file_exists($full_path)) {
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="' . basename($full_path) . '"');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($full_path));
+        readfile($full_path);
+        exit;
+    }
+    else {
+        drupal_json_output(['error' => 'File not found']);
+    }
+}
+
 function cartogratree_uiapi_get_study_files($tgdr_number) {
     $results_data = chado_query('SELECT * FROM tpps_submission WHERE accession ILIKE :accession LIMIT 1',
         array(
@@ -1472,6 +1513,7 @@ function cartogratree_uiapi_get_study_files($tgdr_number) {
         $return_results['genotype-snp-files'] = array();
         $return_results['genotype-ssrs-files'] = array();
         $return_results['genotype-assaydesign-files'] = array();
+        $result_results['genotype-vcf'] = array();
         $return_results['phenotype-files'] = array();
         $return_results['phenotype-mspec-files'] = array();
         // print_r($data_all);
@@ -1500,6 +1542,14 @@ function cartogratree_uiapi_get_study_files($tgdr_number) {
                         'organism_name' => $org_name,
                     );                    
                 }                      
+            }
+            if(isset($value['genotype']['files']['local_vcf'])) {
+                $url = $value['genotype']['files']['local_vcf'];
+                $url = str_replace('/isg/treegenes/curation', '', $url);
+                // Generate a url
+                $return_results['genotype-vcf'][$i] = array (
+                    'url' => $url,
+                );
             }
             if(isset($value['genotype']['files']['snps-assay'])) {
                 $fid = $value['genotype']['files']['snps-assay'];

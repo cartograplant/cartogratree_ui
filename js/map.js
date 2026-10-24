@@ -5522,6 +5522,20 @@ var ct_ready_mapjs = async function() {
 											}
 										}
 									}
+									else if (key_name == 'genotype-vcf') {
+										var keys2 = Object.keys(data[key_name]);
+										if (keys2.length > 0) {
+											for(var j=0; j<keys2.length; j++) {
+												var key2_name = keys2[j];
+												if(data[key_name][key2_name]['url'] != null) {
+													study_files_html += '<tr>';
+													study_files_html += '<td style="padding: 5px; padding-left: 0px;">Genotype VCF</td>';
+													study_files_html += '<td style="padding: 5px;"><a href="/cartogratree_uiapi/study_vcf_download/?path=' + data[key_name][key2_name]['url'] + '"><i style="color: #5eb761;" class="fas fa-download"></i></td>';
+													study_files_html += '</tr>';
+												}
+											}
+										}
+									}
 									else if (key_name == 'genotype-snp-files') {
 										// console.log('data[key_name]',data[key_name]);
 										// console.log('IT CAME HERE');
