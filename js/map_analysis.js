@@ -25,6 +25,7 @@ class Analysis {
 	  	}
 	}
 
+
 	static environmental_metrics_generateoutput_envdata() {
 		var tree_list_for_websocket_command = '';
 
@@ -617,6 +618,27 @@ var ct_ready_map_analysis = function() {
 		$('#analysis-setup-configuration-tab').click();
 	}
 	// });
+
+
+	try {
+		$('#analysis_reset_button').off('click');
+	} catch (err) {}
+	$('#analysis_reset_button').on('click', function() {
+		var response = confirm("Are you sure you want to reset the analysis? This will delete all analysis data and you will have to start over.");
+		if (response == true) {
+			analysis_setup_configuration_tab = false;
+			analysis_initial_configuration_tab = false;
+			analysis_traits_configuration_tab = false;
+			analysis_genotypes_configuration_tab = false;
+			analysis_data_store = {};
+			current_analysis_id = -1;
+			workflow_inputs_state = {};
+			// Close analysis modal
+			$('#analysis-modal').modal('hide');
+			// Open analysis modal again
+			$('#analysis-btn').click();
+		}
+	});
 
 
 	try {

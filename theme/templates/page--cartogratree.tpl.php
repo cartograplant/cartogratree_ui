@@ -336,8 +336,11 @@
 						</h3> -->
 						<img style="width: 80%;" id="ct-logo" src="/sites/all/modules/cartogratree/ct/CartograTree/drupal_module/theme/templates/resources_imgs/cp_logo.png">
 					</div>
-					<div class="col-9" style="padding-top: 10px;">
+					<div class="col-8" style="padding-top: 10px;">
 						<div id="analysis_summary_html"></div>	
+					</div>
+					<div class="col-1" style="padding-top: 10px;">
+						<button class="btn btn-success" id="analysis_reset_button">Reset</button>
 					</div>
 				</div>
 
@@ -1270,7 +1273,9 @@
 						<p>TreeSnap: <a href="https://treesnap.org/">TreeSnap</a> is a citizen science application that connects researchers and the public in monitoring forest trees and their diseases across North America. Developed through a collaboration between scientists at the University of Kentucky and the University of Tennessee, it allows users to locate, photograph, and record observations of individual trees in their local environments. Each submission contributes data on species distribution, health, and phenotypic variation. By engaging landowners, naturalists, and students alongside researchers, TreeSnap enables a nationwide network of tree observations that integrates with CartograPlant, linking public participation to genomic research and helping track forest health, identify resilient individuals, and guide restoration and conservation strategies.</p>
 						</div><div class="oxy-text-3630-369 oxy-text">
 						<p>The application is part of the USDA <a href="https://www.agbiodata.org/">AgBioData</a> consortium and serves over 2,700 active users. Our development team runs virtual and in-person workshops at least twice annually.</p>
-						</div><div class="oxy-text-3630-355 oxy-text research-container-subheader">
+						</div>
+						<!--
+						<div class="oxy-text-3630-355 oxy-text research-container-subheader">
 						<p><strong>Questions we are asking</strong></p>
 						</div><div class="oxy-text-3630-356 oxy-text research-container-sublist">
 						<ul><br><li>How can genotypic, phenotypic, and environmental data be integrated at scale without sacrificing reproducibility?  </li><br><li>What metadata standards make georeferenced plant data findable and reusable across studies?  </li><br><li>Can the platform move from descriptive integration toward predictive models of adaptive capacity, seed zone delineation, and genomics-informed restoration?</li><br></ul>
@@ -1292,7 +1297,8 @@
 						<p><strong>Publications and preprints</strong></p>
 						</div><div class="oxy-text-3630-365 oxy-text research-container-sublist">
 						<ul><br><li>Lind et al. (2026). CartograPlant: bridging genomic, phenotypic, and environmental data to advance plant resilience and eco-evolutionary insight, <em>Genetics</em>. <a href="https://doi.org/10.1093/genetics/iyag060">doi:10.1093/genetics/iyag060</a>  </li><br><li>Staton et al. (2021). Tripal, a community update after 10 years of supporting open source, standards-based genetic, genomic and breeding databases, <em>Briefings in Bioinformatics</em>. <a href="https://doi.org/10.1093/bib/bbab238">doi:10.1093/bib/bbab238</a>  </li><br><li>Wegrzyn et al. (2020). Cyberinfrastructure and resources to enable an integrative approach to studying forest trees, <em>Evolutionary Applications</em>. <a href="https://doi.org/10.1111/eva.12860">doi:10.1111/eva.12860</a>  </li><br><li>Spoor et al. (2020). Tripal and Galaxy: supporting reproducible scientific workflows for community biological databases, <em>Database</em>. <a href="https://doi.org/10.1093/database/baaa032">doi:10.1093/database/baaa032</a>  </li><br><li>Wegrzyn et al. (2019). Cyberinfrastructure to improve forest health and productivity: the role of tree databases in connecting genomes, phenomes, and the environment, <em>Frontiers in Plant Science</em>. <a href="https://doi.org/10.3389/fpls.2019.00813">doi:10.3389/fpls.2019.00813</a>  </li><br><li>Spoor et al. (2019). Tripal v3: an ontology-based toolkit for construction of FAIR biological community databases, <em>Database</em>. <a href="https://doi.org/10.1093/database/baz077">doi:10.1093/database/baz077</a>  </li><br><li>Falk et al. (2018). Growing and cultivating the forest genomics database, TreeGenes, <em>Database</em>. <a href="https://doi.org/10.1093/database/bay084">doi:10.1093/database/bay084</a>  </li><br><li>Harper et al. (2018). AgBioData consortium recommendations for sustainable genomics and genetics databases for agriculture, <em>Database</em>. <a href="https://doi.org/10.1093/database/bay088">doi:10.1093/database/bay088</a>  </li><br><li>Vasquez-Gross et al. (2013). CartograTree: connecting tree genomes, phenotypes and environment, <em>Molecular Ecology Resources</em>. <a href="https://doi.org/10.1111/1755-0998.12067">doi:10.1111/1755-0998.12067</a></li><br></ul>
-						</div>
+						</div> 
+						-->
 					</div>
 				</div>
 				<!-- 
@@ -1345,11 +1351,16 @@
 											<tr>
 												<td>Emily Grau (Lead Database Administrator)</td>
 											</tr>
+											<!-- 
 											<tr>
 												<td>Gabe Barrett (Developer)</td>
 											</tr>
+											-->
 											<tr>
 												<td>Vlad Savitsky (Developer)</td>
+											</tr>
+											<tr>
+												<td>Donal Heaney (Developer)</td>
 											</tr>
 											<tr>
 												<td>Phoebe Zhou (Curator)</td>	
@@ -2831,7 +2842,7 @@
 
 					</div>
 				</div>
-				<button class="map-top-button" data-state="closed">
+				<button class="map-top-button map-filters-dropdown-button" data-state="closed">
 					Filters <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span>
 				</button>
 			</div>

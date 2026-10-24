@@ -337,6 +337,9 @@ var ct_ready_mapjs = async function() {
 				if (group_name == null || group_name == 'null' || group_name == '') {
 					group_name = 'UNCATEGORIZED';
 				}
+				if (group_name == 'Drainage') {
+					continue;
+				}
 				if ($('#analysis-category-group-' + category_id + '-group-' + group_id).length == 0) {
 					group_container_html += '<a href="#analysis-category-group-' + category_id + '-group-' + group_id + '" data-toggle="collapse" aria-expanded="false" style="outline: unset !important; font-size: 12px; padding-left: 14px !important;" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">';
 					group_container_html += '' + group_name;
@@ -3296,6 +3299,16 @@ var ct_ready_mapjs = async function() {
 	console.log('Query string from URL:');
 	console.log('queryString', queryString);
 	const urlParams = new URLSearchParams(queryString);
+	if (urlParams.get('modal') != '') {
+		var url_modal = urlParams.get('modal');
+		if (url_modal == 'about') {
+			// Wait for page to load before opening modal
+			$(document).ready(function() {
+				$('a[data-target="#about"]').click();
+			});
+		}
+	}
+
 	//var selectedSession = Drupal.settings.user["sessions"][selectedConfig.attr("href").split("-")[1]];
 	/*
 	//TODO - Fix on session load from URL
@@ -8843,6 +8856,26 @@ var ct_ready_mapjs = async function() {
 		}
 	});
 	*/
+
+	
+	function get_publication_count_from_selected_trees() {
+		cartograplant['studies_from_selected_trees'] = {};
+		var selected_tree_ids = mapState.includedTrees;
+		var publication_count = 0;
+		for (var i = 0; i < selected_tree_ids.length; i++) {
+			var tree_id = selected_tree_ids[i];
+			var tree_id_parts = tree_id.split('-');
+			if (tree_id_parts[0].includes('TGDR')) {
+				var study_id = tree_id_parts[0];
+				if (cartograplant['studies_from_selected_trees'][study_id] == undefined) {
+					cartograplant['studies_from_selected_trees'][study_id] = true;
+				}
+			}
+		}
+		var unique_study_ids = Object.keys(cartograplant['studies_from_selected_trees']);
+		publication_count = unique_study_ids.length;
+		return publication_count;
+	}
 	
 	$(document).on("click", ".add-all-study-plants", function () {
 		var treeId = $('#tree-id').html();
@@ -8886,6 +8919,10 @@ var ct_ready_mapjs = async function() {
 				}
 			});
 		}
+
+		// Update publications count
+		var pubs_count = get_publication_count_from_selected_trees();
+		$('#num-pubs').html(pubs_count);
 	});
 
 	$(document).on("click", ".add-tree", function () {
