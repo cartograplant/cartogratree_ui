@@ -8,6 +8,13 @@ var analysis_left_menu_collapsed = false;
 var analysis_object = {
 	sections: {
 		'environmental_metrics': {
+			state: {
+			},
+			functions: {}
+		},
+		'conduct_analysis': {
+			state: {
+			},
 			functions: {}
 		}
 	}
@@ -7671,6 +7678,47 @@ var ct_ready_map_analysis = function() {
 								// Remove the PID
 								$('#nextflow-gwas-data').attr('data-gwas-pid', '');
 								$('#nextflow-gwas-results').html('✅ GWAS Step Completed');
+								// Handle UI Events if they exist
+								if (data['response']['ui_events'] != undefined) {
+									for (var i = 0; i < data['response']['ui_events'].length; i++) {
+										var ui_event = data['response']['ui_events'][i];
+										var data_input_name = Object.keys(ui_event)[0]; // the data-input-name attribute
+										var data_input_value = ui_event[data_input_name]; // the value or the function name
+
+										// Lookup the data-input-name in the UI form generation JSON data
+										var input_defnition_key = $('[data-input-name="workflow"]').val() + "_" + $('#gwas_choose_sub_workflow').val() + "_options";
+										console.log('input_defnition_key', input_defnition_key);
+										var input_definition_field_data = analysis_object['sections']['conduct_analysis']['state']['gwas_ui_json']['definitions'][input_defnition_key]['properties'][data_input_name];
+										if (input_definition_field_data == undefined) {
+											window.alert('There is a UI event validation issue happening. Cannot find definition for data_input_name: ' + data_input_name + ' in the UI JSON data. Please contact administration.');
+										}
+										
+
+										console.log('input_definition_field_data', input_definition_field_data);
+
+										// Determine if the value is a function or an actual value
+										var temp_input_value = eval(data_input_value);
+										// If it is a function
+										if (typeof temp_input_value === 'function') {
+											if (input_definition_field_data['format'] == 'file-path') {
+												var pattern = input_definition_field_data['pattern'];
+												pattern = pattern.replace(/\\/g, '\\\\'); // Escape backslashes, needed since eval will interpret them as escape characters
+												var mime_type = input_definition_field_data['mime_type'];
+												var description = input_definition_field_data['description'];
+												var computed_function_for_eval = data_input_value + "('" + pattern + "','" + data_input_name + "','nextflow_gwas_step_property property_form_field ui_event_updated')";
+												console.log('computed_function_for_eval', computed_function_for_eval);
+												// var evaluated_result = eval(computed_function_for_eval);
+												// console.log('evaluated_result', evaluated_result);
+												// console.log($('[data-input-name="' + data_input_name + '"]'));
+												$('[data-input-name="' + data_input_name + '"]').closest('td').html(eval(computed_function_for_eval));
+											}
+										}
+										// If it is a normal / actual value
+										else {
+											// Cater for this later - we haven't spoken about this as yet
+										}
+									}
+								}
 								if (data['response']['wza_results'] != undefined && data['response']['wza_results'] != null) {
 									$('#nextflow-gwas-results').append('<div style="border: 1px solid #000000; margin-top: 10px; margin-bottom: 20px; padding: 5px; background: #f3fffc; border-radius: 2px;">WZA Results have been generated! You can find the file ending with extension .vcf_wza.txt in the Manage Workspace tab.</div>');
 								}
@@ -8082,6 +8130,9 @@ var ct_ready_map_analysis = function() {
 			method: 'GET',
 			success: function(data) {
 				console.log('GWAS UI JSON', data);
+				// Save the GWAS UI JSON data to the analysis object so we can use it later
+				analysis_object['sections']['conduct_analysis']['state']['gwas_ui_json'] = data;
+
 				var input_properties = data['definitions']['input_output_options']['properties'];
 				var input_properties_keys = Object.keys(input_properties);
 				var interface_html = '<div id="nextflow_gwas_options_main" data-schema="' + btoa(JSON.stringify(data)) + '">';
