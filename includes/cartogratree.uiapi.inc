@@ -1511,6 +1511,7 @@ function cartogratree_uiapi_get_study_files($tgdr_number) {
 
         $return_results['organisms'] = array();
         $return_results['genotype-snp-files'] = array();
+        $return_results['genotype-snp-association-files'] = array();
         $return_results['genotype-ssrs-files'] = array();
         $return_results['genotype-assaydesign-files'] = array();
         $result_results['genotype-vcf'] = array();
@@ -1549,6 +1550,18 @@ function cartogratree_uiapi_get_study_files($tgdr_number) {
                 // Generate a url
                 $return_results['genotype-vcf'][$i] = array (
                     'url' => $url,
+                );
+            }
+            if(isset($value['genotype']['files']['snps-association'])) {
+                $fid = $value['genotype']['files']['snps-association'];
+                // Generate a url
+                $file = file_load($fid);
+                $filename = $file->filename;
+                $uri = $file->uri;
+                $url = file_create_url($uri);
+                $return_results['genotype-snp-association-files'][$i] = array (
+                    'url' => $url,
+                    'filename' => $filename,
                 );
             }
             if(isset($value['genotype']['files']['snps-assay'])) {
