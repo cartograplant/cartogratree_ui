@@ -1510,13 +1510,14 @@ function cartogratree_uiapi_get_study_files($tgdr_number) {
         }
 
         $return_results['organisms'] = array();
-        $return_results['genotype-snp-files'] = array();
-        $return_results['genotype-snp-association-files'] = array();
-        $return_results['genotype-ssrs-files'] = array();
-        $return_results['genotype-assaydesign-files'] = array();
-        $result_results['genotype-vcf'] = array();
         $return_results['phenotype-files'] = array();
         $return_results['phenotype-mspec-files'] = array();
+        $return_results['genotype-snp-assay-files'] = array();
+        $return_results['genotype-snp-assay-design-files'] = array();
+        $return_results['genotype-snp-association-files'] = array();
+        $return_results['genotype-ssrs-files'] = array();
+        $return_results['genotype-vcf'] = array();
+
         // print_r($data_all);
         foreach ($organisms_data as $key => $value) {
             // $key eg 'organism-1'
@@ -1571,7 +1572,7 @@ function cartogratree_uiapi_get_study_files($tgdr_number) {
                 $filename = $file->filename;
                 $uri = $file->uri;
                 $url = file_create_url($uri);
-                $return_results['genotype-snp-files'][$i] = array (
+                $return_results['genotype-snp-assay-files'][$i] = array (
                     'url' => $url,
                     'filename' => $filename,
                 );
@@ -1597,7 +1598,7 @@ function cartogratree_uiapi_get_study_files($tgdr_number) {
                 $filename = $file->filename;
                 $uri = $file->uri;
                 $url = file_create_url($uri);
-                $return_results['genotype-assaydesign-files'][$i] = array (
+                $return_results['genotype-snp-assay-design-files'][$i] = array (
                     'url' => $url,
                     'filename' => $filename,
                 );

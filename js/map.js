@@ -5550,7 +5550,7 @@ var ct_ready_mapjs = async function() {
 											}
 										}
 									}
-									else if (key_name == 'genotype-snp-files') {
+									else if (key_name == 'genotype-snp-assay-files') {
 										// console.log('data[key_name]',data[key_name]);
 										// console.log('IT CAME HERE');
 										// console.log('data[key_name].length',Object.keys(data[key_name]).length);
@@ -5590,7 +5590,7 @@ var ct_ready_mapjs = async function() {
 											}
 										}
 									}
-									if (key_name == 'genotype-assaydesign-files') {
+									if (key_name == 'genotype-snp-assay-design-files') {
 										// console.log('data[key_name]',data[key_name]);
 										// console.log('IT CAME HERE');
 										// console.log('data[key_name].length',Object.keys(data[key_name]).length);
