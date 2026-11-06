@@ -245,6 +245,20 @@ var ct_ready_mapjs = async function() {
 	$('#map-opened-layers-container').slideUp(0);
 	$('#pop-struct-options-container').slideUp(500);
 
+	$('#tree-more-info .modal-content').resizable({
+		minWidth: 300,   // Prevents the modal from collapsing too small horizontally
+		minHeight: 200,  // Prevents the modal from collapsing too small vertically
+		handles: 'n, e, s, w, ne, se, sw, nw', // Enables resizing from all edges and corners
+		
+		// Optional: Fixes alignment issues during manual scaling
+		resize: function(event, ui) {
+			// Strips out default bootstrap margin restrictions that battle mouse dragging
+			$(this).css('height', ui.size.height);
+		}
+	});
+
+
+
 	/**************************************************
  
 	* MAPBOX INITIALIZATION *
