@@ -1142,6 +1142,68 @@ function cartogratree_analysisapi_nextflow_symlink_workspace_vcf_file($workspace
     drupal_json_output($results);
 }
 
+function cartogratree_analysisapi_lookup_ftp_for_analysis() {
+    $analysis_name = check_plain($_GET['analysis_name']);
+    $analysis_name = str_ireplace(' genome', '', $analysis_name);
+    $analysis_name_parts = explode(' ', $analysis_name);
+    $genus = trim($analysis_name_parts[0]);
+    $species = trim($analysis_name_parts[1]);
+    $version = trim($analysis_name_parts[2]);
+    $output_results = [];
+    //$output_results['genus'] = $genus;
+    //$output_results['species'] = $species;
+    //$output_results['version'] = $version;
+
+    // Lookup organism id
+    $species_code = '';
+    $organism_results = chado_query('SELECT organism_id FROM chado.organism WHERE genus = :genus AND species = :species LIMIT 1',
+        array(
+            ':genus' => $genus,
+            ':species' => $species
+        )
+    );
+    $organism_id = -1;
+    foreach($organism_results as $organism_row) {
+        $organism_id = $organism_row->organism_id;
+    }
+    
+    // $output_results['organism_id'] = $organism_id;
+
+    // Lookup cvterm id for 4 letter code
+    $cvterm_id = -1;
+    $cvterm_results = chado_query('SELECT cvterm_id FROM chado.cvterm WHERE name = :name LIMIT 1',
+        array(
+            ':name' => 'organism 4 letter code'
+        )
+    );
+    foreach($cvterm_results as $cvterm_row) {
+        $cvterm_id = $cvterm_row->cvterm_id;
+    }
+
+    // Lookup organism prop
+    $organism_four_letter_code_results = chado_query('SELECT * FROM chado.organismprop WHERE organism_id = :organism_id AND type_id = :type_id',
+        array(
+            ':organism_id' => $organism_id,
+            ':type_id' => $cvterm_id
+        )
+    );
+    $organism_four_letter_code = '';
+    foreach($organism_four_letter_code_results as $organism_four_letter_code_row) {
+        $organism_four_letter_code = $organism_four_letter_code_row->value;
+    }
+
+    $ftp_link = '/FTP/Genomes/' . $organism_four_letter_code . '/' . $version . '/genome';
+
+    if (is_dir(DRUPAL_ROOT . $ftp_link)) {
+        $output_results['ftp_link_exists'] = true;
+    } else {
+        $output_results['ftp_link_exists'] = false;
+    }
+    $output_results['status'] = 'success';
+    $output_results['ftp_link'] = $ftp_link;
+    drupal_json_output($output_results);
+}
+
 function cartogratree_analysisapi_lookup_vcf_locations_for_analysis_and_studies() {
     $analysis_name = check_plain($_GET['analysis_name']);
     $studies_csv = check_plain($_GET['studies_csv']);

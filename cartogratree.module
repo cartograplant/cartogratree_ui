@@ -264,6 +264,18 @@ function cartogratree_menu()
         ),
     );
 
+    $items['cartogratree_uianalysis/cartogratree_analysisapi_lookup_ftp_for_analysis'] = array(
+        'description' => 'Cartogratree ANALYSIS API: cartogratree analysisapi lookup ftp for analysis',
+        'title' => 'Cartogratree ANALYSIS API: cartogratree analysisapi lookup ftp for analysis',
+        'page callback' => 'cartogratree_analysisapi_lookup_ftp_for_analysis',
+        'page arguments' => array(
+        ),
+        'file' => 'includes/cartogratree.analysis.api.inc',
+        'access arguments' => array(
+            'use cartogratree',
+        ),
+    );
+
     $items['cartogratree_uianalysis/cartogratree_analysisapi_lookup_studies_overlapping_analyses/%'] = array(
         'description' => 'Cartogratree ANALYSIS API: cartogratree analysisapi lookup studies overlapping analyses',
         'title' => 'Cartogratree ANALYSIS API: cartogratree analysisapi lookup studies overlapping analyses',

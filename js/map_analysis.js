@@ -2847,7 +2847,10 @@ var ct_ready_map_analysis = function() {
 		}
 
 		study_info_html += '<div style="margin-top: 10px; margin-bottom: 0px;">Please select overlapping analysis.</div>';
-		study_info_html += '<div style="margin-top: 0px; margin-bottom: 10px;"><select id="overlapping_analyses_names"></select></div>';
+		study_info_html += '<div style="margin-top: 0px; margin-bottom: 10px;">';
+		study_info_html += '<select id="overlapping_analyses_names"></select>';
+		study_info_html += '<div id="overlapping_analyses_ftp_link"></div>';
+		study_info_html += '</div>';
 		
 		//study_info_html += '<div style="margin-top: 5px; margin-bottom: 5px;"><button class="btn btn-primary" id="btn_snps_merge_vcfs">Merge VCFs</button></div>';
 		//study_info_html += '<div id="analysis_merge_vcfs_status" style="margin-top: 5px; margin-bottom: 5px;"></div>';
@@ -2914,7 +2917,23 @@ var ct_ready_map_analysis = function() {
 						generate_venn_and_upset_plot_diagrams_v2();
 					}
 				}
-			})
+			});
+
+			// Lookup the FTP directory for the selected analysis to generate a download link
+			// #overlapping_analyses_ftp_link
+			$.ajax({
+				method: 'GET',
+				url: Drupal.settings.base_url + '/cartogratree_uianalysis/cartogratree_analysisapi_lookup_ftp_for_analysis?analysis_name=' + selected_analysis_name,
+				success: function(data) {
+					console.log('cartogratree_analysisapi_lookup_ftp_for_analysis', data);
+					if (data['ftp_link_exists'] == true) {
+						$('#overlapping_analyses_ftp_link').html('<a class="btn btn-primary" style="margin-top: 5px; color: #FFFFFF !important;" href="' + data['ftp_link'] + '" target="_blank">Download Genome via FTP</a>');
+					} else {
+						$('#overlapping_analyses_ftp_link').html('');
+					}
+				}
+			});
+
 		});
 
 
