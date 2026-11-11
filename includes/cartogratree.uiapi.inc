@@ -7,7 +7,7 @@ function cartogratree_uiapi_speciesinfo_popgen($species_text) {
   $species = $species_parts[1];
   $output = [];
 
-  $result_accessions = chado_query('SELECT DISTINCT(accession), project_id, species, title, author, tree_count, year FROM chado.plusgeno_view WHERE species ILIKE :species;',
+  $result_accessions = chado_query('SELECT DISTINCT(accession), species, title, author, tree_count, year FROM chado.plusgeno_view WHERE species ILIKE :species;',
   array(
     ':species' => $genus . ' ' . $species,
   )
@@ -95,6 +95,10 @@ function cartogratree_uiapi_speciesinfo_popgen($species_text) {
       // remove it
       $author = substr($author, 1, strlen($author));
       $author = trim($author);
+    }
+    $author_parts = explode(',', trim($author));
+    if (count($author_parts) > 2) { 
+        $author = $author_parts[1];
     }
     $author = explode(',',trim($author))[0];
     $markup .= '<tr><td><a target="_blank" href="/tpps/details/' . $row->accession . '">' . $row->accession . "</a></td><td>" .  $author  . " et al (" . $row->year . ") </td><td>" . $row->tree_count . " plants </td><td study-accession='" . $row->accession . "' class='data'>$data</td><td><a target='_blank' href='$base_url/tpps/details/" . $row->accession . "'>Show</a></td></tr>";
