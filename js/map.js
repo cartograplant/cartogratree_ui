@@ -2861,6 +2861,21 @@ var ct_ready_mapjs = async function() {
 	}
 
 
+	class ModalStudyAdditionalDetails {
+		constructor(study_id) {
+			this.study_id = study_id;
+		}
+
+		loadData() {
+			// Implement the logic to load additional study details here
+		}
+
+		generateHTMLTemplate() {
+			// Implement the logic to generate the HTML template for additional study details here
+		}
+	}
+
+
 	// This is an on click trigger for using the ModalSpeciesInfo class to populate the species details 
 	// info modal when a user clicks on a species name in the species details table
 	$(document).on('click', '*[data-target="#species-details-info"]', function() {
@@ -3308,20 +3323,23 @@ var ct_ready_mapjs = async function() {
 		}
 	}
 
-	
-	const queryString = window.location.search;
-	console.log('Query string from URL:');
-	console.log('queryString', queryString);
-	const urlParams = new URLSearchParams(queryString);
-	if (urlParams.get('modal') != '') {
-		var url_modal = urlParams.get('modal');
-		if (url_modal == 'about') {
-			// Wait for page to load before opening modal
-			$(document).ready(function() {
-				$('a[data-target="#about"]').click();
-			});
+	function boot_handle_query_string() {
+		const queryString = window.location.search;
+		console.log('Query string from URL:');
+		console.log('queryString', queryString);
+		const urlParams = new URLSearchParams(queryString);
+		if (urlParams.get('modal') != '') {
+			var url_modal = urlParams.get('modal');
+			if (url_modal == 'about') {
+				// Wait for page to load before opening modal
+				$(document).ready(function() {
+					$('a[data-target="#about"]').click();
+				});
+			}
 		}
 	}
+	boot_handle_query_string();
+
 
 	//var selectedSession = Drupal.settings.user["sessions"][selectedConfig.attr("href").split("-")[1]];
 	/*
