@@ -2257,11 +2257,11 @@ var ct_ready_mapjs = async function() {
 					$("#treesnap-collection-date").text("Collection date: " + treeImgsStore[this.tree_id]["collection_date"]);
 					updateTreeImgs(treeImgsStore[this.tree_id], data.species);
 				}
-
-
 			}
 
+			// Modal header
 			$("#tree-more-info-label").text(this.tree_id);
+			
 			$("#tree-specific-info-label").text(this.tree_id);
 			$("#tree-coord-type").text(this.tree_data.coordinate_type == 0 ? "Exact" : "Approximate");
 			$('#tree-specific-coord-value').text(this.tree_data.coordinate_type == 0 ? "Exact" : "Approximate");
@@ -2270,8 +2270,12 @@ var ct_ready_mapjs = async function() {
 			
 			$("#tpps-link").html("");
 			var sourceName = '';
+			console.log("Source Name: ", sourceName);
 			if ((sourceName == "TreeGenes" && this.tree_id.includes("TGDR")) || (sourceName == "Data Dryad" && this.tree_id.includes("TGDR"))) {
 				// $("#tpps-link").append("<a href='https://treegenesdb.org/tpps/details/" + treeId.split("-")[0] + "' target='_blank'><button class='btn btn-success'>Study TPPS Link</button></a>");
+				// Obtain the study accession from the tree / plant name
+				var study_accession = this.tree_id.split("-")[0];
+				$("#tree-more-info-label").text(study_accession);
 			}
 		
 			$("#tree-details").removeClass("hidden");
@@ -2555,7 +2559,7 @@ var ct_ready_mapjs = async function() {
 			//$('#mama-project-plant-location').html(location_html);
 		}
 
-		lookupCollectionInfo() {
+		lookupTreesnapCollectionInfo() {
 			const self = this; // The parent ModalTreeProjectInfo class context
 			if (self.collection_info == undefined || self.collection_info.length == 0) {
 				$.ajax({
@@ -2681,7 +2685,7 @@ var ct_ready_mapjs = async function() {
 			$('#mama-project-plant-location').html(location_html);
 		}
 
-		lookupCollectionInfo() {
+		lookupMamaCollectionInfo() {
 			const self = this; // The parent ModalMamaProjectInfo class context
 			$.ajax({
 				url: Drupal.settings.ct_nodejs_api + "/v2/trees/mama/get_collection_info?tree_id=" + this.treeId + "&api_key=" + Drupal.settings.ct_api + "&collection_id=" + this.collectionId,
@@ -5799,122 +5803,16 @@ var ct_ready_mapjs = async function() {
 		console.log('species', data.species);
 		$('.btn[data-target="#tree-more-info"]').parent().addClass("hidden");
 		$('.btn[data-target="#mama-project-more-info"]').parent().addClass("hidden");
-		// await updateTreeImgs([], data.species);
+		
+		// TREESNAP OR EVOME source_ids
 		if (data.source_id == 1  || data.source_id == 5) {
-
 			modal_tree_project_info.setTreeId(treeId);
-			modal_tree_project_info.lookupCollectionInfo();
+			modal_tree_project_info.lookupTreesnapCollectionInfo();
 			modal_tree_project_info.UI_update_content();
+		}
+		// DATADRYAD OR TREEGENES
+		else if (data.source_id == 2 || data.source_id == 0) {
 
-			// sourceName = "TreeSnap";
-			// // If treesnap tree, set the button label to Collection Info (Tree Popup window)
-			// $('.btn[data-target="#tree-more-info"]').parent().removeClass("hidden");
-			// $('.btn[data-target="#tree-more-info"]').html('Collection Info');
-			// $('.add-all-study-plants').html('Add all collection plants');
-
-			// // Perform a lookup of the tree_id to get the collection name which we will then display on the
-			// // 'study details' popup.
-			// $.ajax({
-			// 	url: Drupal.settings.ct_nodejs_api + "/v2/trees/treesnap/collection_name_lookup_by_tree_id?tree_id=" + treeId,
-			// 	dataType: "json",
-			// 	success: function (data) {
-			// 		if (data.length > 0) {
-			// 			console.log('Collection name response: ', data);
-			// 			$("#treesnap-collection-container").removeClass("hidden");					
-			// 			$("#treesnap-collection-container").html('<h2 style="padding: 0px;">Treesnap Collection: ' + data[0]['category'] + '</h2>');
-						
-			// 			$.ajax({
-			// 				url: Drupal.settings.base_url + "/cartogratree_uiapi/get_evome_data/" + treeId,
-			// 				dataType: "json",
-			// 				success: function (evome_data) {
-			// 					console.log('evome_data', evome_data);
-			// 					for (var i = 0; i<evome_data.length; i++) {
-			// 						var evome_row = evome_data[i];
-			// 						if (evome_row['name'] == 'willowTreeSampleId') {
-			// 							$("#treesnap-collection-container").append('<div style="color: #FFFFFF;margin-top:10px;margin-left: 3px;background-color: #589a60;display: inline-block;padding: 2px;border-radius: 2px;">EVOME Sample ID: ' + evome_row['value'] + '</div>');
-			// 						}
-			// 					}
-			// 				}
-			// 			});
-			// 			// $("#treesnap-collection-container").append('<div id="sample_id"></div>');
-						
-						
-			// 			// Lookup the number of plants in this collection
-			// 			// if (data.length > 0) {
-			// 			// 	console.log('Collection data: ', data);
-			// 			// 	$("#treesnap-collection-container").append('<div style="margin-left: 5px; margin-top: 5px;">There are ' + data.length + ' plants in this Treesnap collection</div>')
-			// 			// }
-						
-			// 			// Lookup the collection number
-			// 			$.ajax({
-			// 				url: Drupal.settings.ct_nodejs_api + "/v2/trees/treesnap/collection_lookup_by_tree_id?tree_id=" + treeId,
-			// 				dataType: "json",
-			// 				success: function (data) {
-			// 					if (data.length > 0) {
-			// 						console.log('Collection data: ', data);
-			// 						$("#treesnap-collection-container").append('<div style="margin-left: 0px; margin-top: 5px; margin-bottom: 5px;">There are ' + data.length + ' plants in this Treesnap collection</div>')
-			// 					}
-			// 				}
-			// 			});
-						
-			// 		}
-			// 	}
-			// });
-
-
-			// if(treeId.includes('treesnap')) {
-			// 	$('#treesnap-images-container').removeClass("hidden");
-			// }
-			// else {
-			// 	if ($('#treesnap-images-container').hasClass("hidden") == false) {
-			// 		$('#treesnap-images-container').addClass("hidden");
-			// 	}
-			// }
-
-			// if (treeImgsStore[treeId] == undefined) {
-			// 	$.ajax({
-			// 		url: Drupal.settings.ct_nodejs_api + "/v2/tree/treesnap?api_key=" + Drupal.settings.ct_api + "&tree_id=" + treeId,
-			// 		dataType: "json",
-			// 		async: false,
-			// 		timeout: 4000,
-			// 		success: function (tsData) {
-			// 			console.log('treesnap-data', tsData);
-			// 			$("#tree-submitter").text("Taken by: " + tsData.submitter);
-			// 			$("#tree-collection-date").text("Collection date: " + tsData.collection_date);
-			// 			try {
-			// 			updateTreeImgs(tsData.data.images, data.species, 'treesnap');
-			// 			}
-			// 			catch (err) {
-			// 				console.log('ERROR FOR TREESNAP IMAGES:' + err);
-			// 			}
-			// 			try {
-			// 				treeImgsStore[treeId] = {"submitter": tsData.submitter, "collection_data": tsData.collection_date, "images": tsData.images.images};
-			// 			}
-			// 			catch (err) {
-			// 				console.log(err);
-			// 			}
-
-			// 		},
-			// 		error: function (xhr, textStatus, errorThrown) {
-			// 			if(debug) {
-			// 				console.log({
-			// 					textStatus
-			// 				});
-			// 				console.log({
-			// 					errorThrown
-			// 				});
-			// 				console.log(xhr.responseText);
-			// 			}
-			// 			// updateTreeImgs(undefined, "dummy_value");
-			// 			updateTreeImgs(undefined, data.species, 'treesnap');
-			// 		}
-			// 	});	
-			// }
-			// else {	
-			// 	$("#tree-submitter").text("Taken by: " + treeImgsStore[treeId]["submitter"]);
-			// 	$("#treesnap-collection-date").text("Collection date: " + treeImgsStore[treeId]["collection_date"]);
-			// 	updateTreeImgs(treeImgsStore[treeId], data.species);
-			// }
 		}
 		// else for mama
 		else if (data.source_id == 6) {
@@ -5924,7 +5822,7 @@ var ct_ready_mapjs = async function() {
 			// This updates the MAMA Project Info Modal details
 			cartograplant['modal_mama_project_info'] = new ModalMamaProjectInfo();
 			cartograplant['modal_mama_project_info'].setTreeId(treeId);
-			cartograplant['modal_mama_project_info'].lookupCollectionInfo();
+			cartograplant['modal_mama_project_info'].lookupMamaCollectionInfo();
 			cartograplant['modal_mama_project_info'].updateContent();
 		}
 		else {
@@ -6219,31 +6117,7 @@ var ct_ready_mapjs = async function() {
 				$('#tree-more-info-phenotype-container').hide();
 			}
 		});
-		
-
-
-		//perform genotypes count lookup
-		//IGNORE THIS SINCE WE CAN GET THE COUNTS VIA THE /v2/publications API we likely also
-		//call in the process of rendering the tree details popup
-		// $('#tree-markers-count-label').hide();
-		// $('#tree-markers-count').hide();
-		// $.ajax({
-		// 	url: Drupal.settings.ct_nodejs_api + "/v2/genotypes/count/all?api_key=" + Drupal.settings.ct_api + "&tree_id=" + genotype_treeId,
-		// 	dataType: "json",
-		// 	success: function (data) {
-		// 		console.log('Genotypes/Markers for ' + genotype_treeId + ' count:');
-		// 		console.log(data);
-		// 		if(data.length > 0) {
-		// 			for (var i = 0; i < data.length; i++) {
-		// 				$('#tree-markers-count').html(data[i].c1);
-		// 				if(data[i].c1 > 0) {
-		// 					$('#tree-markers-count-label').show();
-		// 					$('#tree-markers-count').show();
-		// 				}
-		// 			}
-		// 		}
-		// 	}
-		// });		
+			
 
 		//perform genotypes lookup
 		$('#tree-specific-unique-genotypes-container').hide();
@@ -6301,86 +6175,7 @@ var ct_ready_mapjs = async function() {
 							url: Drupal.settings.ct_nodejs_api + "/v2/genotypes?api_key=" + Drupal.settings.ct_api + "&tree_id=" + genotype_treeId,
 							dataType: "json",
 							success: function (data) {
-								generate_genotypes_ui_data(data)
-								// console.log('Genotypes for ' + genotype_treeId + ':');
-								// console.log(data);
-								// var tpps_study = '';
-								// var genotype_html = '';
-								// genotype_html += "<h3 style='padding-top: 0px;padding-bottom: 5px;margin-left: -3px; margin-bottom: 10px;'>Plant Genotypic Data</h3>";
-								// genotype_html += "<table id='more_info_genotype_table' style='width: 100%;'>";
-								// genotype_html += "<tr><th>Plant ID</th><th>Marker Name</th><th>Genotype</th><th>Marker Type</th></tr>";				
-								// if(data.length > 0) {
-
-								// 	$('#tree-specific-unique-genotypes-container').show();
-								// 	$('#tree-specific-unique-genotypes-count-label').show();
-								// 	$('#tree-specific-unique-genotypes-count').show();
-								// 	$('#tree-specific-unique-genotypes-count').html(data.length);
-
-								// 	$('#tree-more-info-genotype-container').show();
-								// 	$('#tree-more-info-genotype-container').html();
-								// 	if(debug) {
-								// 		console.log('Genotypic data');
-								// 		console.log(data);
-								// 	}
-								// 	var count = 0;
-								// 	if(data.length > 0) {
-								// 		//set icon if it does not exist in the map summary by number of plants
-								// 		if($("#plants_details_genotype_icon").length) {
-
-								// 		}
-								// 		else {
-								// 			var icon = '<i id="plants_details_genotype_icon" title="Plants contain genotypic data" class="fas fa-dna"></i>';
-								// 			$("#plants_details_icons").append(icon);
-								// 		}
-								// 	}			
-								// 	if (data.length <= 15) {
-								// 		count = data.length;
-								// 	}
-								// 	else {
-								// 		count = 15;//only allow 15
-								// 	}
-								// 	for (var i = 0; i < count; i++) {
-								// 		for (var k in data[i]) {
-								// 			//console.log('KEY:' + k);
-								// 			//console.log('VAL:' + data[i][k]);
-								// 			//if (data[i].hasOwnProperty(k)) {
-								// 		if(data[i][k] == "null" || data[i][k] == "NULL" || data[i][k] == null) {
-								// 			data[i][k] = "-";
-								// 		}
-								// 			//}
-								// 		}
-
-								// 		if(i==0 && data[i].tree_acc.includes('TGDR')) {
-								// 			tpps_study = data[i].tree_acc.split('-')[0];
-								// 		}
-								// 		genotype_html +=  "<tr><td>" + data[i].tree_acc + "</td><td>" + data[i].marker_name + "</td><td>" + data[i].description + "</td><td>" + data[i].marker_type + "</td></tr>";
-								// 		//genotype_html = genotype_html + "<tr><td>" + data[i].uniquename.replace('-' + data[i].description, '') + "</td><td>" + data[i].description + "</td><td>" + data[i].marker_type + "</td></tr>";
-								// 	}
-								// }
-								// else {
-								// 	$('#tree-more-info-genotype-container').html('');
-								// 	$('#tree-more-info-genotype-container').hide();
-
-								// 	// $('#tree-specific-unique-genotypes-container').show();
-								// 	// $('#tree-specific-unique-genotypes-count').html(data.length);					
-								// }
-								// genotype_html += "</table>";
-								
-								// if(data.length > 15) {
-								// 	if(tpps_study != '') {
-								// 		genotype_html += "More markers are available for this plant, <a target='_blank' href='/tpps/details/" + tpps_study + "'>click here to view all</a>";
-								// 	}
-								// 	else {
-								// 		genotype_html += "More markers are available for this plant.<br />";
-								// 	}
-								// }
-
-								// if (data.length <= 0) {
-								// 	genotype_html += "<p style='padding: 5px;'>No genotypes were found for this specific plant</p>";
-								// }
-								
-								// $('#tree-more-info-genotype-container').html(genotype_html);
-								// $('#tree-more-info-genotype-container').show();				
+								generate_genotypes_ui_data(data)				
 							},
 							error: function(err) {
 								$('#tree-more-info-genotype-container').hide();
