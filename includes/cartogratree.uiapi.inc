@@ -85,6 +85,9 @@ function cartogratree_uiapi_speciesinfo_popgen($species_text) {
       }
     } 
     $data = rtrim($data, ', ');
+    $data = rtrim($data, '()');
+    $data = rtrim($data, '{}');
+    $data = rtrim($data, ': ');
 
     // $authors = explode(",", $row->value);
     //This is the old code based on the species but now we have the actual studies
