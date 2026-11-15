@@ -2206,6 +2206,11 @@ var ct_ready_mapjs = async function() {
 			// Modal header
 			$("#tree-more-info-label").text(this.tree_id);
 
+			// Show plant details container
+			$("#plant-details-container").removeClass("hidden");
+			// Set tree-study-associated-container width to 48%
+			$("#tree-study-associated-container").css("width", "48%");
+
 			// TREESNAP OR EVOME source_ids
 			if (this.source_id == 1 || this.source_id == 5) {
 				this.source_name = "TreeSnap";
@@ -2273,6 +2278,13 @@ var ct_ready_mapjs = async function() {
 				// Override modal header
 				var study_accession = this.tree_id.split("-")[0];
 				$("#tree-more-info-label").text(study_accession);
+
+				// Hide plant details container
+				$("#plant-details-container").addClass("hidden");
+
+				// Set tree-study-associated-container to 98%
+				$("#tree-study-associated-container").css("width", "98%");
+
 				$('.btn[data-target="#tree-more-info"]').parent().removeClass("hidden");
 				$('.btn[data-target="#tree-more-info"]').html('Study Info');
 				$('.add-all-study-plants').html('Add all study plants');
