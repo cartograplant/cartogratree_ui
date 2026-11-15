@@ -2194,9 +2194,15 @@ var ct_ready_mapjs = async function() {
 			}
 		}
 
+		setData(data) {
+			this.data = data;
+		}
+
 		UI_update_content() {
 			this.resetModalUI();
 			// datasetKey is a global variable that contains the mapping of source_id to dataset_id for all the datasets in the system, this is used to determine the source name for the tree based on its source_id
+			
+			// TREESNAP OR EVOME source_ids
 			if (this.source_id == 1 || this.source_id == 5) {
 				this.source_name = "TreeSnap";
 				// If treesnap tree, set the button label to Collection Info (Tree Popup window)
@@ -2257,6 +2263,35 @@ var ct_ready_mapjs = async function() {
 					$("#treesnap-collection-date").text("Collection date: " + treeImgsStore[this.tree_id]["collection_date"]);
 					updateTreeImgs(treeImgsStore[this.tree_id], data.species);
 				}
+			}
+			// DRYAD OR TREEGENES source_ids
+			else if (this.source_id == 0 || this.source_id == 2) {
+				$('.btn[data-target="#tree-more-info"]').parent().removeClass("hidden");
+				$('.btn[data-target="#tree-more-info"]').html('Study Info');
+				$('.add-all-study-plants').html('Add all study plants');
+				$("#treesnap-collection-container").addClass("hidden");
+				if(this.source_id == 0) {
+					try {
+						updateTreeImgs([], this.data.species);
+					}
+					catch (err) {
+						console.log(err);
+					}
+					getTreegenesData(this.tree_id);
+				}
+				else if(this.source_id == 2) {
+					sourceName = "Data Dryad";
+					updateTreeImgs([], this.data.species);
+					if(this.data.uniquename.includes('TGDR')) {
+						getTreegenesData(this.tree_id);
+					}
+					else {
+						// treeId = treeId.split("--")[1];	
+						treeId = this.tree_id.split("--")[1];	
+						getTreegenesData(treeId);
+					}
+				}
+				$("#tree-submitter").text("This is a default image");
 			}
 
 			// Modal header
@@ -5810,10 +5845,6 @@ var ct_ready_mapjs = async function() {
 			modal_tree_project_info.lookupTreesnapCollectionInfo();
 			modal_tree_project_info.UI_update_content();
 		}
-		// DATADRYAD OR TREEGENES
-		else if (data.source_id == 2 || data.source_id == 0) {
-
-		}
 		// else for mama
 		else if (data.source_id == 6) {
 			sourceName = "MAMA EAB";
@@ -5824,6 +5855,38 @@ var ct_ready_mapjs = async function() {
 			cartograplant['modal_mama_project_info'].setTreeId(treeId);
 			cartograplant['modal_mama_project_info'].lookupMamaCollectionInfo();
 			cartograplant['modal_mama_project_info'].updateContent();
+		}
+		else if (data.source_id == 0 || data.source_id == 2) {
+
+			modal_tree_project_info.setTreeId(treeId);
+			modal_tree_project_info.setData(data);
+			modal_tree_project_info.UI_update_content();
+
+			// $('.btn[data-target="#tree-more-info"]').parent().removeClass("hidden");
+			// $('.btn[data-target="#tree-more-info"]').html('Study Info');
+			// $('.add-all-study-plants').html('Add all study plants');
+			// $("#treesnap-collection-container").addClass("hidden");
+			// if(data.source_id == 0) {
+			// 	try {
+			// 		updateTreeImgs([], data.species);
+			// 	}
+			// 	catch (err) {
+			// 		console.log(err);
+			// 	}
+			// 	getTreegenesData(treeId);
+			// }
+			// else if(data.source_id == 2) {
+			// 	sourceName = "Data Dryad";
+			// 	updateTreeImgs([], data.species);
+			// 	if(data.uniquename.includes('TGDR')) {
+			// 		getTreegenesData(treeId);
+			// 	}
+			// 	else {
+			// 		treeId = treeId.split("--")[1];				
+			// 		getTreegenesData(treeId);
+			// 	}
+			// }
+			// $("#tree-submitter").text("This is a default image");
 		}
 		else {
 			// If not a treesnap tree, set the button label to Study Info (Tree Popup window)
@@ -5844,27 +5907,8 @@ var ct_ready_mapjs = async function() {
 					getTreegenesData(treeId);
 				}
 			}*/
-			if(data.source_id == 0) {
-				try {
-					updateTreeImgs([], data.species);
-				}
-				catch (err) {
-					console.log(err);
-				}
-				getTreegenesData(treeId);
-			}
-			else if(data.source_id == 2) {
-				sourceName = "Data Dryad";
-				updateTreeImgs([], data.species);
-				if(data.uniquename.includes('TGDR')) {
-					getTreegenesData(treeId);
-				}
-				else {
-					treeId = treeId.split("--")[1];				
-					getTreegenesData(treeId);
-				}
-			}
-			else if(data.source_id == 3) {
+
+			if(data.source_id == 3) {
 				sourceName = 'BIEN';
 				$('#tree-details .btn-primary[data-target="#tree-more-info"]').parent().addClass('hidden');
 				data.coordinate_type = 0;
