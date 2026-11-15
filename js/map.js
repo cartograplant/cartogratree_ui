@@ -2189,11 +2189,12 @@ var ct_ready_mapjs = async function() {
 
 		UI_update_species(species) {
 			this.species = species;
-			if (species != null && species != undefined && species != "") {
-				$('#tree-more-info-label-species').html(this.species)
-			}
+			// if (species != null && species != undefined && species != "") {
+			// 	$('#tree-more-info-label-species').html(this.species)
+			// }
 		}
 
+		// Generic function to handle legacy code where a data object is passed to the modal
 		setData(data) {
 			this.data = data;
 		}
@@ -2202,6 +2203,9 @@ var ct_ready_mapjs = async function() {
 			this.resetModalUI();
 			// datasetKey is a global variable that contains the mapping of source_id to dataset_id for all the datasets in the system, this is used to determine the source name for the tree based on its source_id
 			
+			// Modal header
+			$("#tree-more-info-label").text(this.tree_id);
+
 			// TREESNAP OR EVOME source_ids
 			if (this.source_id == 1 || this.source_id == 5) {
 				this.source_name = "TreeSnap";
@@ -2266,6 +2270,9 @@ var ct_ready_mapjs = async function() {
 			}
 			// DRYAD OR TREEGENES source_ids
 			else if (this.source_id == 0 || this.source_id == 2) {
+				// Override modal header
+				var study_accession = this.tree_id.split("-")[0];
+				$("#tree-more-info-label").text(study_accession);
 				$('.btn[data-target="#tree-more-info"]').parent().removeClass("hidden");
 				$('.btn[data-target="#tree-more-info"]').html('Study Info');
 				$('.add-all-study-plants').html('Add all study plants');
@@ -2294,8 +2301,7 @@ var ct_ready_mapjs = async function() {
 				$("#tree-submitter").text("This is a default image");
 			}
 
-			// Modal header
-			$("#tree-more-info-label").text(this.tree_id);
+
 			
 			$("#tree-specific-info-label").text(this.tree_id);
 			$("#tree-coord-type").text(this.tree_data.coordinate_type == 0 ? "Exact" : "Approximate");
@@ -2306,12 +2312,12 @@ var ct_ready_mapjs = async function() {
 			$("#tpps-link").html("");
 			var sourceName = '';
 			console.log("Source Name: ", sourceName);
-			if ((sourceName == "TreeGenes" && this.tree_id.includes("TGDR")) || (sourceName == "Data Dryad" && this.tree_id.includes("TGDR"))) {
-				// $("#tpps-link").append("<a href='https://treegenesdb.org/tpps/details/" + treeId.split("-")[0] + "' target='_blank'><button class='btn btn-success'>Study TPPS Link</button></a>");
-				// Obtain the study accession from the tree / plant name
-				var study_accession = this.tree_id.split("-")[0];
-				$("#tree-more-info-label").text(study_accession);
-			}
+			// if ((sourceName == "TreeGenes" && this.tree_id.includes("TGDR")) || (sourceName == "Data Dryad" && this.tree_id.includes("TGDR"))) {
+			// 	// $("#tpps-link").append("<a href='https://treegenesdb.org/tpps/details/" + treeId.split("-")[0] + "' target='_blank'><button class='btn btn-success'>Study TPPS Link</button></a>");
+			// 	// Obtain the study accession from the tree / plant name
+			// 	var study_accession = this.tree_id.split("-")[0];
+			// 	$("#tree-more-info-label").text(study_accession);
+			// }
 		
 			$("#tree-details").removeClass("hidden");
 			$("#hide-tree-details").prop("disabled", false);
@@ -6441,83 +6447,6 @@ var ct_ready_mapjs = async function() {
 		modal_species_info.loadDataAll();
 
 
-    	
-		// DEPRECATED 5/14/2026 - This removes the iframe that loads the organism species page from TreeGenes
-		// // Lookup if there is a species page on TreeGenes for this data.species
-		// setTimeout(async function() {
-		// 	$('#species-details-info-iframe-species-container').html('');
-		// 	$('#species-details-info-species-link-container').html('');
-		// 	var species_with_dash = '';
-		// 	try {
-		// 		species_with_dash = data.species.replace(' ', '-');
-		// 		var url = 'https://treegenesdb.org/org/' + species_with_dash + '?hide_header=1';
-		// 		var url_exists = false;
-		// 		try {
-		// 			const response = await fetch(url, { method: 'HEAD' }); // Using HEAD method for efficiency
-		// 			url_exists = response.ok;
-		// 		} catch (error) {
-		// 			console.error(`Error checking URL ${url}:`, error);
-		// 		}
-		// 		if (url_exists) {
-		// 			$('#species-details-info-species-link-container').html('<div class="p-2"><a target="_blank" href="' + url + '">Open details in new window: ' + data.species + '</a></div>')
-					
-		// 			$('#species-details-info-iframe-species-container').html('<iframe id="species-page-iframe" style="border: 0px;" border=0 width="100%" height="500px" src="' + url + '"></iframe>');
-		// 			// setTimeout(function() {
-		// 			// 	console.log("Overriding species page iframe CSS");
-		// 			// 	// Get a reference to the iframe element
-		// 			// 	const iframe = document.getElementById('species-page-iframe');
-
-		// 			// 	// Access the iframe's contentDocument
-		// 			// 	const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-
-		// 			// 	// Create a new style element
-		// 			// 	const style = iframeDoc.createElement('style');
-		// 			// 	style.textContent = `
-		// 			// 	#page-title, #header {
-		// 			// 		display: none !important;
-		// 			// 	}
-
-		// 			// 	`;
-
-		// 			// 	// Append the style element to the iframe's head
-		// 			// 	iframeDoc.head.appendChild(style);
-		// 			// }, 7000);
-		// 			$("#species-page-iframe").off("load");
-		// 			$("#species-page-iframe").on("load", function() {
-		// 				console.log('Jquery Species Page IFRAME ON LOAD ALGORITHM');
-		// 				var $iframeContents = $(this).contents();
-
-		// 				$iframeContents.find('#toolbar').hide();
-		// 				$iframeContents.find("#page-title").hide();
-		// 				$iframeContents.find("#header").hide();
-		// 				$iframeContents.find('.admin-div').hide();
-		// 				$iframeContents.find('.region-sidebar-second').hide();
-		// 				$iframeContents.find('#footer').hide();
-		// 				$iframeContents.find('body').css('background-color', '#FFFFFF');
-		// 				$iframeContents.find('body').css('padding-top', '0px');
-		// 				$iframeContents.find('#main').css('padding-top', '0px');
-		// 				$iframeContents.find('#block-system-main').find('br').remove();
-		// 				$iframeContents.find('.region-content').removeClass('col-md-9');
-		// 				$iframeContents.find('#main .container').css('max-width', '100%');
-
-				
-		// 				// Example: Find an element within the iframe and change its text
-		// 				// $iframeContents.find("#someElementInIframe").text("New text from parent!");
-				
-		// 				// Example: Add a CSS class to an element in the iframe
-		// 				// $iframeContents.find(".anotherElement").addClass("highlight");
-				
-		// 				// Example: Get the height of the iframe's body and resize the iframe
-		// 				// var iframeBodyHeight = $iframeContents.find("body").height();
-		// 				// $(this).height(iframeBodyHeight);
-		// 			});
-		// 		}
-
-		// 	}
-		// 	catch (err) {
-		// 		console.log(err);
-		// 	}
-		// }, 1000);
 
 		$("#tree-source").text(sourceName);
 		$("#tree-id").text('');
@@ -6535,7 +6464,7 @@ var ct_ready_mapjs = async function() {
 		catch(err) {
 
 		}
-		$("#tree-more-info-label").text(treeId);
+		// $("#tree-more-info-label").text(treeId);
 		$("#tree-specific-info-label").text(treeId);
 		$("#tree-coord-type").text(data.coordinate_type == 0 ? "Exact" : "Approximate");
 		$('#tree-specific-coord-value').text(data.coordinate_type == 0 ? "Exact" : "Approximate");
