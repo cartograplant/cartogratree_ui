@@ -5325,7 +5325,12 @@ var ct_ready_mapjs = async function() {
 					try {
 						if(data[0].author.length > 0) {
 							$("#tree-pub-author").removeClass("hidden");
-							$("#tree-pub-author").text(data[0].author);
+							var author = data[0].author;
+							var author_parts = author.split(",");
+							if (author_parts.length >= 3) {
+								author = author_parts[1] + ", " + author_parts[2]+ " " + author_parts[0];
+							}
+							$("#tree-pub-author").text(author);
 						}
 					}
 					catch(err) {
